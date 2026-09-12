@@ -4,7 +4,7 @@ use ruma_macros::IdDst;
 use tracing::warn;
 
 use super::{
-    IdParseError, MatrixToUri, MatrixUri, OwnedEventId, OwnedServerName, ServerName,
+    EventId, IdParseError, MatrixToUri, MatrixUri, OwnedServerName, ServerName,
     matrix_uri::UriAction,
 };
 
@@ -129,7 +129,7 @@ impl RoomId {
     ///
     /// Note that it is recommended to provide servers that should know the room to be able to find
     /// it with its room ID. For that use [`RoomId::matrix_to_event_uri_via()`].
-    pub fn matrix_to_event_uri(&self, ev_id: impl Into<OwnedEventId>) -> MatrixToUri {
+    pub fn matrix_to_event_uri(&self, ev_id: impl Into<EventId>) -> MatrixToUri {
         MatrixToUri::new((self.to_owned(), ev_id.into()).into(), vec![])
     }
 
@@ -141,7 +141,7 @@ impl RoomId {
     /// If you don't have a list of servers, you can use [`RoomId::matrix_to_event_uri()`] instead.
     ///
     /// [routing algorithm]: https://spec.matrix.org/v1.19/appendices/#routing
-    pub fn matrix_to_event_uri_via<T>(&self, ev_id: impl Into<OwnedEventId>, via: T) -> MatrixToUri
+    pub fn matrix_to_event_uri_via<T>(&self, ev_id: impl Into<EventId>, via: T) -> MatrixToUri
     where
         T: IntoIterator,
         T::Item: Into<OwnedServerName>,
@@ -214,7 +214,7 @@ impl RoomId {
     ///
     /// Note that it is recommended to provide servers that should know the room to be able to find
     /// it with its room ID. For that use [`RoomId::matrix_event_uri_via()`].
-    pub fn matrix_event_uri(&self, ev_id: impl Into<OwnedEventId>) -> MatrixUri {
+    pub fn matrix_event_uri(&self, ev_id: impl Into<EventId>) -> MatrixUri {
         MatrixUri::new((self.to_owned(), ev_id.into()).into(), vec![], None)
     }
 
@@ -226,7 +226,7 @@ impl RoomId {
     /// If you don't have a list of servers, you can use [`RoomId::matrix_event_uri()`] instead.
     ///
     /// [routing algorithm]: https://spec.matrix.org/v1.19/appendices/#routing
-    pub fn matrix_event_uri_via<T>(&self, ev_id: impl Into<OwnedEventId>, via: T) -> MatrixUri
+    pub fn matrix_event_uri_via<T>(&self, ev_id: impl Into<EventId>, via: T) -> MatrixUri
     where
         T: IntoIterator,
         T::Item: Into<OwnedServerName>,

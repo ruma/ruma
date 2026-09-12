@@ -49,7 +49,7 @@ impl KeyVerificationDoneEventContent {
 
 #[cfg(test)]
 mod tests {
-    use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_event_id};
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, event_id};
     use serde_json::{from_value as from_json_value, json};
 
     use super::KeyVerificationDoneEventContent;
@@ -57,7 +57,7 @@ mod tests {
 
     #[test]
     fn serialization() {
-        let event_id = owned_event_id!("$1598361704261elfgc:localhost");
+        let event_id = event_id!("$1598361704261elfgc:localhost");
         let content = KeyVerificationDoneEventContent {
             relates_to: Reference { event_id: event_id.clone() },
         };

@@ -3,8 +3,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use ruma_common::{
-    AnyKeyName, CanonicalJsonObject, CanonicalJsonValue, IdParseError, OwnedEventId,
-    OwnedServerName, SigningKeyAlgorithm, SigningKeyId, UserId,
+    AnyKeyName, CanonicalJsonObject, CanonicalJsonValue, EventId, IdParseError, OwnedServerName,
+    SigningKeyAlgorithm, SigningKeyId, UserId,
     canonical_json::{
         CanonicalJsonFieldError, CanonicalJsonObjectExt, CanonicalJsonType, RedactingSerializer,
     },
@@ -433,7 +433,7 @@ pub fn required_server_signatures_to_verify_event(
 
     if rules.check_event_id_server {
         let raw_event_id = object.get_as_required_string("event_id", "event_id")?;
-        let event_id: OwnedEventId = raw_event_id.parse().map_err(|source| {
+        let event_id: EventId = raw_event_id.parse().map_err(|source| {
             VerificationError::ParseIdentifier { identifier_type: "event ID", source }
         })?;
 

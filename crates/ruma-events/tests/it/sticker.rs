@@ -2,7 +2,7 @@ use assert_matches2::assert_matches;
 use assign::assign;
 use js_int::{UInt, uint};
 use ruma_common::{
-    MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, owned_event_id,
+    MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, event_id,
     owned_mxc_uri, serde::CanBeEmpty,
 };
 use ruma_events::{
@@ -38,7 +38,7 @@ fn replace_content_serialization() {
         ImageInfo::new(),
         owned_mxc_uri!("mxc://notareal.hs/file"),
     );
-    let old_event_id = owned_event_id!("$15827405538098VGFWH:example.com");
+    let old_event_id = event_id!("$15827405538098VGFWH:example.com");
     let new_message_event_content = StickerEventContent::new(
         "Upload: my_image.jpg".to_owned(),
         ImageInfo::new(),
@@ -162,7 +162,7 @@ fn content_deserialization() {
 
 #[test]
 fn replace_content_deserialization() {
-    let old_event_id = owned_event_id!("$15827405538098VGFWH:example.com");
+    let old_event_id = event_id!("$15827405538098VGFWH:example.com");
     let json_data = json!({
         "body": "* Upload: my_image.jpg",
         "url": "mxc://notareal.hs/file",

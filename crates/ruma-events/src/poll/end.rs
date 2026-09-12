@@ -6,7 +6,7 @@ use std::{
 };
 
 use js_int::UInt;
-use ruma_common::OwnedEventId;
+use ruma_common::EventId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -54,7 +54,7 @@ pub struct PollEndEventContent {
 impl PollEndEventContent {
     /// Creates a new `PollEndEventContent` with the given fallback representation and
     /// that responds to the given poll start event ID.
-    pub fn new(text: TextContentBlock, poll_start_id: OwnedEventId) -> Self {
+    pub fn new(text: TextContentBlock, poll_start_id: EventId) -> Self {
         Self {
             text,
             poll_results: None,
@@ -66,7 +66,7 @@ impl PollEndEventContent {
 
     /// Creates a new `PollEndEventContent` with the given plain text fallback representation and
     /// that responds to the given poll start event ID.
-    pub fn with_plain_text(plain_text: impl Into<String>, poll_start_id: OwnedEventId) -> Self {
+    pub fn with_plain_text(plain_text: impl Into<String>, poll_start_id: EventId) -> Self {
         Self {
             text: TextContentBlock::plain(plain_text),
             poll_results: None,

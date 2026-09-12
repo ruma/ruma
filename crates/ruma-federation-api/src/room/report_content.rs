@@ -8,7 +8,7 @@ pub mod msc3843 {
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/3843
 
     use ruma_common::{
-        OwnedEventId, OwnedRoomId,
+        EventId, OwnedRoomId,
         api::{request, response},
         metadata,
     };
@@ -31,7 +31,7 @@ pub mod msc3843 {
 
         /// The event being reported.
         #[ruma_api(path)]
-        pub event_id: OwnedEventId,
+        pub event_id: EventId,
 
         /// The reason that the event is being reported.
         pub reason: String,
@@ -43,7 +43,7 @@ pub mod msc3843 {
 
     impl Request {
         /// Creates a `Request` with the given room ID, event ID and reason.
-        pub fn new(room_id: OwnedRoomId, event_id: OwnedEventId, reason: String) -> Self {
+        pub fn new(room_id: OwnedRoomId, event_id: EventId, reason: String) -> Self {
             Self { room_id, event_id, reason }
         }
     }

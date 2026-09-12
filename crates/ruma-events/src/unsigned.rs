@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use js_int::Int;
 use ruma_common::{
-    EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedTransactionId, OwnedUserId, UserId,
+    EventId, MilliSecondsSinceUnixEpoch, OwnedTransactionId, OwnedUserId, UserId,
     serde::{CanBeEmpty, Raw},
 };
 use serde::{Deserialize, de::DeserializeOwned};
@@ -100,7 +100,7 @@ pub struct StateUnsigned<C: PossiblyRedactedStateEventContent> {
     pub transaction_id: Option<OwnedTransactionId>,
 
     /// The event ID of the state event replaced by this event.
-    pub replaces_state: Option<OwnedEventId>,
+    pub replaces_state: Option<EventId>,
 
     /// Optional previous content of the event.
     pub prev_content: Option<C>,
@@ -249,7 +249,7 @@ pub struct UnsignedRoomRedactionEvent {
     pub content: RoomRedactionEventContent,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: OwnedEventId,
+    pub event_id: EventId,
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: OwnedUserId,
@@ -270,7 +270,7 @@ pub struct CustomRedactionEvent {
     event_type: Box<str>,
 
     /// The globally unique event identifier for the user who sent the event.
-    event_id: OwnedEventId,
+    event_id: EventId,
 
     /// The fully-qualified ID of the user who sent this event.
     sender: OwnedUserId,

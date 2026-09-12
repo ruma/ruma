@@ -5,7 +5,7 @@
 use std::{borrow::Cow, collections::BTreeMap};
 
 use js_int::UInt;
-use ruma_common::{DeviceId, OwnedEventId, serde::JsonObject};
+use ruma_common::{DeviceId, EventId, serde::JsonObject};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -181,12 +181,12 @@ impl From<RelationWithoutReplacement> for Relation {
 #[serde(tag = "rel_type", rename = "m.replace")]
 pub struct Replacement {
     /// The ID of the event being replaced.
-    pub event_id: OwnedEventId,
+    pub event_id: EventId,
 }
 
 impl Replacement {
     /// Creates a new `Replacement` with the given event ID.
-    pub fn new(event_id: OwnedEventId) -> Self {
+    pub fn new(event_id: EventId) -> Self {
         Self { event_id }
     }
 }
@@ -288,7 +288,7 @@ mod tests {
     use assert_matches2::assert_matches;
     use js_int::uint;
     use ruma_common::{
-        canonical_json::assert_to_canonical_json_eq, device_id, owned_event_id, serde::Raw,
+        canonical_json::assert_to_canonical_json_eq, device_id, event_id, serde::Raw,
     };
     use serde_json::{from_value as from_json_value, json};
 
@@ -309,7 +309,7 @@ mod tests {
                 }
                 .into(),
             ),
-            relates_to: Some(Relation::Reply(Reply::with_event_id(owned_event_id!(
+            relates_to: Some(Relation::Reply(Reply::with_event_id(event_id!(
                 "$h29iv0s8:example.com"
             )))),
         };

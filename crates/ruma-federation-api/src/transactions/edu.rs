@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 use js_int::Int;
 use js_int::UInt;
 use ruma_common::{
-    DeviceId, OwnedEventId, OwnedRoomId, OwnedTransactionId, OwnedUserId,
+    DeviceId, EventId, OwnedRoomId, OwnedTransactionId, OwnedUserId,
     encryption::{CrossSigningKey, DeviceKeys},
     presence::PresenceState,
     serde::{Raw, from_raw_json_value},
@@ -236,12 +236,12 @@ pub struct ReceiptData {
     pub data: Receipt,
 
     /// The extremity event ID the user has read up to.
-    pub event_ids: Vec<OwnedEventId>,
+    pub event_ids: Vec<EventId>,
 }
 
 impl ReceiptData {
     /// Creates a new `ReceiptData`.
-    pub fn new(data: Receipt, event_ids: Vec<OwnedEventId>) -> Self {
+    pub fn new(data: Receipt, event_ids: Vec<EventId>) -> Self {
         Self { data, event_ids }
     }
 }

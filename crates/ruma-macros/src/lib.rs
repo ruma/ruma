@@ -534,7 +534,7 @@ pub fn ruma_id(args: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn event_id(input: TokenStream) -> TokenStream {
     let id_ctor = parse_macro_input!(input as IdentifierConstructor);
-    id_ctor.validate_and_expand_str_conversion("&EventId", event_id::validate).into()
+    id_ctor.validate_and_expand_str_conversion("EventId", event_id::validate).into()
 }
 
 /// Compile-time checked `RoomAliasId` construction.

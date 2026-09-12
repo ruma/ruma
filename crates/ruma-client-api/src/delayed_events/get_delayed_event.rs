@@ -67,8 +67,8 @@ pub mod unstable {
 
         use js_int::UInt;
         use ruma_common::{
-            MilliSecondsSinceUnixEpoch, api::OutgoingResponseExt as _, owned_event_id,
-            owned_room_id, serde::Raw,
+            MilliSecondsSinceUnixEpoch, api::OutgoingResponseExt as _, event_id, owned_room_id,
+            serde::Raw,
         };
         use ruma_events::TimelineEventType;
         use serde_json::{Value as JsonValue, json};
@@ -92,7 +92,7 @@ pub mod unstable {
                 Duration::from_millis(103),
                 MilliSecondsSinceUnixEpoch(UInt::new(70000).unwrap()),
             );
-            event_data.event_id = Some(owned_event_id!("$event:imaginary.hs"));
+            event_data.event_id = Some(event_id!("$event:imaginary.hs"));
             event_data.finalized_ts = Some(MilliSecondsSinceUnixEpoch(UInt::new(70103).unwrap()));
 
             let response: http::Response<Vec<u8>> =
@@ -123,8 +123,7 @@ pub mod unstable {
 
         use js_int::UInt;
         use ruma_common::{
-            MilliSecondsSinceUnixEpoch, api::IncomingResponseExt as _, owned_event_id,
-            owned_room_id,
+            MilliSecondsSinceUnixEpoch, api::IncomingResponseExt as _, event_id, owned_room_id,
         };
         use ruma_events::TimelineEventType;
         use serde_json::{Value as JsonValue, json};
@@ -169,7 +168,7 @@ pub mod unstable {
                 content
             );
             assert!(res.error.is_none());
-            assert_eq!(res.event_id, Some(owned_event_id!("$event:imaginary.hs")));
+            assert_eq!(res.event_id, Some(event_id!("$event:imaginary.hs")));
             assert_eq!(
                 res.finalized_ts,
                 Some(MilliSecondsSinceUnixEpoch(UInt::new(70103).unwrap()))

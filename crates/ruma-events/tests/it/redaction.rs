@@ -1,7 +1,7 @@
 use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{
-    MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, owned_event_id,
+    MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, event_id,
     room_version_rules::RedactionRules, serde::CanBeEmpty,
 };
 use ruma_events::{
@@ -24,7 +24,7 @@ fn serialize_redaction_content() {
 
 #[test]
 fn serialize_redaction_content_v11() {
-    let redacts = owned_event_id!("$abcdef");
+    let redacts = event_id!("$abcdef");
     let content = RoomRedactionEventContent::new_v11(redacts.clone())
         .with_reason("being very unfriendly".into());
 

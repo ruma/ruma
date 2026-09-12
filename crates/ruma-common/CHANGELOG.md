@@ -15,6 +15,9 @@ Breaking changes:
   - `OwnedDeviceId` was renamed to `DeviceId`. The `device_id!` macro now returns a `DeviceId`, the
     `owned_device_id!` macro was removed and the `device_id_ref!` macro behind the
     `unstable-identifier-ref-macros` cargo feature allows to construct a `&'static DeviceId`.
+  - `OwnedEventId` was renamed to `EventId`. The `event_id!` macro now returns an `EventId`, the
+    `owned_event_id!` macro was removed and the `event_id_ref!` macro behind the
+    `unstable-identifier-ref-macros` cargo feature allows to construct a `&'static EventId`.
 
 Improvements:
 

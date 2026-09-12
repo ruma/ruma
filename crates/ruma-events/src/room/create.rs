@@ -3,7 +3,7 @@
 //! [`m.room.create`]: https://spec.matrix.org/v1.19/client-server-api/#mroomcreate
 
 use ruma_common::{
-    OwnedEventId, OwnedRoomId, OwnedUserId, RoomVersionId, room::RoomType,
+    EventId, OwnedRoomId, OwnedUserId, RoomVersionId, room::RoomType,
     room_version_rules::RedactionRules,
 };
 use ruma_macros::EventContent;
@@ -126,7 +126,7 @@ pub struct PreviousRoom {
         This field should be sent by servers when possible for backwards compatibility \
         but clients should not rely on it."]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub event_id: Option<OwnedEventId>,
+    pub event_id: Option<EventId>,
 }
 
 impl PreviousRoom {

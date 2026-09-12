@@ -25,7 +25,7 @@ pub use self::{
     },
     device_id::DeviceId,
     direct_user_identifier::{DirectUserIdentifier, OwnedDirectUserIdentifier},
-    event_id::{EventId, OwnedEventId},
+    event_id::EventId,
     key_id::{
         AnyKeyName, CrossSigningKeyId, CrossSigningOrDeviceSigningKeyId, DeviceKeyId,
         DeviceSigningKeyId, KeyAlgorithm, KeyId, OneTimeKeyId, OwnedCrossSigningKeyId,
@@ -212,6 +212,9 @@ pub mod __private_macros {
 
         pub static DEVICE_ID_INTERNER: LazyLock<IdInterner<crate::DeviceId>> =
             LazyLock::new(IdInterner::new);
+
+        pub static EVENT_ID_INTERNER: LazyLock<IdInterner<crate::EventId>> =
+            LazyLock::new(IdInterner::new);
     }
 }
 
@@ -223,11 +226,20 @@ macro_rules! event_id {
     };
 }
 
-/// Compile-time checked [`OwnedEventId`] construction.
+/// Compile-time checked `&'static EventId` construction.
+///
+/// This macro is a helper to ease the transition after the change of [`EventId`] from a
+/// dynamically sized type to an owned type. It has the side effect of interning and leaking the
+/// identifier so it SHOULD NOT be used in code that runs in production.
+///
+/// This is behind the `unstable-identifier-ref-macros` cargo feature to allow us to remove this
+/// macro at any time without it being a breaking change.
 #[macro_export]
-macro_rules! owned_event_id {
+#[cfg(feature = "unstable-identifier-ref-macros")]
+macro_rules! event_id_ref {
     ($s:literal) => {
-        $crate::event_id!($s).to_owned()
+        $crate::__private_macros::id_interner::EVENT_ID_INTERNER
+            .get_or_insert_with($s, || $crate::event_id!($s))
     };
 }
 

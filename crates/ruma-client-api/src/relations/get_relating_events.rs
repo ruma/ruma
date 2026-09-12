@@ -9,7 +9,7 @@ pub mod v1 {
 
     use js_int::UInt;
     use ruma_common::{
-        OwnedEventId, OwnedRoomId,
+        EventId, OwnedRoomId,
         api::{Direction, auth_scheme::AccessToken, request, response},
         metadata,
         serde::Raw,
@@ -35,7 +35,7 @@ pub mod v1 {
 
         /// The ID of the parent event whose child events are to be returned.
         #[ruma_api(path)]
-        pub event_id: OwnedEventId,
+        pub event_id: EventId,
 
         /// The pagination token to start returning results from.
         ///
@@ -125,7 +125,7 @@ pub mod v1 {
 
     impl Request {
         /// Creates a new `Request` with the given room ID and parent event ID.
-        pub fn new(room_id: OwnedRoomId, event_id: OwnedEventId) -> Self {
+        pub fn new(room_id: OwnedRoomId, event_id: EventId) -> Self {
             Self {
                 room_id,
                 event_id,

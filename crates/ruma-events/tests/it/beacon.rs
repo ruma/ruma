@@ -3,8 +3,8 @@
 use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{
-    MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, owned_event_id,
-    room_id, serde::CanBeEmpty, user_id,
+    MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, event_id, room_id,
+    serde::CanBeEmpty, user_id,
 };
 use ruma_events::{
     AnyMessageLikeEvent, MessageLikeEvent, beacon::BeaconEventContent, relation::Reference,
@@ -13,7 +13,7 @@ use serde_json::{Value as JsonValue, from_value as from_json_value, json};
 
 fn get_beacon_event_content() -> BeaconEventContent {
     BeaconEventContent::new(
-        owned_event_id!("$beacon_info_event_id:example.com"),
+        event_id!("$beacon_info_event_id:example.com"),
         "geo:51.5008,0.1247;u=35".to_owned(),
         Some(MilliSecondsSinceUnixEpoch(uint!(1_636_829_458))),
     )
@@ -46,10 +46,7 @@ fn beacon_event_content_deserialization() {
     let event_content: BeaconEventContent =
         from_json_value::<BeaconEventContent>(json_data).unwrap();
 
-    assert_eq!(
-        event_content.relates_to.event_id,
-        owned_event_id!("$beacon_info_event_id:example.com")
-    );
+    assert_eq!(event_content.relates_to.event_id, event_id!("$beacon_info_event_id:example.com"));
     assert_eq!(event_content.location.uri, "geo:51.5008,0.1247;u=35");
     assert_eq!(event_content.ts, MilliSecondsSinceUnixEpoch(uint!(1_636_829_458)));
 }
@@ -71,7 +68,7 @@ fn message_event_deserialization() {
     assert_eq!(ev.content.location.uri, "geo:51.5008,0.1247;u=35");
     assert_eq!(ev.content.ts, MilliSecondsSinceUnixEpoch(uint!(1_636_829_458)));
     assert_matches!(ev.content.relates_to, Reference { event_id, .. });
-    assert_eq!(event_id, owned_event_id!("$beacon_info_event_id:example.com"));
+    assert_eq!(event_id, event_id!("$beacon_info_event_id:example.com"));
 
     assert_eq!(ev.sender, user_id!("@example:example.com"));
     assert_eq!(ev.room_id, room_id!("!roomid:example.com"));
