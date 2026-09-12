@@ -32,7 +32,7 @@ pub use self::{
     },
     matrix_uri::{MatrixToUri, MatrixUri},
     mxc_uri::MxcUri,
-    one_time_key_name::{OneTimeKeyName, OwnedOneTimeKeyName},
+    one_time_key_name::OneTimeKeyName,
     room_alias_id::{OwnedRoomAliasId, RoomAliasId},
     room_id::{OwnedRoomId, RoomId},
     room_or_alias_id::{OwnedRoomOrAliasId, RoomOrAliasId},
