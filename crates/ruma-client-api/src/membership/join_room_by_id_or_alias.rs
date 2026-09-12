@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.19/client-server-api/#post_matrixclientv3joinroomidoralias
 
     use ruma_common::{
-        OwnedServerName, RoomId, RoomOrAliasId,
+        RoomId, RoomOrAliasId, ServerName,
         api::{auth_scheme::AccessToken, error::Error, response},
         metadata,
     };
@@ -48,7 +48,7 @@ pub mod v3 {
         ///
         /// When deserializing, the value is read from `via` if it's not missing or
         /// empty and `server_name` otherwise.
-        pub via: Vec<OwnedServerName>,
+        pub via: Vec<ServerName>,
     }
 
     /// Data in the request's query string.
@@ -57,13 +57,13 @@ pub mod v3 {
     struct RequestQuery {
         /// The servers to attempt to join the room through.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-        via: Vec<OwnedServerName>,
+        via: Vec<ServerName>,
 
         /// The servers to attempt to join the room through.
         ///
         /// Deprecated in Matrix >1.11 in favour of `via`.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-        server_name: Vec<OwnedServerName>,
+        server_name: Vec<ServerName>,
     }
 
     /// Data in the request's body.
@@ -181,7 +181,7 @@ pub mod v3 {
                 MatrixVersion, OutgoingRequestExt as _, SupportedVersions,
                 auth_scheme::SendAccessToken,
             },
-            owned_server_name, room_id,
+            room_id, server_name,
         };
 
         use super::Request;
@@ -189,7 +189,7 @@ pub mod v3 {
         #[test]
         fn serialize_request_via_and_server_name() {
             let mut req = Request::new(room_id!("!foo:b.ar").into());
-            req.via = vec![owned_server_name!("f.oo")];
+            req.via = vec![server_name!("f.oo")];
             let supported = SupportedVersions {
                 versions: [MatrixVersion::V1_1].into(),
                 features: Default::default(),
@@ -208,7 +208,7 @@ pub mod v3 {
         #[test]
         fn serialize_request_only_via() {
             let mut req = Request::new(room_id!("!foo:b.ar").into());
-            req.via = vec![owned_server_name!("f.oo")];
+            req.via = vec![server_name!("f.oo")];
             let supported = SupportedVersions {
                 versions: [MatrixVersion::V1_13].into(),
                 features: Default::default(),
@@ -227,7 +227,7 @@ pub mod v3 {
 
     #[cfg(all(test, feature = "server"))]
     mod tests_server {
-        use ruma_common::{api::IncomingRequestExt as _, owned_server_name};
+        use ruma_common::{api::IncomingRequestExt as _, server_name};
 
         use super::Request;
 
@@ -258,7 +258,7 @@ pub mod v3 {
 
             assert_eq!(req.room_id_or_alias, "!foo:b.ar");
             assert_eq!(req.reason, Some("Let me in already!".to_owned()));
-            assert_eq!(req.via, vec![owned_server_name!("f.oo")]);
+            assert_eq!(req.via, vec![server_name!("f.oo")]);
         }
 
         #[test]
@@ -275,7 +275,7 @@ pub mod v3 {
 
             assert_eq!(req.room_id_or_alias, "!foo:b.ar");
             assert_eq!(req.reason, Some("Let me in already!".to_owned()));
-            assert_eq!(req.via, vec![owned_server_name!("f.oo")]);
+            assert_eq!(req.via, vec![server_name!("f.oo")]);
         }
 
         #[test]
@@ -292,7 +292,7 @@ pub mod v3 {
 
             assert_eq!(req.room_id_or_alias, "!foo:b.ar");
             assert_eq!(req.reason, Some("Let me in already!".to_owned()));
-            assert_eq!(req.via, vec![owned_server_name!("f.oo")]);
+            assert_eq!(req.via, vec![server_name!("f.oo")]);
         }
     }
 }

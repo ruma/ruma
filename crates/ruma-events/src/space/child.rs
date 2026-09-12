@@ -5,7 +5,7 @@
 use std::{cmp::Ordering, ops::Deref};
 
 use ruma_common::{
-    MilliSecondsSinceUnixEpoch, OwnedServerName, OwnedSpaceChildOrder, OwnedUserId, RoomId,
+    MilliSecondsSinceUnixEpoch, OwnedSpaceChildOrder, OwnedUserId, RoomId, ServerName,
     SpaceChildOrder,
     serde::{JsonCastable, JsonObject},
 };
@@ -26,7 +26,7 @@ use crate::{StateEvent, SyncStateEvent};
 #[ruma_event(type = "m.space.child", kind = State, state_key_type = RoomId)]
 pub struct SpaceChildEventContent {
     /// List of candidate servers that can be used to join the room.
-    pub via: Vec<OwnedServerName>,
+    pub via: Vec<ServerName>,
 
     /// Provide a default ordering of siblings in the room list.
     ///
@@ -60,7 +60,7 @@ pub struct SpaceChildEventContent {
 
 impl SpaceChildEventContent {
     /// Creates a new `SpaceChildEventContent` with the given routing servers.
-    pub fn new(via: Vec<OwnedServerName>) -> Self {
+    pub fn new(via: Vec<ServerName>) -> Self {
         Self { via, order: None, suggested: false }
     }
 }
@@ -305,8 +305,7 @@ mod tests {
     use js_int::{UInt, uint};
     use ruma_common::{
         MilliSecondsSinceUnixEpoch, RoomId, SpaceChildOrder,
-        canonical_json::assert_to_canonical_json_eq, owned_server_name, owned_user_id, room_id,
-        server_name,
+        canonical_json::assert_to_canonical_json_eq, owned_user_id, room_id, server_name,
     };
     use serde_json::{from_value as from_json_value, json};
 
@@ -317,7 +316,7 @@ mod tests {
     #[test]
     fn space_child_serialization() {
         let content = SpaceChildEventContent {
-            via: vec![owned_server_name!("example.com")],
+            via: vec![server_name!("example.com")],
             order: Some(SpaceChildOrder::parse("uwu").unwrap()),
             suggested: false,
         };
@@ -350,7 +349,7 @@ mod tests {
         let content = from_json_value::<SpaceChildEventContent>(json).unwrap();
         assert_eq!(content.order.unwrap(), "aaa");
         assert!(!content.suggested);
-        assert_eq!(content.via, &[via]);
+        assert_eq!(content.via, std::slice::from_ref(&via));
 
         // Not a string.
         let json = json!({
@@ -360,7 +359,7 @@ mod tests {
         let content = from_json_value::<SpaceChildEventContent>(json).unwrap();
         assert_eq!(content.order, None);
         assert!(!content.suggested);
-        assert_eq!(content.via, &[via]);
+        assert_eq!(content.via, std::slice::from_ref(&via));
 
         // Empty string.
         let json = json!({
@@ -370,7 +369,7 @@ mod tests {
         let content = from_json_value::<SpaceChildEventContent>(json).unwrap();
         assert_eq!(content.order.unwrap(), "");
         assert!(!content.suggested);
-        assert_eq!(content.via, &[via]);
+        assert_eq!(content.via, std::slice::from_ref(&via));
 
         // String too long.
         let order = repeat_n('a', 60).collect::<String>();
@@ -381,7 +380,7 @@ mod tests {
         let content = from_json_value::<SpaceChildEventContent>(json).unwrap();
         assert_eq!(content.order, None);
         assert!(!content.suggested);
-        assert_eq!(content.via, &[via]);
+        assert_eq!(content.via, std::slice::from_ref(&via));
 
         // Invalid character.
         let json = json!({
@@ -391,7 +390,7 @@ mod tests {
         let content = from_json_value::<SpaceChildEventContent>(json).unwrap();
         assert_eq!(content.order, None);
         assert!(!content.suggested);
-        assert_eq!(content.via, &[via]);
+        assert_eq!(content.via, std::slice::from_ref(&via));
     }
 
     #[test]
@@ -423,7 +422,7 @@ mod tests {
         order: Option<&str>,
         origin_server_ts: UInt,
     ) -> HierarchySpaceChildEvent {
-        let mut content = SpaceChildEventContent::new(vec![owned_server_name!("example.org")]);
+        let mut content = SpaceChildEventContent::new(vec![server_name!("example.org")]);
         content.order = order.and_then(|order| SpaceChildOrder::parse(order).ok());
 
         HierarchySpaceChildEvent {

@@ -24,16 +24,16 @@ impl MxcUri {
     }
 
     /// If this is a valid MXC URI, returns the server name.
-    pub fn server_name(&self) -> Result<&ServerName> {
+    pub fn server_name(&self) -> Result<ServerName> {
         self.parts().map(|(s, _)| s)
     }
 
     /// If this is a valid MXC URI, returns a `(server_name, media_id)` tuple, else it returns the
     /// error.
-    pub fn parts(&self) -> Result<(&ServerName, &str)> {
+    pub fn parts(&self) -> Result<(ServerName, &str)> {
         self.extract_slash_idx().map(|idx| {
             (
-                ServerName::from_borrowed_unchecked(&self.as_str()[6..idx.get() as usize]),
+                ServerName::from_str_unchecked(&self.as_str()[6..idx.get() as usize]),
                 &self.as_str()[idx.get() as usize + 1..],
             )
         })

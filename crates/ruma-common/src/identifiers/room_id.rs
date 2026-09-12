@@ -3,10 +3,7 @@
 use ruma_macros::ruma_id;
 use tracing::warn;
 
-use super::{
-    EventId, IdParseError, MatrixToUri, MatrixUri, OwnedServerName, ServerName,
-    matrix_uri::UriAction,
-};
+use super::{EventId, IdParseError, MatrixToUri, MatrixUri, ServerName, matrix_uri::UriAction};
 
 /// A Matrix [room ID].
 ///
@@ -70,7 +67,7 @@ impl RoomId {
     /// This should only return `Some(_)` for room versions using [`RoomIdFormatVersion::V1`].
     ///
     /// [`RoomIdFormatVersion::V1`]: crate::room_version_rules::RoomIdFormatVersion::V1
-    pub fn server_name(&self) -> Option<&ServerName> {
+    pub fn server_name(&self) -> Option<ServerName> {
         find_server_name(self.as_str())
     }
 
@@ -106,7 +103,7 @@ impl RoomId {
     ///
     /// assert_eq!(
     ///     room_id!("!somewhere:example.org")
-    ///         .matrix_to_uri_via([&*server_name!("example.org"), &*server_name!("alt.example.org")])
+    ///         .matrix_to_uri_via([server_name!("example.org"), server_name!("alt.example.org")])
     ///         .to_string(),
     ///     "https://matrix.to/#/!somewhere:example.org?via=example.org&via=alt.example.org"
     /// );
@@ -116,7 +113,7 @@ impl RoomId {
     pub fn matrix_to_uri_via<T>(&self, via: T) -> MatrixToUri
     where
         T: IntoIterator,
-        T::Item: Into<OwnedServerName>,
+        T::Item: Into<ServerName>,
     {
         MatrixToUri::new(self.into(), via.into_iter().map(Into::into).collect())
     }
@@ -140,7 +137,7 @@ impl RoomId {
     pub fn matrix_to_event_uri_via<T>(&self, ev_id: impl Into<EventId>, via: T) -> MatrixToUri
     where
         T: IntoIterator,
-        T::Item: Into<OwnedServerName>,
+        T::Item: Into<ServerName>,
     {
         MatrixToUri::new(
             (self.clone(), ev_id.into()).into(),
@@ -184,10 +181,7 @@ impl RoomId {
     ///
     /// assert_eq!(
     ///     room_id!("!somewhere:example.org")
-    ///         .matrix_uri_via(
-    ///             [&*server_name!("example.org"), &*server_name!("alt.example.org")],
-    ///             true
-    ///         )
+    ///         .matrix_uri_via([server_name!("example.org"), server_name!("alt.example.org")], true)
     ///         .to_string(),
     ///     "matrix:roomid/somewhere:example.org?via=example.org&via=alt.example.org&action=join"
     /// );
@@ -197,7 +191,7 @@ impl RoomId {
     pub fn matrix_uri_via<T>(&self, via: T, join: bool) -> MatrixUri
     where
         T: IntoIterator,
-        T::Item: Into<OwnedServerName>,
+        T::Item: Into<ServerName>,
     {
         MatrixUri::new(
             self.into(),
@@ -225,7 +219,7 @@ impl RoomId {
     pub fn matrix_event_uri_via<T>(&self, ev_id: impl Into<EventId>, via: T) -> MatrixUri
     where
         T: IntoIterator,
-        T::Item: Into<OwnedServerName>,
+        T::Item: Into<ServerName>,
     {
         MatrixUri::new(
             (self.to_owned(), ev_id.into()).into(),
@@ -242,7 +236,7 @@ impl RoomId {
 ///
 /// Returns `None` if there is no colon in the string or if the server name is invalid. If the
 /// server name is invalid a warning is logged.
-pub(super) fn find_server_name(s: &str) -> Option<&ServerName> {
+pub(super) fn find_server_name(s: &str) -> Option<ServerName> {
     let server_name = super::find_server_name_str(s)?;
 
     server_name
@@ -275,7 +269,7 @@ mod tests {
     #[cfg(feature = "rand")]
     #[test]
     fn generate_random_valid_room_id() {
-        let room_id = RoomId::new_v1(server_name!("example.com"));
+        let room_id = RoomId::new_v1(&server_name!("example.com"));
         let id_str = room_id.as_str();
 
         assert!(id_str.starts_with('!'));

@@ -32,6 +32,10 @@ Breaking changes:
     `owned_room_id!` macro was removed and the `room_id_ref!` macro behind the
     `unstable-identifier-ref-macros` cargo feature allows to construct a `&'static RoomId`.
   - `OwnedRoomOrAliasId` was renamed to `RoomOrAliasId`.
+  - `OwnedServerName` was renamed to `ServerName`. The `server_name!` macro now returns a
+    `ServerName`, the `owned_server_name!` macro was removed and the `server_name_ref!` macro
+    behind the `unstable-identifier-ref-macros` cargo feature allows to construct a
+    `&'static ServerName`.
 
 Improvements:
 

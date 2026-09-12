@@ -574,7 +574,7 @@ pub fn server_signing_key_version(input: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn server_name(input: TokenStream) -> TokenStream {
     let id_ctor = parse_macro_input!(input as IdentifierConstructor);
-    id_ctor.validate_and_expand_str_conversion("&ServerName", server_name::validate).into()
+    id_ctor.validate_and_expand_str_conversion("ServerName", server_name::validate).into()
 }
 
 /// Compile-time checked `MxcUri` construction.

@@ -9,7 +9,7 @@ use ruma_identifiers_validation::{
 };
 use url::Url;
 
-use super::{EventId, OwnedServerName, OwnedUserId, RoomAliasId, RoomId, RoomOrAliasId, UserId};
+use super::{EventId, OwnedUserId, RoomAliasId, RoomId, RoomOrAliasId, ServerName, UserId};
 use crate::{PrivOwnedStr, percent_encode::PATH_PERCENT_ENCODE_SET};
 
 const MATRIX_TO_BASE_URL: &str = "https://matrix.to/#/";
@@ -258,11 +258,11 @@ impl From<(&RoomAliasId, &EventId)> for MatrixId {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MatrixToUri {
     id: MatrixId,
-    via: Vec<OwnedServerName>,
+    via: Vec<ServerName>,
 }
 
 impl MatrixToUri {
-    pub(crate) fn new(id: MatrixId, via: Vec<OwnedServerName>) -> Self {
+    pub(crate) fn new(id: MatrixId, via: Vec<ServerName>) -> Self {
         Self { id, via }
     }
 
@@ -272,7 +272,7 @@ impl MatrixToUri {
     }
 
     /// Matrix servers usable to route a `RoomId`.
-    pub fn via(&self) -> &[OwnedServerName] {
+    pub fn via(&self) -> &[ServerName] {
         &self.via
     }
 
@@ -308,7 +308,7 @@ impl MatrixToUri {
                 query_parts
                     .map(|(key, value)| {
                         if key == "via" {
-                            OwnedServerName::try_from(value)
+                            ServerName::try_from(value)
                         } else {
                             Err(MatrixToError::UnknownArgument.into())
                         }
@@ -443,12 +443,12 @@ impl From<Box<str>> for UriAction {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MatrixUri {
     id: MatrixId,
-    via: Vec<OwnedServerName>,
+    via: Vec<ServerName>,
     action: Option<UriAction>,
 }
 
 impl MatrixUri {
-    pub(crate) fn new(id: MatrixId, via: Vec<OwnedServerName>, action: Option<UriAction>) -> Self {
+    pub(crate) fn new(id: MatrixId, via: Vec<ServerName>, action: Option<UriAction>) -> Self {
         Self { id, via, action }
     }
 
@@ -458,7 +458,7 @@ impl MatrixUri {
     }
 
     /// Matrix servers usable to route a `RoomId`.
-    pub fn via(&self) -> &[OwnedServerName] {
+    pub fn via(&self) -> &[ServerName] {
         &self.via
     }
 
@@ -557,7 +557,7 @@ mod tests {
 
     use super::{MatrixId, MatrixToUri, MatrixUri};
     use crate::{
-        event_id, matrix_uri::UriAction, owned_server_name, owned_user_id, room_alias_id, room_id,
+        event_id, matrix_uri::UriAction, owned_user_id, room_alias_id, room_id, server_name,
         user_id,
     };
 
@@ -577,7 +577,7 @@ mod tests {
         );
         assert_eq!(
             room_id!("!ruma:notareal.hs")
-                .matrix_to_uri_via(vec![owned_server_name!("notareal.hs")])
+                .matrix_to_uri_via(vec![server_name!("notareal.hs")])
                 .to_string(),
             "https://matrix.to/#/!ruma:notareal.hs?via=notareal.hs"
         );
@@ -596,7 +596,7 @@ mod tests {
             room_id!("!ruma:notareal.hs")
                 .matrix_to_event_uri_via(
                     event_id!("$event:notareal.hs"),
-                    vec![owned_server_name!("notareal.hs")]
+                    vec![server_name!("notareal.hs")]
                 )
                 .to_string(),
             "https://matrix.to/#/!ruma:notareal.hs/$event:notareal.hs?via=notareal.hs"
@@ -747,7 +747,7 @@ mod tests {
         assert_eq!(*matrix_to.id(), room_id!("!ruma:notareal.hs").into());
         assert_eq!(
             matrix_to.via(),
-            &[owned_server_name!("notareal.hs"), owned_server_name!("anotherunreal.hs"),]
+            &[server_name!("notareal.hs"), server_name!("anotherunreal.hs"),]
         );
 
         let matrix_to =
@@ -781,7 +781,7 @@ mod tests {
         let matrix_to = MatrixToUri::parse("https://matrix.to/#/!ruma:notareal.hs?via=notareal.hs")
             .expect("Failed to create MatrixToUri.");
         assert_eq!(*matrix_to.id(), room_id!("!ruma:notareal.hs").into());
-        assert_eq!(matrix_to.via(), &[owned_server_name!("notareal.hs")]);
+        assert_eq!(matrix_to.via(), &[server_name!("notareal.hs")]);
 
         let matrix_to =
             MatrixToUri::parse("https://matrix.to/#/#ruma:notareal.hs/$event:notareal.hs")
@@ -864,14 +864,14 @@ mod tests {
         );
         assert_eq!(
             room_id!("!ruma:notareal.hs")
-                .matrix_uri_via(vec![owned_server_name!("notareal.hs")], false)
+                .matrix_uri_via(vec![server_name!("notareal.hs")], false)
                 .to_string(),
             "matrix:roomid/ruma:notareal.hs?via=notareal.hs"
         );
         assert_eq!(
             room_id!("!ruma:notareal.hs")
                 .matrix_uri_via(
-                    vec![owned_server_name!("notareal.hs"), owned_server_name!("anotherunreal.hs")],
+                    vec![server_name!("notareal.hs"), server_name!("anotherunreal.hs")],
                     true
                 )
                 .to_string(),
@@ -892,7 +892,7 @@ mod tests {
             room_id!("!ruma:notareal.hs")
                 .matrix_event_uri_via(
                     event_id!("$event:notareal.hs"),
-                    vec![owned_server_name!("notareal.hs")]
+                    vec![server_name!("notareal.hs")]
                 )
                 .to_string(),
             "matrix:roomid/ruma:notareal.hs/e/event:notareal.hs?via=notareal.hs"
@@ -1026,7 +1026,7 @@ mod tests {
         let matrix_uri = MatrixUri::parse("matrix:roomid/ruma:notareal.hs?via=notareal.hs")
             .expect("Failed to create MatrixToUri.");
         assert_eq!(*matrix_uri.id(), room_id!("!ruma:notareal.hs").into());
-        assert_eq!(matrix_uri.via(), &[owned_server_name!("notareal.hs")]);
+        assert_eq!(matrix_uri.via(), &[server_name!("notareal.hs")]);
         assert_eq!(matrix_uri.action(), None);
 
         let matrix_uri = MatrixUri::parse("matrix:r/ruma:notareal.hs/e/event:notareal.hs")
@@ -1054,7 +1054,7 @@ mod tests {
         );
         assert_eq!(
             matrix_uri.via(),
-            &vec![owned_server_name!("notareal.hs"), owned_server_name!("anotherinexistant.hs")]
+            &vec![server_name!("notareal.hs"), server_name!("anotherinexistant.hs")]
         );
         assert_eq!(matrix_uri.action(), Some(&UriAction::Join));
     }

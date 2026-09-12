@@ -37,7 +37,7 @@ pub use self::{
     room_id::RoomId,
     room_or_alias_id::RoomOrAliasId,
     room_version_id::RoomVersionId,
-    server_name::{OwnedServerName, ServerName},
+    server_name::ServerName,
     server_signing_key_version::{OwnedServerSigningKeyVersion, ServerSigningKeyVersion},
     session_id::{OwnedSessionId, SessionId},
     signatures::{
@@ -114,8 +114,8 @@ fn find_server_name_str(s: &str) -> Option<&str> {
 /// that it was already validated.
 ///
 /// Returns `None` if there is no colon in the string.
-fn find_server_name_unchecked(s: &str) -> Option<&ServerName> {
-    find_server_name_str(s).map(ServerName::from_borrowed_unchecked)
+fn find_server_name_unchecked(s: &str) -> Option<ServerName> {
+    find_server_name_str(s).map(ServerName::from_str_unchecked)
 }
 
 /// Deserializes any type of id using the provided `TryFrom` implementation.
@@ -220,6 +220,9 @@ pub mod __private_macros {
             LazyLock::new(IdInterner::new);
 
         pub static ROOM_ID_INTERNER: LazyLock<IdInterner<crate::RoomId>> =
+            LazyLock::new(IdInterner::new);
+
+        pub static SERVER_NAME_INTERNER: LazyLock<IdInterner<crate::ServerName>> =
             LazyLock::new(IdInterner::new);
     }
 }
@@ -331,11 +334,20 @@ macro_rules! server_name {
     };
 }
 
-/// Compile-time checked [`OwnedServerName`] construction.
+/// Compile-time checked `&'static ServerName` construction.
+///
+/// This macro is a helper to ease the transition after the change of [`ServerName`] from a
+/// dynamically sized type to an owned type. It has the side effect of interning and leaking the
+/// identifier so it SHOULD NOT be used in code that runs in production.
+///
+/// This is behind the `unstable-identifier-ref-macros` cargo feature to allow us to remove this
+/// macro at any time without it being a breaking change.
 #[macro_export]
-macro_rules! owned_server_name {
+#[cfg(feature = "unstable-identifier-ref-macros")]
+macro_rules! server_name_ref {
     ($s:literal) => {
-        $crate::server_name!($s).to_owned()
+        $crate::__private_macros::id_interner::SERVER_NAME_INTERNER
+            .get_or_insert_with($s, || $crate::server_name!($s))
     };
 }
 

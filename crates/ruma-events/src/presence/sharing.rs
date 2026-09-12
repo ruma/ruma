@@ -6,7 +6,7 @@
 
 use std::collections::BTreeMap;
 
-use ruma_common::{OwnedServerName, OwnedUserId, RoomId};
+use ruma_common::{OwnedUserId, RoomId, ServerName};
 use ruma_macros::{EventContent, StringEnum};
 use serde::{Deserialize, Serialize};
 
@@ -76,7 +76,7 @@ pub struct PresenceSharingEventContent {
 
     /// Configuration for sharing presence with servers.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub servers: BTreeMap<OwnedServerName, ServerPresenceSharingState>,
+    pub servers: BTreeMap<ServerName, ServerPresenceSharingState>,
 }
 
 impl PresenceSharingEventContent {
@@ -85,7 +85,7 @@ impl PresenceSharingEventContent {
         share_locally: bool,
         users: BTreeMap<OwnedUserId, UserPresenceSharingState>,
         rooms: BTreeMap<RoomId, RoomPresenceSharingState>,
-        servers: BTreeMap<OwnedServerName, ServerPresenceSharingState>,
+        servers: BTreeMap<ServerName, ServerPresenceSharingState>,
     ) -> Self {
         Self { share_locally, users, rooms, servers }
     }
@@ -94,8 +94,7 @@ impl PresenceSharingEventContent {
 #[cfg(test)]
 mod tests {
     use ruma_common::{
-        canonical_json::assert_to_canonical_json_eq, owned_server_name, owned_user_id, room_id,
-        server_name, user_id,
+        canonical_json::assert_to_canonical_json_eq, owned_user_id, room_id, server_name, user_id,
     };
     use serde_json::{from_value as from_json_value, json};
 
@@ -114,7 +113,7 @@ mod tests {
             ]
             .into(),
             rooms: [(room_id!("!family-group-chat"), RoomPresenceSharingState::Allow)].into(),
-            servers: [(owned_server_name!("matrix.org"), ServerPresenceSharingState::Deny)].into(),
+            servers: [(server_name!("matrix.org"), ServerPresenceSharingState::Deny)].into(),
         };
 
         assert_to_canonical_json_eq!(
@@ -170,7 +169,7 @@ mod tests {
         );
         assert_eq!(content.servers.len(), 1);
         assert_eq!(
-            content.servers.get(server_name!("matrix.org")).unwrap(),
+            content.servers.get(&server_name!("matrix.org")).unwrap(),
             &ServerPresenceSharingState::Deny
         );
     }

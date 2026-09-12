@@ -1060,7 +1060,7 @@ mod tests {
         let signed = third_party_invite.signed.deserialize().unwrap();
         assert_eq!(signed.mxid, "@alice:example.org");
         assert_eq!(signed.signatures.len(), 1);
-        let server_signatures = signed.signatures.get(server_name!("magic.forest")).unwrap();
+        let server_signatures = signed.signatures.get(&server_name!("magic.forest")).unwrap();
         assert_eq!(
             *server_signatures,
             btreemap! {
@@ -1131,7 +1131,7 @@ mod tests {
         let signed = third_party_invite.signed.deserialize().unwrap();
         assert_eq!(signed.mxid, "@alice:example.org");
         assert_eq!(signed.signatures.len(), 1);
-        let server_signatures = signed.signatures.get(server_name!("magic.forest")).unwrap();
+        let server_signatures = signed.signatures.get(&server_name!("magic.forest")).unwrap();
         assert_eq!(
             *server_signatures,
             btreemap! {
