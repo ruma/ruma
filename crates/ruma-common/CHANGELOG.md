@@ -6,6 +6,8 @@ Improvements:
 
 - The `(Owned)DirectUserIdentifier` types were imported from ruma-events. Converting between an
   `OwnedDirectUserIdentifier` and an `OwnedUserId` does not perform an allocation anymore.
+- Implement `From<&OwnedId> for OwnedId` for owned identifier types generated with the `IdDst`
+  derive macro.
 
 ## 0.20.0
 
