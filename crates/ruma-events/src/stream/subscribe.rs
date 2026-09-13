@@ -2,7 +2,7 @@
 //!
 //! [MSC4471]: https://github.com/matrix-org/matrix-spec-proposals/pull/4471
 
-use ruma_common::{OwnedDeviceId, OwnedEventId, OwnedRoomId};
+use ruma_common::{DeviceId, EventId, RoomId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -18,16 +18,16 @@ use serde::{Deserialize, Serialize};
 )]
 pub struct ToDeviceStreamSubscribeEventContent {
     /// The room containing the stream descriptor.
-    pub room_id: OwnedRoomId,
+    pub room_id: RoomId,
 
     /// The event containing the stream descriptor.
-    pub event_id: OwnedEventId,
+    pub event_id: EventId,
 
     /// The subscriber device which should receive updates.
     ///
     /// The device must belong to the subscribing user; the publisher verifies
     /// this before accepting the subscription.
-    pub subscriber_device_id: OwnedDeviceId,
+    pub subscriber_device_id: DeviceId,
 
     /// If `true`, request a fresh `replace` operation rather than continuing from the current
     /// state.
@@ -38,11 +38,7 @@ pub struct ToDeviceStreamSubscribeEventContent {
 impl ToDeviceStreamSubscribeEventContent {
     /// Creates a new `ToDeviceStreamSubscribeEventContent` with the given
     /// room, event, and subscriber device.
-    pub fn new(
-        room_id: OwnedRoomId,
-        event_id: OwnedEventId,
-        subscriber_device_id: OwnedDeviceId,
-    ) -> Self {
+    pub fn new(room_id: RoomId, event_id: EventId, subscriber_device_id: DeviceId) -> Self {
         Self { room_id, event_id, subscriber_device_id, resync: false }
     }
 }
@@ -51,8 +47,7 @@ impl ToDeviceStreamSubscribeEventContent {
 mod tests {
     use assert_matches2::assert_matches;
     use ruma_common::{
-        canonical_json::assert_to_canonical_json_eq, owned_device_id, owned_event_id,
-        owned_room_id, serde::Raw,
+        canonical_json::assert_to_canonical_json_eq, device_id, event_id, room_id, serde::Raw,
     };
     use serde_json::{from_value as from_json_value, json};
 
@@ -62,9 +57,9 @@ mod tests {
     #[test]
     fn subscribe_round_trip() {
         let mut content = ToDeviceStreamSubscribeEventContent::new(
-            owned_room_id!("!room:example.org"),
-            owned_event_id!("$event:example.org"),
-            owned_device_id!("SUBSCRIBERDEVICE"),
+            room_id!("!room:example.org"),
+            event_id!("$event:example.org"),
+            device_id!("SUBSCRIBERDEVICE"),
         );
         content.resync = true;
 
@@ -87,9 +82,9 @@ mod tests {
     #[test]
     fn subscribe_resync_default() {
         let content = ToDeviceStreamSubscribeEventContent::new(
-            owned_room_id!("!room:example.org"),
-            owned_event_id!("$event:example.org"),
-            owned_device_id!("SUBSCRIBERDEVICE"),
+            room_id!("!room:example.org"),
+            event_id!("$event:example.org"),
+            device_id!("SUBSCRIBERDEVICE"),
         );
 
         assert_to_canonical_json_eq!(

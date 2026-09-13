@@ -4,14 +4,14 @@ use std::borrow::Cow;
 
 use http::header::CONTENT_TYPE;
 use ruma_common::{
-    OwnedUserId,
+    UserId,
     api::{
         AppserviceUserIdentity, IncomingRequestExt as _, MatrixVersion,
         OutgoingRequestAppserviceExt, OutgoingRequestExt as _, SupportedVersions,
         auth_scheme::{NoAccessToken, SendAccessToken},
         request, response,
     },
-    metadata, owned_user_id, user_id,
+    metadata, user_id,
 };
 
 metadata! {
@@ -41,7 +41,7 @@ pub struct Request {
     pub bar: String,
 
     #[ruma_api(path)]
-    pub user: OwnedUserId,
+    pub user: UserId,
 }
 
 /// Response type for the `my_endpoint` endpoint.
@@ -64,7 +64,7 @@ fn request_serde() {
         q1: "query_param_special_chars %/&@!".to_owned(),
         q2: 55,
         bar: "barVal".to_owned(),
-        user: owned_user_id!("@bazme:ruma.io"),
+        user: user_id!("@bazme:ruma.io"),
     };
     let supported =
         SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Default::default() };
@@ -97,7 +97,7 @@ fn invalid_uri_should_not_panic() {
         q1: "query_param_special_chars %/&@!".to_owned(),
         q2: 55,
         bar: "barVal".to_owned(),
-        user: owned_user_id!("@bazme:ruma.io"),
+        user: user_id!("@bazme:ruma.io"),
     };
     let supported =
         SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Default::default() };
@@ -118,17 +118,16 @@ fn request_with_user_id_serde() {
         q1: "query_param_special_chars %/&@!".to_owned(),
         q2: 55,
         bar: "barVal".to_owned(),
-        user: owned_user_id!("@bazme:ruma.io"),
+        user: user_id!("@bazme:ruma.io"),
     };
     let supported =
         SupportedVersions { versions: [MatrixVersion::V1_1].into(), features: Default::default() };
 
-    let identity = AppserviceUserIdentity::new(user_id!("@_virtual_:ruma.io"));
     let http_req = req
         .try_into_http_request_with_identity::<Vec<u8>>(
             "https://homeserver.tld",
             SendAccessToken::None,
-            identity,
+            AppserviceUserIdentity::new(&user_id!("@_virtual_:ruma.io")),
             Cow::Owned(supported),
         )
         .unwrap();
@@ -146,13 +145,13 @@ mod without_query {
 
     use http::header::CONTENT_TYPE;
     use ruma_common::{
-        OwnedUserId,
+        UserId,
         api::{
             AppserviceUserIdentity, MatrixVersion, OutgoingRequestAppserviceExt, SupportedVersions,
             auth_scheme::{NoAccessToken, SendAccessToken},
             request, response,
         },
-        metadata, owned_user_id, user_id,
+        metadata, user_id,
     };
 
     metadata! {
@@ -176,7 +175,7 @@ mod without_query {
         pub bar: String,
 
         #[ruma_api(path)]
-        pub user: OwnedUserId,
+        pub user: UserId,
     }
 
     /// Response type for the `my_endpoint` endpoint.
@@ -197,19 +196,18 @@ mod without_query {
             hello: "hi".to_owned(),
             world: "test".to_owned(),
             bar: "barVal".to_owned(),
-            user: owned_user_id!("@bazme:ruma.io"),
+            user: user_id!("@bazme:ruma.io"),
         };
         let supported = SupportedVersions {
             versions: [MatrixVersion::V1_1].into(),
             features: Default::default(),
         };
 
-        let identity = AppserviceUserIdentity::new(user_id!("@_virtual_:ruma.io"));
         let http_req = req
             .try_into_http_request_with_identity::<Vec<u8>>(
                 "https://homeserver.tld",
                 SendAccessToken::None,
-                identity,
+                AppserviceUserIdentity::new(&user_id!("@_virtual_:ruma.io")),
                 Cow::Owned(supported),
             )
             .unwrap();

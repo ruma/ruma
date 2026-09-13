@@ -14,7 +14,7 @@ pub mod delayed_state_event;
 use std::time::Duration;
 
 use ruma_common::{
-    MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId,
+    EventId, MilliSecondsSinceUnixEpoch, RoomId,
     api::error::StandardErrorBody,
     serde::{Raw, StringEnum},
 };
@@ -31,7 +31,7 @@ pub struct DelayedEventData {
     pub delay_id: String,
 
     /// The ID of the room that the delayed event was scheduled to be sent in.
-    pub room_id: OwnedRoomId,
+    pub room_id: RoomId,
 
     /// The event type of the delayed event.
     #[serde(rename = "type")]
@@ -62,7 +62,7 @@ pub struct DelayedEventData {
     /// The event_id this event got when it was sent.
     /// Present only for events that were sent successfully.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub event_id: Option<OwnedEventId>,
+    pub event_id: Option<EventId>,
 
     /// The timestamp when the event was finalized.
     /// Present only for events that were finalized (sent, failed to send, or cancelled).
@@ -75,7 +75,7 @@ impl DelayedEventData {
     /// Create a new delayed event data object with the given parameters
     pub fn new(
         delay_id: String,
-        room_id: OwnedRoomId,
+        room_id: RoomId,
         event_type: TimelineEventType,
         state_key: Option<String>,
         content: Raw<AnyTimelineEventContent>,

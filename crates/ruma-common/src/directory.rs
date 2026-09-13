@@ -7,7 +7,7 @@ mod filter_room_type_serde;
 mod room_network_serde;
 
 use crate::{
-    OwnedMxcUri, OwnedRoomAliasId, OwnedRoomId, PrivOwnedStr,
+    MxcUri, PrivOwnedStr, RoomAliasId, RoomId,
     room::{JoinRuleKind, RoomSummary, RoomType},
 };
 
@@ -25,7 +25,7 @@ pub struct PublicRoomsChunk {
         feature = "compat-empty-string-null",
         serde(default, deserialize_with = "crate::serde::empty_string_as_none")
     )]
-    pub canonical_alias: Option<OwnedRoomAliasId>,
+    pub canonical_alias: Option<RoomAliasId>,
 
     /// The name of the room, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -35,7 +35,7 @@ pub struct PublicRoomsChunk {
     pub num_joined_members: UInt,
 
     /// The ID of the room.
-    pub room_id: OwnedRoomId,
+    pub room_id: RoomId,
 
     /// The topic of the room, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -58,7 +58,7 @@ pub struct PublicRoomsChunk {
         feature = "compat-empty-string-null",
         serde(default, deserialize_with = "crate::serde::empty_string_as_none")
     )]
-    pub avatar_url: Option<OwnedMxcUri>,
+    pub avatar_url: Option<MxcUri>,
 
     /// The join rule of the room.
     #[serde(default, skip_serializing_if = "crate::serde::is_default")]
@@ -80,7 +80,7 @@ pub struct PublicRoomsChunkInit {
     pub num_joined_members: UInt,
 
     /// The ID of the room.
-    pub room_id: OwnedRoomId,
+    pub room_id: RoomId,
 
     /// Whether the room may be viewed by guest users without joining.
     pub world_readable: bool,

@@ -3,7 +3,7 @@
 //! [MSC3551]: https://github.com/matrix-org/matrix-spec-proposals/pull/3551
 
 use js_int::UInt;
-use ruma_common::OwnedMxcUri;
+use ruma_common::MxcUri;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -56,7 +56,7 @@ pub struct FileEventContent {
 impl FileEventContent {
     /// Creates a new non-encrypted `FileEventContent` with the given fallback representation, url
     /// and file info.
-    pub fn plain(text: TextContentBlock, url: OwnedMxcUri, name: String) -> Self {
+    pub fn plain(text: TextContentBlock, url: MxcUri, name: String) -> Self {
         Self {
             text,
             file: FileContentBlock::plain(url, name),
@@ -69,11 +69,7 @@ impl FileEventContent {
 
     /// Creates a new non-encrypted `FileEventContent` with the given plain text fallback
     /// representation, url and name.
-    pub fn plain_with_plain_text(
-        plain_text: impl Into<String>,
-        url: OwnedMxcUri,
-        name: String,
-    ) -> Self {
+    pub fn plain_with_plain_text(plain_text: impl Into<String>, url: MxcUri, name: String) -> Self {
         Self {
             text: TextContentBlock::plain(plain_text),
             file: FileContentBlock::plain(url, name),
@@ -88,7 +84,7 @@ impl FileEventContent {
     /// name and encryption info.
     pub fn encrypted(
         text: TextContentBlock,
-        url: OwnedMxcUri,
+        url: MxcUri,
         name: String,
         encryption_info: EncryptedContent,
     ) -> Self {
@@ -106,7 +102,7 @@ impl FileEventContent {
     /// representation, url, name and encryption info.
     pub fn encrypted_with_plain_text(
         plain_text: impl Into<String>,
-        url: OwnedMxcUri,
+        url: MxcUri,
         name: String,
         encryption_info: EncryptedContent,
     ) -> Self {
@@ -126,7 +122,7 @@ impl FileEventContent {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct FileContentBlock {
     /// The URL to the file.
-    pub url: OwnedMxcUri,
+    pub url: MxcUri,
 
     /// The original filename of the uploaded file.
     pub name: String,
@@ -148,12 +144,12 @@ pub struct FileContentBlock {
 
 impl FileContentBlock {
     /// Creates a new non-encrypted `FileContentBlock` with the given url and name.
-    pub fn plain(url: OwnedMxcUri, name: String) -> Self {
+    pub fn plain(url: MxcUri, name: String) -> Self {
         Self { url, name, mimetype: None, size: None, encryption_info: None }
     }
 
     /// Creates a new encrypted `FileContentBlock` with the given url, name and encryption info.
-    pub fn encrypted(url: OwnedMxcUri, name: String, encryption_info: EncryptedContent) -> Self {
+    pub fn encrypted(url: MxcUri, name: String, encryption_info: EncryptedContent) -> Self {
         Self {
             url,
             name,

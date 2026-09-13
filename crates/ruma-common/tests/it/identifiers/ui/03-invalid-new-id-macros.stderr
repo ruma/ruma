@@ -1,15 +1,8 @@
-error[E0080]: evaluation panicked: Invalid Session ID: contains invalid characters
- --> tests/it/identifiers/ui/03-invalid-new-id-macros.rs:2:13
-  |
-2 |     let _ = ruma_common::session_id!("invalid~");
-  |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ evaluation of `main::SESSION_ID` failed here
-  |
-  = note: this error originates in the macro `$crate::panic::panic_2021` which comes from the expansion of the macro `ruma_common::session_id` (in Nightly builds, run with -Z macro-backtrace for more info)
-
-note: erroneous constant encountered
+error: proc macro panicked
  --> tests/it/identifiers/ui/03-invalid-new-id-macros.rs:2:13
   |
 2 |     let _ = ruma_common::session_id!("invalid~");
   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   |
-  = note: this note originates in the macro `ruma_common::session_id` (in Nightly builds, run with -Z macro-backtrace for more info)
+  = help: message: Invalid SessionId
+  = note: this error originates in the macro `ruma_common::session_id` (in Nightly builds, run with -Z macro-backtrace for more info)

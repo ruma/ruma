@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use ruma_common::{OwnedUserId, UserId};
+use ruma_common::UserId;
 use serde::{
     Serialize, Serializer,
     de::{self, Deserialize, Deserializer, Unexpected},
@@ -26,13 +26,13 @@ impl CallMemberStateKey {
     /// The MemberId is a combination of the UserId and the session information
     /// (session.application and session.id).
     /// The session information is an opaque string that should not be parsed after creation.
-    pub fn new(user_id: OwnedUserId, member_id: Option<String>, underscore: bool) -> Self {
+    pub fn new(user_id: UserId, member_id: Option<String>, underscore: bool) -> Self {
         CallMemberStateKeyEnum::new(user_id, member_id, underscore).into()
     }
 
     /// Returns the user id in this state key.
     /// (This is a cheap operations. The id is already type checked on initialization. And does
-    /// only returns a reference to an existing OwnedUserId.)
+    /// only returns a reference to an existing UserId.)
     ///
     /// It is recommended to not use the state key to get the user id, but rather use the `sender`
     /// field.
@@ -90,13 +90,13 @@ impl Serialize for CallMemberStateKey {
 /// This enum represents all possible formats for a call member event state key.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 enum CallMemberStateKeyEnum {
-    UnderscoreMemberId(OwnedUserId, String),
-    MemberId(OwnedUserId, String),
-    User(OwnedUserId),
+    UnderscoreMemberId(UserId, String),
+    MemberId(UserId, String),
+    User(UserId),
 }
 
 impl CallMemberStateKeyEnum {
-    fn new(user_id: OwnedUserId, unique_member_id: Option<String>, underscore: bool) -> Self {
+    fn new(user_id: UserId, unique_member_id: Option<String>, underscore: bool) -> Self {
         match (unique_member_id, underscore) {
             (Some(member_id), true) => {
                 CallMemberStateKeyEnum::UnderscoreMemberId(user_id, member_id)
@@ -202,7 +202,7 @@ impl de::Expected for KeyParseError {
 mod tests {
     use std::str::FromStr;
 
-    use ruma_common::owned_user_id;
+    use ruma_common::user_id;
 
     use crate::call::member::{CallMemberStateKey, member_state_key::CallMemberStateKeyEnum};
 
@@ -215,11 +215,8 @@ mod tests {
         // This compares state_key.raw (generated) with key (original)
         assert_eq!(state_key.as_ref(), key);
         // Compare to the from string without `CallMemberStateKeyEnum` step.
-        let state_key_direct = CallMemberStateKey::new(
-            owned_user_id!("@user:domain.org"),
-            Some("ABC".to_owned()),
-            true,
-        );
+        let state_key_direct =
+            CallMemberStateKey::new(user_id!("@user:domain.org"), Some("ABC".to_owned()), true);
         assert_eq!(state_key, state_key_direct);
     }
 
@@ -232,8 +229,7 @@ mod tests {
         // This compares state_key.raw (generated) with key (original)
         assert_eq!(state_key.as_ref(), key);
         // Compare to the from string without `CallMemberStateKeyEnum` step.
-        let state_key_direct =
-            CallMemberStateKey::new(owned_user_id!("@user:domain.org"), None, false);
+        let state_key_direct = CallMemberStateKey::new(user_id!("@user:domain.org"), None, false);
         assert_eq!(state_key, state_key_direct);
     }
 
@@ -247,7 +243,7 @@ mod tests {
         assert_eq!(state_key.as_ref(), key);
         // Compare to the from string without `CallMemberStateKeyEnum` step.
         let state_key_direct = CallMemberStateKey::new(
-            owned_user_id!("@user:domain.org"),
+            user_id!("@user:domain.org"),
             Some("ABC_m.callTestId".to_owned()),
             false,
         );

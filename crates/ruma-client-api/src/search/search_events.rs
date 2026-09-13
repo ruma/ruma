@@ -17,7 +17,7 @@ pub mod v3 {
     use as_variant::as_variant;
     use js_int::{UInt, uint};
     use ruma_common::{
-        OwnedEventId, OwnedMxcUri, OwnedRoomId, OwnedUserId,
+        EventId, MxcUri, RoomId, UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::{Raw, StringEnum},
@@ -211,7 +211,7 @@ pub mod v3 {
 
         /// The historic profile information of the users that sent the events returned.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub profile_info: BTreeMap<OwnedUserId, UserProfile>,
+        pub profile_info: BTreeMap<UserId, UserProfile>,
 
         /// Pagination token for the start of the chunk.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -375,7 +375,7 @@ pub mod v3 {
         ///
         /// This is included if the request had the `include_state` key set with a value of `true`.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub state: BTreeMap<OwnedRoomId, Vec<Raw<AnyStateEvent>>>,
+        pub state: BTreeMap<RoomId, Vec<Raw<AnyStateEvent>>>,
 
         /// List of words which should be highlighted, useful for stemming which may
         /// change the query terms.
@@ -457,10 +457,10 @@ pub mod v3 {
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub enum ResultGroupMap {
         /// Results grouped by room ID.
-        RoomId(BTreeMap<OwnedRoomId, ResultGroup>),
+        RoomId(BTreeMap<RoomId, ResultGroup>),
 
         /// Results grouped by sender.
-        Sender(BTreeMap<OwnedUserId, ResultGroup>),
+        Sender(BTreeMap<UserId, ResultGroup>),
 
         #[doc(hidden)]
         _Custom(CustomResultGroupMap),
@@ -515,7 +515,7 @@ pub mod v3 {
 
         /// Which results are in this group.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        pub results: Vec<OwnedEventId>,
+        pub results: Vec<EventId>,
     }
 
     impl ResultGroup {
@@ -576,7 +576,7 @@ pub mod v3 {
             feature = "compat-empty-string-null",
             serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
         )]
-        pub avatar_url: Option<OwnedMxcUri>,
+        pub avatar_url: Option<MxcUri>,
 
         /// The user's display name, if set.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -720,8 +720,8 @@ mod tests {
         );
         assert_eq!(room_id_group_map.len(), 1);
         let room_id_group =
-            room_id_group_map.get(room_id!("!qPewotXpIctQySfjSy:localhost")).unwrap();
-        assert_eq!(room_id_group.results, &[result_event_id]);
+            room_id_group_map.get(&room_id!("!qPewotXpIctQySfjSy:localhost")).unwrap();
+        assert_eq!(room_id_group.results, std::slice::from_ref(&result_event_id));
         assert_eq!(results.highlights, &["martians", "men"]);
         assert_eq!(results.next_batch.as_deref(), Some("5FdgFsd234dfgsdfFD"));
         assert_eq!(results.results.len(), 1);

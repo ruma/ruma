@@ -6,6 +6,8 @@ Breaking changes:
 
 - The `DeserializeOwned` bound on the `StaticStateEventContent::Unsigned` associated type is only
   required when using the `Deserialize` implementation of `Original(Sync)StateEvent`.
+- The `DirectUserIdentifier` dynamically sized identifier types was removed and the
+  `OwnedDirectUserIdentifier` type was renamed to `DirectUserIdentifier`.
 
 ## 0.35.0
 

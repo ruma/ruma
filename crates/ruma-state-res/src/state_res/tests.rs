@@ -1,7 +1,6 @@
 use js_int::{int, uint};
 use ruma_common::{
-    MilliSecondsSinceUnixEpoch, RoomVersionId, owned_event_id,
-    room_version_rules::AuthorizationRules,
+    MilliSecondsSinceUnixEpoch, RoomVersionId, event_id, room_version_rules::AuthorizationRules,
 };
 use ruma_events::StateEventType;
 use test_log::test;
@@ -76,26 +75,26 @@ fn test_mainline_sort_no_pl_ancestor_sorts_first() {
 
     // Send a message rooted at the initial m.room.power_levels.
     let msg_old = factory.create_text_message(
-        owned_event_id!("$msg-old"),
+        event_id!("$msg-old"),
         alice.clone(),
         "rooted at oldest mainline PL",
     );
 
     // Extend the mainline with two more PL events.
     factory.add_room_power_levels(
-        owned_event_id!("$pl-2"),
+        event_id!("$pl-2"),
         alice.clone(),
         RoomPowerLevelsPduContent::Default,
     );
     factory.add_room_power_levels(
-        owned_event_id!("$pl-3"),
+        event_id!("$pl-3"),
         alice.clone(),
         RoomPowerLevelsPduContent::Default,
     );
 
     // Send a message rooted at the current PL.
     let msg_new = factory.create_text_message(
-        owned_event_id!("$msg-new"),
+        event_id!("$msg-new"),
         alice.clone(),
         "rooted at current mainline PL",
     );
@@ -103,18 +102,14 @@ fn test_mainline_sort_no_pl_ancestor_sorts_first() {
     // Send a message with no PL in its auth chain. The factory auto-populates
     // auth_events with the resolved PL; drop it so the chain has no PL ancestor.
     let mut msg_no_pl =
-        factory.create_text_message(owned_event_id!("$msg-no-pl"), alice.clone(), "no PL ancestor");
-    msg_no_pl.auth_events.remove(&owned_event_id!("$pl-3"));
+        factory.create_text_message(event_id!("$msg-no-pl"), alice.clone(), "no PL ancestor");
+    msg_no_pl.auth_events.remove(&event_id!("$pl-3"));
 
     factory.add_pdu(msg_old);
     factory.add_pdu(msg_new);
     factory.add_pdu(msg_no_pl);
 
-    let events = vec![
-        owned_event_id!("$msg-old"),
-        owned_event_id!("$msg-new"),
-        owned_event_id!("$msg-no-pl"),
-    ];
+    let events = vec![event_id!("$msg-old"), event_id!("$msg-new"), event_id!("$msg-no-pl")];
     let power_level = factory.state_event_id(&StateEventType::RoomPowerLevels, "").unwrap().clone();
 
     let sorted_events = super::mainline_sort(&events, Some(power_level), factory.get_fn()).unwrap();
@@ -127,12 +122,12 @@ fn test_mainline_sort_no_pl_ancestor_sorts_first() {
 #[test]
 fn test_reverse_topological_power_sort() {
     let graph = EventIdMap::from([
-        (owned_event_id!("$l"), EventIdSet::from([owned_event_id!("$o")])),
-        (owned_event_id!("$m"), EventIdSet::from([owned_event_id!("$n"), owned_event_id!("$o")])),
-        (owned_event_id!("$n"), EventIdSet::from([owned_event_id!("$o")])),
-        (owned_event_id!("$o"), EventIdSet::new()), /* "o" has zero outgoing edges but 4
-                                                     * incoming edges */
-        (owned_event_id!("$p"), EventIdSet::from([owned_event_id!("$o")])),
+        (event_id!("$l"), EventIdSet::from([event_id!("$o")])),
+        (event_id!("$m"), EventIdSet::from([event_id!("$n"), event_id!("$o")])),
+        (event_id!("$n"), EventIdSet::from([event_id!("$o")])),
+        (event_id!("$o"), EventIdSet::new()), /* "o" has zero outgoing edges but 4
+                                               * incoming edges */
+        (event_id!("$p"), EventIdSet::from([event_id!("$o")])),
     ]);
 
     let sorted = crate::reverse_topological_power_sort(&graph, |_id| {

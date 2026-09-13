@@ -5,7 +5,7 @@
 use std::collections::BTreeMap;
 
 use js_int::UInt;
-use ruma_common::{OwnedUserId, OwnedVoipId, VoipVersionId};
+use ruma_common::{UserId, VoipId, VoipVersionId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -21,11 +21,11 @@ use super::{SessionDescription, StreamMetadata};
 #[ruma_event(type = "m.call.invite", kind = MessageLike)]
 pub struct CallInviteEventContent {
     /// A unique identifier for the call.
-    pub call_id: OwnedVoipId,
+    pub call_id: VoipId,
 
     /// **Required in VoIP version 1.** A unique ID for this session for the duration of the call.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub party_id: Option<OwnedVoipId>,
+    pub party_id: Option<VoipId>,
 
     /// The time in milliseconds that the invite is valid for.
     ///
@@ -50,7 +50,7 @@ pub struct CallInviteEventContent {
     ///
     /// The invite should be ignored if the invitee is set and doesn't match the user's ID.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub invitee: Option<OwnedUserId>,
+    pub invitee: Option<UserId>,
 
     /// **Added in VoIP version 1.** Metadata describing the streams that will be sent.
     ///
@@ -63,7 +63,7 @@ impl CallInviteEventContent {
     /// Creates a new `CallInviteEventContent` with the given call ID, lifetime, offer and VoIP
     /// version.
     pub fn new(
-        call_id: OwnedVoipId,
+        call_id: VoipId,
         lifetime: UInt,
         offer: SessionDescription,
         version: VoipVersionId,
@@ -83,15 +83,15 @@ impl CallInviteEventContent {
 
     /// Convenience method to create a version 0 `CallInviteEventContent` with all the required
     /// fields.
-    pub fn version_0(call_id: OwnedVoipId, lifetime: UInt, offer: SessionDescription) -> Self {
+    pub fn version_0(call_id: VoipId, lifetime: UInt, offer: SessionDescription) -> Self {
         Self::new(call_id, lifetime, offer, VoipVersionId::V0)
     }
 
     /// Convenience method to create a version 1 `CallInviteEventContent` with all the required
     /// fields.
     pub fn version_1(
-        call_id: OwnedVoipId,
-        party_id: OwnedVoipId,
+        call_id: VoipId,
+        party_id: VoipId,
         lifetime: UInt,
         offer: SessionDescription,
     ) -> Self {

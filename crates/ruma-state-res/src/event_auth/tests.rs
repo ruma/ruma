@@ -1,6 +1,6 @@
 use js_int::int;
 use ruma_common::{
-    RoomVersionId, owned_event_id, owned_room_id,
+    RoomVersionId, event_id, room_id,
     room_version_rules::{AuthorizationRules, RoomIdFormatVersion},
 };
 use ruma_events::TimelineEventType;
@@ -77,7 +77,7 @@ fn invalid_room_create() {
 
     // `m.room.create` cannot have a prev event.
     let mut pdu = valid_v6_pdu.clone();
-    pdu.prev_events.insert(owned_event_id!("$other-room-create"));
+    pdu.prev_events.insert(event_id!("$other-room-create"));
     assert_eq!(
         check_room_create(RoomCreateEvent::new(pdu), &AuthorizationRules::V6).unwrap_err(),
         "`m.room.create` event cannot have previous events"
@@ -106,7 +106,7 @@ fn invalid_room_create() {
 
     // Since room v12, the `room_id` field is forbidden.
     let mut pdu = valid_v12_pdu.clone();
-    pdu.room_id = Some(owned_room_id!("!room:matrix.local"));
+    pdu.room_id = Some(room_id!("!room:matrix.local"));
     assert_eq!(
         check_room_create(RoomCreateEvent::new(pdu), &AuthorizationRules::V12).unwrap_err(),
         "`m.room.create` event cannot have a `room_id` field"
@@ -131,16 +131,16 @@ fn redact_higher_power_level() {
     let alice_id = UserFactory::Alice.user_id();
 
     let mut room_redaction_event = Pdu::with_minimal_fields(
-        owned_event_id!("$redaction:matrix.local"),
+        event_id!("$redaction:matrix.local"),
         alice_id.clone(),
         TimelineEventType::RoomRedaction,
         json!({}),
     );
     // The redacted event ID must use another server name.
-    room_redaction_event.redacts = Some(owned_event_id!("$other-event:other.local"));
+    room_redaction_event.redacts = Some(event_id!("$other-event:other.local"));
 
     let room_power_levels_event = Pdu::with_minimal_state_fields(
-        owned_event_id!("$powerlevels:matrix.local"),
+        event_id!("$powerlevels:matrix.local"),
         alice_id.clone(),
         TimelineEventType::RoomPowerLevels,
         String::new(),
@@ -168,16 +168,16 @@ fn redact_same_power_level() {
     let alice_id = UserFactory::Alice.user_id();
 
     let mut room_redaction_event = Pdu::with_minimal_fields(
-        owned_event_id!("$redaction:matrix.local"),
+        event_id!("$redaction:matrix.local"),
         alice_id.clone(),
         TimelineEventType::RoomRedaction,
         json!({}),
     );
     // The redacted event ID must use another server name.
-    room_redaction_event.redacts = Some(owned_event_id!("$other-event:other.local"));
+    room_redaction_event.redacts = Some(event_id!("$other-event:other.local"));
 
     let room_power_levels_event = Pdu::with_minimal_state_fields(
-        owned_event_id!("$powerlevels:matrix.local"),
+        event_id!("$powerlevels:matrix.local"),
         alice_id.clone(),
         TimelineEventType::RoomPowerLevels,
         String::new(),
@@ -202,16 +202,16 @@ fn redact_same_server() {
     let alice_id = UserFactory::Alice.user_id();
 
     let mut room_redaction_event = Pdu::with_minimal_fields(
-        owned_event_id!("$redaction:matrix.local"),
+        event_id!("$redaction:matrix.local"),
         alice_id.clone(),
         TimelineEventType::RoomRedaction,
         json!({}),
     );
     // The redacted event ID must use the same server name.
-    room_redaction_event.redacts = Some(owned_event_id!("$other-event:matrix.local"));
+    room_redaction_event.redacts = Some(event_id!("$other-event:matrix.local"));
 
     let room_power_levels_event = Pdu::with_minimal_state_fields(
-        owned_event_id!("$powerlevels:matrix.local"),
+        event_id!("$powerlevels:matrix.local"),
         alice_id.clone(),
         TimelineEventType::RoomPowerLevels,
         String::new(),
@@ -233,11 +233,8 @@ fn redact_same_server() {
 fn reject_missing_room_create_auth_events() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V6);
 
-    let mut pdu = factory.create_text_message(
-        owned_event_id!("$hello"),
-        UserFactory::Alice.user_id(),
-        "Hello!",
-    );
+    let mut pdu =
+        factory.create_text_message(event_id!("$hello"), UserFactory::Alice.user_id(), "Hello!");
     pdu.auth_events.remove(&PublicChatInitialPdu::RoomCreate.event_id());
 
     // In room v1-v11, we cannot accept event if no `m.room.create` in auth events.
@@ -258,7 +255,7 @@ fn no_federate() {
 
     // Cannot accept event if not federating and different server.
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-zara-join"),
+        event_id!("$room-member-zara-join"),
         UserFactory::Zara.user_id(),
         RoomMemberPduContent::Join,
     );
@@ -271,7 +268,7 @@ fn no_federate() {
 
     // Accept event if not federating and same server.
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-charlie-join"),
+        event_id!("$room-member-charlie-join"),
         UserFactory::Charlie.user_id(),
         RoomMemberPduContent::Join,
     );
@@ -286,7 +283,7 @@ fn room_aliases_no_state_key() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V6);
 
     let mut pdu = Pdu::with_minimal_fields(
-        owned_event_id!("$room-aliases"),
+        event_id!("$room-aliases"),
         UserFactory::Alice.user_id(),
         "m.room.aliases".into(),
         json!({
@@ -316,7 +313,7 @@ fn room_aliases_other_server() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V6);
 
     let mut pdu = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-aliases"),
+        event_id!("$room-aliases"),
         UserFactory::Alice.user_id(),
         "m.room.aliases".into(),
         "other.local".to_owned(),
@@ -348,7 +345,7 @@ fn room_aliases_same_server() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V6);
 
     let mut pdu = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-aliases"),
+        event_id!("$room-aliases"),
         UserFactory::Alice.user_id(),
         "m.room.aliases".into(),
         "matrix.local".to_owned(),
@@ -374,11 +371,8 @@ fn room_aliases_same_server() {
 fn sender_not_in_room() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V6);
 
-    let pdu = factory.create_text_message(
-        owned_event_id!("$hello"),
-        UserFactory::Charlie.user_id(),
-        "Hello!",
-    );
+    let pdu =
+        factory.create_text_message(event_id!("$hello"), UserFactory::Charlie.user_id(), "Hello!");
 
     // Cannot accept event if user not in room.
     assert_eq!(
@@ -400,7 +394,7 @@ fn room_third_party_invite() {
 
     // Increase the power level required to invite to 50.
     factory.add_room_power_levels(
-        owned_event_id!("$room-power-levels-invite"),
+        event_id!("$room-power-levels-invite"),
         UserFactory::Alice.user_id(),
         RoomPowerLevelsPduContent::Invite { value: 50 },
     );
@@ -418,11 +412,8 @@ fn room_third_party_invite() {
 fn event_type_not_enough_power() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V6);
 
-    let mut pdu = factory.create_text_message(
-        owned_event_id!("$hello"),
-        UserFactory::Bob.user_id(),
-        "Hello!",
-    );
+    let mut pdu =
+        factory.create_text_message(event_id!("$hello"), UserFactory::Bob.user_id(), "Hello!");
 
     // Accept event if enough power for the event's type.
     check_state_dependent_auth_rules(&AuthorizationRules::V6, &pdu, factory.state_event_fn())
@@ -431,7 +422,7 @@ fn event_type_not_enough_power() {
     // Increase the power level required to send `m.room.message` events.
     let alice_id = UserFactory::Alice.user_id();
     factory.add_room_power_levels(
-        owned_event_id!("$room-power-levels-invite"),
+        event_id!("$room-power-levels-invite"),
         alice_id.clone(),
         RoomPowerLevelsPduContent::Events {
             event_types: vec![TimelineEventType::RoomMessage],
@@ -453,7 +444,7 @@ fn user_id_state_key_not_sender() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V6);
 
     let mut pdu = Pdu::with_minimal_state_fields(
-        owned_event_id!("$fake-state-event"),
+        event_id!("$fake-state-event"),
         UserFactory::Alice.user_id(),
         "dev.ruma.fake_state_event".into(),
         UserFactory::Zara.user_id().into(),
@@ -475,7 +466,7 @@ fn user_id_state_key_is_sender() {
 
     let alice_id = UserFactory::Alice.user_id();
     let mut pdu = Pdu::with_minimal_state_fields(
-        owned_event_id!("$fake-state-event"),
+        event_id!("$fake-state-event"),
         alice_id.clone(),
         "dev.ruma.fake_state_event".into(),
         alice_id.into(),
@@ -493,12 +484,12 @@ fn auth_event_in_different_room() {
     let mut factory = RoomCreatePduBuilder::new(RoomVersionId::V6).build_factory();
 
     let mut pdu = factory.create_room_member(
-        owned_event_id!("$room-member-alice-join"),
+        event_id!("$room-member-alice-join"),
         UserFactory::Alice.user_id(),
         RoomMemberPduContent::Join,
     );
     // This is not the right room!
-    pdu.room_id = Some(owned_room_id!("!wrongroom:matrix.local"));
+    pdu.room_id = Some(room_id!("!wrongroom:matrix.local"));
 
     // Cannot accept with auth event in different room.
     assert_eq!(
@@ -514,12 +505,12 @@ fn duplicate_auth_event_type() {
 
     let alice_id = UserFactory::Alice.user_id();
     factory.add_room_member(
-        owned_event_id!("$room-member-alice-displayname"),
+        event_id!("$room-member-alice-displayname"),
         alice_id.clone(),
         RoomMemberPduContent::DisplayName { displayname: "Alice".to_owned() },
     );
 
-    let mut pdu = factory.create_text_message(owned_event_id!("$hello"), alice_id, "Hello!");
+    let mut pdu = factory.create_text_message(event_id!("$hello"), alice_id, "Hello!");
     pdu.auth_events.insert(PublicChatInitialPdu::RoomMemberAliceJoin.event_id());
 
     // Cannot accept with two auth events with same (type, state_key) pair.
@@ -534,11 +525,8 @@ fn duplicate_auth_event_type() {
 fn unexpected_auth_event_type() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V6);
 
-    let mut pdu = factory.create_text_message(
-        owned_event_id!("$hello"),
-        UserFactory::Alice.user_id(),
-        "Hello!",
-    );
+    let mut pdu =
+        factory.create_text_message(event_id!("$hello"), UserFactory::Alice.user_id(), "Hello!");
     pdu.auth_events.insert(PublicChatInitialPdu::RoomJoinRules.event_id());
 
     // Cannot accept with auth event with unexpected (type, state_key) pair.
@@ -555,7 +543,7 @@ fn rejected_auth_event() {
 
     let charlie_id = UserFactory::Charlie.user_id();
     let room_member_charlie_knock_pdu = factory.add_room_member(
-        owned_event_id!("$room-member-charlie-knock"),
+        event_id!("$room-member-charlie-knock"),
         charlie_id.clone(),
         RoomMemberPduContent::Knock,
     );
@@ -564,7 +552,7 @@ fn rejected_auth_event() {
 
     // Bob's invite after the knock.
     let room_member_charlie_invite_pdu = factory.create_room_member(
-        owned_event_id!("$room-member-charlie-invite"),
+        event_id!("$room-member-charlie-invite"),
         charlie_id,
         RoomMemberPduContent::Invite { sender: UserFactory::Bob.user_id() },
     );
@@ -614,11 +602,8 @@ fn room_create_with_allowed_or_rejected_room_id() {
 fn event_without_room_id() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V11);
 
-    let mut pdu = factory.create_text_message(
-        owned_event_id!("$hello"),
-        UserFactory::Alice.user_id(),
-        "Hello!",
-    );
+    let mut pdu =
+        factory.create_text_message(event_id!("$hello"), UserFactory::Alice.user_id(), "Hello!");
     pdu.room_id.take();
 
     // Cannot accept event without room ID.
@@ -633,11 +618,8 @@ fn event_without_room_id() {
 fn allow_missing_room_create_auth_events() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V12);
 
-    let pdu = factory.create_text_message(
-        owned_event_id!("$hello"),
-        UserFactory::Alice.user_id(),
-        "Hello!",
-    );
+    let pdu =
+        factory.create_text_message(event_id!("$hello"), UserFactory::Alice.user_id(), "Hello!");
     assert!(!pdu.auth_events.contains(&PublicChatInitialPdu::RoomCreate.event_id()));
 
     // Since room v12, accept event if no `m.room.create` in auth events.
@@ -648,11 +630,8 @@ fn allow_missing_room_create_auth_events() {
 fn reject_room_create_in_auth_events() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V12);
 
-    let mut pdu = factory.create_text_message(
-        owned_event_id!("$hello"),
-        UserFactory::Alice.user_id(),
-        "Hello!",
-    );
+    let mut pdu =
+        factory.create_text_message(event_id!("$hello"), UserFactory::Alice.user_id(), "Hello!");
     pdu.auth_events.insert(PublicChatInitialPdu::RoomCreate.event_id());
 
     // Since room v12, reject event if `m.room.create` in auth events.
@@ -667,11 +646,8 @@ fn reject_room_create_in_auth_events() {
 fn missing_room_create_in_fetch_event() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V12);
 
-    let pdu = factory.create_text_message(
-        owned_event_id!("$hello"),
-        UserFactory::Alice.user_id(),
-        "Hello!",
-    );
+    let pdu =
+        factory.create_text_message(event_id!("$hello"), UserFactory::Alice.user_id(), "Hello!");
 
     factory.remove(&PublicChatInitialPdu::RoomCreate.event_id());
 
@@ -691,7 +667,7 @@ fn rejected_room_create_in_fetch_event() {
 
     let alice_id = UserFactory::Alice.user_id();
     let mut room_member_pdu = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-member-alice-join"),
+        event_id!("$room-member-alice-join"),
         alice_id.clone(),
         TimelineEventType::RoomMember,
         alice_id.into(),

@@ -2,7 +2,7 @@
 
 use std::{ops::Deref, vec};
 
-use ruma_common::OwnedEventId;
+use ruma_common::EventId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -43,7 +43,7 @@ pub struct PollResponseEventContent {
 impl PollResponseEventContent {
     /// Creates a new `PollResponseEventContent` that responds to the given poll start event ID,
     /// with the given poll response content.
-    pub fn new(selections: SelectionsContentBlock, poll_start_id: OwnedEventId) -> Self {
+    pub fn new(selections: SelectionsContentBlock, poll_start_id: EventId) -> Self {
         Self {
             selections,
             #[cfg(feature = "unstable-msc3955")]

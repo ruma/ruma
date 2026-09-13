@@ -11,7 +11,7 @@ use std::{
 
 use js_int::UInt;
 use ruma_common::{
-    OwnedMxcUri,
+    MxcUri,
     serde::{
         Base64, JsonObject,
         base64::{Standard, UrlSafe},
@@ -59,7 +59,7 @@ pub mod topic;
 pub enum MediaSource {
     /// The MXC URI to the unencrypted media file.
     #[serde(rename = "url")]
-    Plain(OwnedMxcUri),
+    Plain(MxcUri),
 
     /// The encryption info of the encrypted media file.
     #[serde(rename = "file")]
@@ -77,7 +77,7 @@ impl<'de> Deserialize<'de> for MediaSource {
     {
         #[derive(Deserialize)]
         struct MediaSourceJsonRepr {
-            url: Option<OwnedMxcUri>,
+            url: Option<MxcUri>,
             file: Option<Box<EncryptedFile>>,
         }
 
@@ -186,7 +186,7 @@ impl ThumbnailInfo {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct EncryptedFile {
     /// The URL to the file.
-    pub url: OwnedMxcUri,
+    pub url: MxcUri,
 
     /// Information about the encryption of the file.
     #[serde(flatten)]
@@ -200,7 +200,7 @@ pub struct EncryptedFile {
 
 impl EncryptedFile {
     /// Construct a new `EncryptedFile` with the given URL, encryption info and hashes.
-    pub fn new(url: OwnedMxcUri, info: EncryptedFileInfo, hashes: EncryptedFileHashes) -> Self {
+    pub fn new(url: MxcUri, info: EncryptedFileInfo, hashes: EncryptedFileHashes) -> Self {
         Self { url, info, hashes }
     }
 }
@@ -428,7 +428,7 @@ pub struct CustomEncryptedFileHash {
 #[cfg(test)]
 mod tests {
     use assert_matches2::assert_matches;
-    use ruma_common::owned_mxc_uri;
+    use ruma_common::mxc_uri;
     use serde::Deserialize;
     use serde_json::{from_value as from_json_value, json};
 
@@ -448,7 +448,7 @@ mod tests {
         let msg: MsgWithAttachment = from_json_value(json!({
             "body": "",
             "file": EncryptedFile::new(
-                owned_mxc_uri!("mxc://localhost/encryptedfile"),
+                mxc_uri!("mxc://localhost/encryptedfile"),
                 V2EncryptedFileInfo::encode([0;32], [1;16]).into(),
                 EncryptedFileHashes::new(),
             ),

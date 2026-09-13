@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use assert_matches2::{assert_let, assert_matches};
 use ruma_common::{
-    CanonicalJsonValue, ServerSigningKeyId, SigningKeyAlgorithm, owned_server_name,
+    CanonicalJsonValue, ServerSigningKeyId, SigningKeyAlgorithm,
     room_version_rules::{RoomVersionRules, SignaturesRules},
     serde::Base64,
     server_name,
@@ -30,7 +30,7 @@ fn add_key_to_map(public_key_map: &mut PublicKeyMap, name: &str, pair: &Ed25519K
     let encoded_public_key = Base64::new(pair.public_key().to_vec());
     let version = ServerSigningKeyId::from_parts(
         SigningKeyAlgorithm::Ed25519,
-        pair.version().try_into().unwrap(),
+        &pair.version().try_into().unwrap(),
     );
 
     sender_key_map.insert(version.to_string(), encoded_public_key);
@@ -41,7 +41,7 @@ fn add_invalid_key_to_map(public_key_map: &mut PublicKeyMap, name: &str, pair: &
     let encoded_public_key = Base64::new(pair.public_key().to_vec());
     let version = ServerSigningKeyId::from_parts(
         SigningKeyAlgorithm::from("an-unknown-algorithm"),
-        pair.version().try_into().unwrap(),
+        &pair.version().try_into().unwrap(),
     );
 
     sender_key_map.insert(version.to_string(), encoded_public_key);
@@ -272,7 +272,7 @@ fn verify_event_fails_if_public_key_is_invalid() {
     let encoded_public_key = Base64::new(newly_generated_key_pair.public_key().to_vec());
     let version = ServerSigningKeyId::from_parts(
         SigningKeyAlgorithm::Ed25519,
-        key_pair_sender.version().try_into().unwrap(),
+        &key_pair_sender.version().try_into().unwrap(),
     );
     sender_key_map.insert(version.to_string(), encoded_public_key);
     public_key_map.insert("domain-sender".to_owned(), sender_key_map);
@@ -504,14 +504,14 @@ fn required_server_signatures_to_verify_event_message() {
     let servers =
         required_server_signatures_to_verify_event(&object, &SignaturesRules::V1).unwrap();
     assert_eq!(servers.len(), 2);
-    assert!(servers.contains(server_name!("domain-sender")));
-    assert!(servers.contains(server_name!("domain-event")));
+    assert!(servers.contains(&server_name!("domain-sender")));
+    assert!(servers.contains(&server_name!("domain-event")));
 
     // Check for room v3.
     let servers =
         required_server_signatures_to_verify_event(&object, &SignaturesRules::V3).unwrap();
     assert_eq!(servers.len(), 1);
-    assert!(servers.contains(server_name!("domain-sender")));
+    assert!(servers.contains(&server_name!("domain-sender")));
 }
 
 #[test]
@@ -550,7 +550,7 @@ fn required_server_signatures_to_verify_event_invite_via_third_party() {
     let servers =
         required_server_signatures_to_verify_event(&object, &SignaturesRules::V1).unwrap();
     assert_eq!(servers.len(), 1);
-    assert!(servers.contains(server_name!("domain-event")));
+    assert!(servers.contains(&server_name!("domain-event")));
 
     // Check for room v3.
     let servers =
@@ -594,21 +594,21 @@ fn required_server_signatures_to_verify_event_restricted() {
     let servers =
         required_server_signatures_to_verify_event(&object, &SignaturesRules::V1).unwrap();
     assert_eq!(servers.len(), 2);
-    assert!(servers.contains(server_name!("domain-sender")));
-    assert!(servers.contains(server_name!("domain-event")));
+    assert!(servers.contains(&server_name!("domain-sender")));
+    assert!(servers.contains(&server_name!("domain-event")));
 
     // Check for room v3.
     let servers =
         required_server_signatures_to_verify_event(&object, &SignaturesRules::V3).unwrap();
     assert_eq!(servers.len(), 1);
-    assert!(servers.contains(server_name!("domain-sender")));
+    assert!(servers.contains(&server_name!("domain-sender")));
 
     // Check for room v8.
     let servers =
         required_server_signatures_to_verify_event(&object, &SignaturesRules::V8).unwrap();
     assert_eq!(servers.len(), 2);
-    assert!(servers.contains(server_name!("domain-sender")));
-    assert!(servers.contains(server_name!("domain-authorize-user")));
+    assert!(servers.contains(&server_name!("domain-sender")));
+    assert!(servers.contains(&server_name!("domain-authorize-user")));
 }
 
 #[test]
@@ -740,7 +740,7 @@ fn verify_policy_server_signature_succeeds_with_signature_from_policy_server() {
     add_key_to_map(&mut public_key_map, "domain-sender", &key_pair_sender);
 
     let room_policy = RoomPolicyEventContent::new(
-        owned_server_name!("domain-policy-server"),
+        server_name!("domain-policy-server"),
         Base64::new(key_pair_policy_server.public_key().to_vec()),
     );
 
@@ -781,7 +781,7 @@ fn verify_policy_server_signature_fails_with_invalid_signature_from_policy_serve
     add_key_to_map(&mut public_key_map, "domain-sender", &key_pair_sender);
 
     let room_policy = RoomPolicyEventContent::new(
-        owned_server_name!("domain-policy-server"),
+        server_name!("domain-policy-server"),
         Base64::new(second_key_pair_policy_server.public_key().to_vec()),
     );
 
@@ -823,7 +823,7 @@ fn verify_policy_server_signature_fails_with_missing_signature_from_policy_serve
     add_key_to_map(&mut public_key_map, "domain-sender", &key_pair_sender);
 
     let room_policy = RoomPolicyEventContent::new(
-        owned_server_name!("domain-policy-server"),
+        server_name!("domain-policy-server"),
         Base64::new(key_pair_policy_server.public_key().to_vec()),
     );
 
@@ -865,7 +865,7 @@ fn verify_policy_server_signature_succeeds_with_missing_signature_from_policy_se
     add_key_to_map(&mut public_key_map, "domain-sender", &key_pair_sender);
 
     let room_policy = RoomPolicyEventContent::new(
-        owned_server_name!("domain-policy-server"),
+        server_name!("domain-policy-server"),
         Base64::new(key_pair_policy_server.public_key().to_vec()),
     );
 

@@ -9,14 +9,14 @@ use serde::{
     de::{self, Unexpected},
 };
 
-use crate::OwnedDeviceId;
+use crate::DeviceId;
 
 /// Represents one or all of a user's devices.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 #[allow(clippy::exhaustive_enums)]
 pub enum DeviceIdOrAllDevices {
     /// Represents a device Id for one of a user's devices.
-    DeviceId(OwnedDeviceId),
+    DeviceId(DeviceId),
 
     /// Represents all devices for a user.
     AllDevices,
@@ -31,8 +31,8 @@ impl Display for DeviceIdOrAllDevices {
     }
 }
 
-impl From<OwnedDeviceId> for DeviceIdOrAllDevices {
-    fn from(d: OwnedDeviceId) -> Self {
+impl From<DeviceId> for DeviceIdOrAllDevices {
+    fn from(d: DeviceId) -> Self {
         DeviceIdOrAllDevices::DeviceId(d)
     }
 }

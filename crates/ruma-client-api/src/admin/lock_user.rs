@@ -14,7 +14,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/v1.19/client-server-api/#put_matrixclientv1adminlockuserid
 
     use ruma_common::{
-        OwnedUserId,
+        UserId,
         api::{OAuthClientScope, auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -40,7 +40,7 @@ pub mod v1 {
     pub struct Request {
         /// The user to change the locked status of.
         #[ruma_api(path)]
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// Whether to lock the target account.
         pub locked: bool,
@@ -55,7 +55,7 @@ pub mod v1 {
 
     impl Request {
         /// Creates a new `Request` with the given user ID and locked status.
-        pub fn new(user_id: OwnedUserId, locked: bool) -> Self {
+        pub fn new(user_id: UserId, locked: bool) -> Self {
             Self { user_id, locked }
         }
     }

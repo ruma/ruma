@@ -10,7 +10,7 @@ pub mod v1 {
     use std::collections::btree_map;
 
     use ruma_common::{
-        OwnedUserId,
+        UserId,
         api::{request, response},
         metadata,
         profile::{ProfileFieldName, ProfileFieldValue, StaticProfileField, UserProfile},
@@ -31,7 +31,7 @@ pub mod v1 {
     pub struct Request {
         /// User ID to query.
         #[ruma_api(query)]
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// Profile field to query.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -41,7 +41,7 @@ pub mod v1 {
 
     impl Request {
         /// Creates a new `Request` with the given user id.
-        pub fn new(user_id: OwnedUserId) -> Self {
+        pub fn new(user_id: UserId) -> Self {
             Self { user_id, field: None }
         }
     }

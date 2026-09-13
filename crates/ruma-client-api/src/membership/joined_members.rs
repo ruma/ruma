@@ -11,7 +11,7 @@ pub mod v3 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        OwnedMxcUri, OwnedRoomId, OwnedUserId,
+        MxcUri, RoomId, UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -32,7 +32,7 @@ pub mod v3 {
     pub struct Request {
         /// The room to get the members of.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
     }
 
     /// Response type for the `joined_members` endpoint.
@@ -40,19 +40,19 @@ pub mod v3 {
     pub struct Response {
         /// A list of the rooms the user is in, i.e.
         /// the ID of each room in which the user has joined membership.
-        pub joined: BTreeMap<OwnedUserId, RoomMember>,
+        pub joined: BTreeMap<UserId, RoomMember>,
     }
 
     impl Request {
         /// Creates a new `Request` with the given room ID.
-        pub fn new(room_id: OwnedRoomId) -> Self {
+        pub fn new(room_id: RoomId) -> Self {
             Self { room_id }
         }
     }
 
     impl Response {
         /// Creates a new `Response` with the given joined rooms.
-        pub fn new(joined: BTreeMap<OwnedUserId, RoomMember>) -> Self {
+        pub fn new(joined: BTreeMap<UserId, RoomMember>) -> Self {
             Self { joined }
         }
     }
@@ -74,7 +74,7 @@ pub mod v3 {
             feature = "compat-empty-string-null",
             serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
         )]
-        pub avatar_url: Option<OwnedMxcUri>,
+        pub avatar_url: Option<MxcUri>,
     }
 
     impl RoomMember {
@@ -99,10 +99,7 @@ pub mod v3 {
             }))
             .unwrap();
             assert_eq!(member.display_name.as_deref(), Some("alice"));
-            assert_eq!(
-                member.avatar_url.as_deref(),
-                Some(mxc_uri!("mxc://localhost/wefuiwegh8742w"))
-            );
+            assert_eq!(member.avatar_url, Some(mxc_uri!("mxc://localhost/wefuiwegh8742w")));
 
             #[cfg(feature = "compat-empty-string-null")]
             {

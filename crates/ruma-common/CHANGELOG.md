@@ -2,6 +2,68 @@
 
 ## Unreleased
 
+Breaking changes:
+
+- The dynamically sized identifier types were removed and replaced by their `Owned*` variant:
+  - `OwnedBase64PublicKey` was renamed to `Base64PublicKey`. The `base64_public_key!` macro now
+    returns a `Base64PublicKey`, the `owned_base64_public_key!` macro was removed and the
+    `base64_public_key_ref!` macro behind the `unstable-identifier-ref-macros` cargo feature allows
+    to construct a `&'static Base64PublicKey`.
+  - `OwnedBase64PublicKeyOrDeviceId` was renamed to `Base64PublicKeyOrDeviceId`.
+  - `OwnedClientSecret` was renamed to `ClientSecret`.
+  - `OwnedDeviceId` was renamed to `DeviceId`. The `device_id!` macro now returns a `DeviceId`, the
+    `owned_device_id!` macro was removed and the `device_id_ref!` macro behind the
+    `unstable-identifier-ref-macros` cargo feature allows to construct a `&'static DeviceId`.
+  - `OwnedEventId` was renamed to `EventId`. The `event_id!` macro now returns an `EventId`, the
+    `owned_event_id!` macro was removed and the `event_id_ref!` macro behind the
+    `unstable-identifier-ref-macros` cargo feature allows to construct a `&'static EventId`.
+  - `OwnedKeyId` was renamed to `KeyId`, and all its type aliases lost the `Owned` prefix too.
+  - `OwnedAnyKeyName` was renamed to `AnyKeyName`.
+  - `OwnedMxcUri` was renamed to `MxcUri`. The `mxc_uri!` macro now returns an `MxcUri`, the
+    `owned_mxc_uri!` macro was removed and the `mxc_uri_ref!` macro behind the
+    `unstable-identifier-ref-macros` cargo feature allows to construct a `&'static MxcUri`.
+  - `OwnedOneTimeKeyName` was renamed to `OneTimeKeyName`.
+  - `OwnedRoomAliasId` was renamed to `RoomAliasId`. The `room_alias_id!` macro now returns a
+    `RoomAliasId`, the `owned_room_alias_id!` macro was removed and the `room_alias_id_ref!` macro
+    behind the `unstable-identifier-ref-macros` cargo feature allows to construct a
+    `&'static RoomAliasId`.
+  - `OwnedRoomId` was renamed to `RoomId`. The `room_id!` macro now returns a `RoomId`, the
+    `owned_room_id!` macro was removed and the `room_id_ref!` macro behind the
+    `unstable-identifier-ref-macros` cargo feature allows to construct a `&'static RoomId`.
+  - `OwnedRoomOrAliasId` was renamed to `RoomOrAliasId`.
+  - `OwnedServerName` was renamed to `ServerName`. The `server_name!` macro now returns a
+    `ServerName`, the `owned_server_name!` macro was removed and the `server_name_ref!` macro
+    behind the `unstable-identifier-ref-macros` cargo feature allows to construct a
+    `&'static ServerName`.
+  - `OwnedServerSigningKeyVersion` was renamed to `ServerSigningKeyVersion`. The
+    `server_signing_key_version!` macro now returns a `ServerSigningKeyVersion`, the
+    `owned_server_signing_key_version!` macro was removed and the `server_signing_key_version_ref!`
+    macro behind the `unstable-identifier-ref-macros` cargo feature allows to construct a
+    `&'static ServerSigningKeyVersion`.
+  - `OwnedSessionId` was renamed to `SessionId`. The `session_id!` macro now returns a `SessionId`,
+    the `owned_session_id!` macro was removed and the `session_id_ref!` macro behind the
+    `unstable-identifier-ref-macros` cargo feature allows to construct a `&'static SessionId`.
+  - `OwnedSpaceChildOrder` was renamed to `SpaceChildOrder`.
+  - `OwnedTransactionId` was renamed to `TransactionId`.
+  - `OwnedUserId` was renamed to `UserId`. The `user_id!` macro now returns a `UserId`, the
+    `owned_user_id!` macro was removed and the `user_id_ref!` macro behind the
+    `unstable-identifier-ref-macros` cargo feature allows to construct a `&'static UserId`.
+  - `OwnedVoipId` was renamed to `VoipId`.
+- The `IdDst` derive macro was removed. The `ruma_id` attribute macro is available instead.
+  The difference between both macros is that `ruma_id` does not support different borrowed and
+  owned types, but rather implements a single type that matches the behavior of the owned type.
+  The same attributes are supported for both macros.
+
+  To transition from `IdDst` to `ruma_id` one only needs to:
+  - Remove all the derive macros on the identifier struct.
+  - Remove `#[repr(transparent)]`.
+  - Leave or add the `ruma_id` attribute.
+  - Remove `(str)` after the struct name.
+
+Improvements:
+
+- Add `KeyId::key_name_str()` to access the key name of a key ID as a `&str`.
+
 Improvements:
 
 - The `(Owned)DirectUserIdentifier` types were imported from ruma-events. Converting between an

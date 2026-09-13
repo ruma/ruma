@@ -11,7 +11,7 @@ pub mod unstable {
 
     use js_int::UInt;
     use ruma_common::{
-        OwnedEventId, OwnedRoomId,
+        EventId, RoomId,
         api::{Direction, auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -106,11 +106,11 @@ pub mod unstable {
     pub struct Response {
         /// New thread subscriptions.
         #[serde(skip_serializing_if = "BTreeMap::is_empty")]
-        pub subscribed: BTreeMap<OwnedRoomId, BTreeMap<OwnedEventId, ThreadSubscription>>,
+        pub subscribed: BTreeMap<RoomId, BTreeMap<EventId, ThreadSubscription>>,
 
         /// New thread unsubscriptions.
         #[serde(skip_serializing_if = "BTreeMap::is_empty")]
-        pub unsubscribed: BTreeMap<OwnedRoomId, BTreeMap<OwnedEventId, ThreadUnsubscription>>,
+        pub unsubscribed: BTreeMap<RoomId, BTreeMap<EventId, ThreadUnsubscription>>,
 
         /// If there are still more results to fetch, this is the token to use as the next `from`
         /// value.

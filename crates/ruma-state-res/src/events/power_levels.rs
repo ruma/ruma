@@ -8,7 +8,7 @@ use std::{
 
 use js_int::{Int, int};
 use ruma_common::{
-    OwnedUserId, UserId,
+    UserId,
     room_version_rules::AuthorizationRules,
     serde::{
         DebugAsRefStr, DisplayAsRefStr, EqAsRefStr, JsonObject, OrdAsRefStr,
@@ -45,7 +45,7 @@ struct RoomPowerLevelsEventInner<E: Event> {
     int_fields: Mutex<BTreeMap<RoomPowerLevelsIntField, Option<Int>>>,
 
     /// The power levels of the users, if any.
-    users: OnceLock<Option<BTreeMap<OwnedUserId, Int>>>,
+    users: OnceLock<Option<BTreeMap<UserId, Int>>>,
 }
 
 impl<E: Event> RoomPowerLevelsEvent<E> {
@@ -172,7 +172,7 @@ impl<E: Event> RoomPowerLevelsEvent<E> {
     pub fn users(
         &self,
         rules: &AuthorizationRules,
-    ) -> Result<Option<&BTreeMap<OwnedUserId, Int>>, String> {
+    ) -> Result<Option<&BTreeMap<UserId, Int>>, String> {
         // TODO: Use OnceLock::get_or_try_init when it is stabilized.
         if let Some(users) = self.inner.users.get() {
             Ok(users.as_ref())
@@ -252,7 +252,7 @@ pub(crate) trait RoomPowerLevelsEventOptionExt {
     fn user_power_level(
         &self,
         user_id: &UserId,
-        creators: &HashSet<OwnedUserId>,
+        creators: &HashSet<UserId>,
         rules: &AuthorizationRules,
     ) -> Result<UserPowerLevel, String>;
 
@@ -277,7 +277,7 @@ impl<E: Event> RoomPowerLevelsEventOptionExt for Option<RoomPowerLevelsEvent<E>>
     fn user_power_level(
         &self,
         user_id: &UserId,
-        creators: &HashSet<OwnedUserId>,
+        creators: &HashSet<UserId>,
         rules: &AuthorizationRules,
     ) -> Result<UserPowerLevel, String> {
         if rules.explicitly_privilege_room_creators && creators.contains(user_id) {
