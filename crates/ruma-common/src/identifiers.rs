@@ -24,6 +24,7 @@ pub use self::{
         SigningKeyAlgorithm,
     },
     device_id::{DeviceId, OwnedDeviceId},
+    direct_user_identifier::{DirectUserIdentifier, OwnedDirectUserIdentifier},
     event_id::{EventId, OwnedEventId},
     key_id::{
         AnyKeyName, CrossSigningKeyId, CrossSigningOrDeviceSigningKeyId, DeviceKeyId,
@@ -61,6 +62,7 @@ mod base64_public_key_or_device_id;
 mod client_secret;
 mod crypto_algorithms;
 mod device_id;
+mod direct_user_identifier;
 mod event_id;
 mod key_id;
 mod mxc_uri;
