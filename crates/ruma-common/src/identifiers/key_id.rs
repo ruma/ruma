@@ -29,7 +29,7 @@ use super::{
 ///
 /// let k = DeviceKeyId::parse("ed25519:1").unwrap();
 /// assert_eq!(k.algorithm().as_str(), "ed25519");
-/// assert_eq!(k.owned_key_name(), "1");
+/// assert_eq!(k.key_name(), "1");
 /// ```
 ///
 /// To construct a colon-separated identifier from its parts:
@@ -87,15 +87,6 @@ impl<A: KeyAlgorithm, K: KeyName + ?Sized> KeyId<A, K> {
         &self.as_str()[(self.colon_idx() + 1)..]
     }
 
-    /// Returns the key name of the key ID as a dynamically sized type - the part that comes after
-    /// the colon.
-    pub fn key_name<'a>(&'a self) -> &'a K
-    where
-        &'a K: TryFrom<&'a str>,
-    {
-        <&'a K>::try_from(self.key_name_str()).unwrap_or_else(|_| unreachable!())
-    }
-
     /// Returns the owned key name of the key ID - the part that comes after the colon.
     ///
     /// # Example
@@ -104,9 +95,9 @@ impl<A: KeyAlgorithm, K: KeyName + ?Sized> KeyId<A, K> {
     /// use ruma_common::{DeviceKeyId, device_id};
     ///
     /// let k = DeviceKeyId::parse("ed25519:DEV1").unwrap();
-    /// assert_eq!(k.owned_key_name(), device_id!("DEV1"));
+    /// assert_eq!(k.key_name(), device_id!("DEV1"));
     /// ```
-    pub fn owned_key_name(&self) -> K
+    pub fn key_name(&self) -> K
     where
         K: for<'a> TryFrom<&'a str>,
     {
@@ -183,14 +174,14 @@ mod tests {
     fn algorithm_and_key_name_are_correctly_extracted() {
         let key_id = DeviceKeyId::parse("ed25519:MYDEVICE").expect("Should parse correctly");
         assert_eq!(key_id.algorithm().as_str(), "ed25519");
-        assert_eq!(key_id.owned_key_name(), "MYDEVICE");
+        assert_eq!(key_id.key_name(), "MYDEVICE");
     }
 
     #[test]
     fn empty_key_name_is_correctly_extracted() {
         let key_id = DeviceKeyId::parse("ed25519:").expect("Should parse correctly");
         assert_eq!(key_id.algorithm().as_str(), "ed25519");
-        assert_eq!(key_id.owned_key_name(), "");
+        assert_eq!(key_id.key_name(), "");
     }
 
     #[test]
