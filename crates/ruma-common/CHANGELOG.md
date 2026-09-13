@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+Improvements:
+
+- The `(Owned)DirectUserIdentifier` types were imported from ruma-events. Converting between an
+  `OwnedDirectUserIdentifier` and an `OwnedUserId` does not perform an allocation anymore.
+
 ## 0.20.0
 
 Breaking changes:
