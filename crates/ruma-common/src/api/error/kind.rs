@@ -159,6 +159,13 @@ pub enum ErrorKind {
     /// been witnessed by the invitee.
     InviteBlocked,
 
+    /// `M_KEY_TOO_LARGE`
+    ///
+    /// The [profile] key in the request exceeds the maximum allowed length of 255 bytes.
+    ///
+    /// [profile]: https://spec.matrix.org/v1.19/client-server-api/#profiles
+    KeyTooLarge,
+
     /// `M_LIMIT_EXCEEDED`
     ///
     /// The request has been refused due to [rate limiting]: too many requests have been sent in a
@@ -203,6 +210,14 @@ pub enum ErrorKind {
     /// An `mxc:` URI generated with the `POST /_matrix/media/*/create` endpoint was used and the
     /// content is not yet available.
     NotYetUploaded,
+
+    /// `M_PROFILE_TOO_LARGE`
+    ///
+    /// Storing the value in the request would make the [profile] exceed its maximum allowed size
+    /// of 64 KiB.
+    ///
+    /// [profile]: https://spec.matrix.org/v1.19/client-server-api/#profiles
+    ProfileTooLarge,
 
     /// `M_RESOURCE_LIMIT_EXCEEDED`
     ///
@@ -315,6 +330,14 @@ pub enum ErrorKind {
     ///
     /// An unknown error has occurred.
     Unknown,
+
+    /// `M_UNKNOWN_DEVICE`
+    ///
+    /// The device ID supplied by the application service does not belong to the user ID during
+    /// [identity assertion].
+    ///
+    /// [identity assertion]: https://spec.matrix.org/v1.19/application-service-api/#identity-assertion
+    UnknownDevice,
 
     /// `M_UNKNOWN_POS`
     ///
@@ -430,6 +453,7 @@ impl ErrorKind {
             ErrorKind::InvalidRoomState => ErrorCode::InvalidRoomState,
             ErrorKind::InvalidUsername => ErrorCode::InvalidUsername,
             ErrorKind::InviteBlocked => ErrorCode::InviteBlocked,
+            ErrorKind::KeyTooLarge => ErrorCode::KeyTooLarge,
             ErrorKind::LimitExceeded(_) => ErrorCode::LimitExceeded,
             ErrorKind::MissingParam => ErrorCode::MissingParam,
             ErrorKind::MissingToken => ErrorCode::MissingToken,
@@ -438,6 +462,7 @@ impl ErrorKind {
             ErrorKind::NotInThread => ErrorCode::NotInThread,
             ErrorKind::NotJson => ErrorCode::NotJson,
             ErrorKind::NotYetUploaded => ErrorCode::NotYetUploaded,
+            ErrorKind::ProfileTooLarge => ErrorCode::ProfileTooLarge,
             ErrorKind::ResourceLimitExceeded(_) => ErrorCode::ResourceLimitExceeded,
             ErrorKind::RoomInUse => ErrorCode::RoomInUse,
             #[cfg(feature = "unstable-msc4406")]
@@ -456,6 +481,7 @@ impl ErrorKind {
             ErrorKind::Unactionable => ErrorCode::Unactionable,
             ErrorKind::Unauthorized => ErrorCode::Unauthorized,
             ErrorKind::Unknown => ErrorCode::Unknown,
+            ErrorKind::UnknownDevice => ErrorCode::UnknownDevice,
             #[cfg(feature = "unstable-msc4186")]
             ErrorKind::UnknownPos => ErrorCode::UnknownPos,
             ErrorKind::UnknownToken(_) => ErrorCode::UnknownToken,
@@ -831,6 +857,13 @@ pub enum ErrorCode {
     #[ruma_enum(alias = "ORG.MATRIX.MSC4155.INVITE_BLOCKED")]
     InviteBlocked,
 
+    /// `M_KEY_TOO_LARGE`
+    ///
+    /// The [profile] key in the request exceeds the maximum allowed length of 255 bytes.
+    ///
+    /// [profile]: https://spec.matrix.org/v1.19/client-server-api/#profiles
+    KeyTooLarge,
+
     /// `M_LIMIT_EXCEEDED`
     ///
     /// The request has been refused due to [rate limiting]: too many requests have been sent in a
@@ -876,6 +909,14 @@ pub enum ErrorCode {
     /// An `mxc:` URI generated with the `POST /_matrix/media/*/create` endpoint was used and the
     /// content is not yet available.
     NotYetUploaded,
+
+    /// `M_PROFILE_TOO_LARGE`
+    ///
+    /// Storing the value in the request would make the [profile] exceed its maximum allowed size
+    /// of 64 KiB.
+    ///
+    /// [profile]: https://spec.matrix.org/v1.19/client-server-api/#profiles
+    ProfileTooLarge,
 
     /// `M_RESOURCE_LIMIT_EXCEEDED`
     ///
@@ -990,6 +1031,14 @@ pub enum ErrorCode {
     ///
     /// An unknown error has occurred.
     Unknown,
+
+    /// `M_UNKNOWN_DEVICE`
+    ///
+    /// The device ID supplied by the application service does not belong to the user ID during
+    /// [identity assertion].
+    ///
+    /// [identity assertion]: https://spec.matrix.org/v1.19/application-service-api/#identity-assertion
+    UnknownDevice,
 
     /// `M_UNKNOWN_POS`
     ///
