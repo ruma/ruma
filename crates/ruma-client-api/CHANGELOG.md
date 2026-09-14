@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+Breaking changes:
+
+- Updated unstable support for MSC4388 with new `txn_id` field on update requests.
+
 Bug fixes:
 
 - In the `session::login::v3` module, the `identity_server` field is no longer
