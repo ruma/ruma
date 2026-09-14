@@ -78,12 +78,12 @@ mod tests {
 
         assert_eq!(
             "https://homeserver.tld/_matrix/client/unstable/org.matrix.msc4140/delayed_events/1234",
-            parts.uri.to_string()
+            parts.uri
         );
-        assert_eq!("POST", parts.method.to_string());
+        assert_eq!("POST", parts.method);
         assert_eq!(
             json!({"action": "cancel"}),
-            serde_json::from_str::<JsonValue>(std::str::from_utf8(&body).unwrap()).unwrap()
+            serde_json::from_slice::<JsonValue>(&body).unwrap()
         );
     }
 }

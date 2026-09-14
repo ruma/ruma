@@ -187,12 +187,12 @@ pub mod unstable {
             let (parts, body) = request.into_parts();
             assert_eq!(
                 "https://homeserver.tld/_matrix/client/unstable/org.matrix.msc4140/rooms/!roomid:example.org/delayed_event/m.room.message/1234",
-                parts.uri.to_string()
+                parts.uri
             );
-            assert_eq!("PUT", parts.method.to_string());
+            assert_eq!("PUT", parts.method);
             assert_eq!(
                 json!({"content":{"msgtype":"m.text","body":"test"}, "delay": 103}),
-                serde_json::from_str::<JsonValue>(std::str::from_utf8(&body).unwrap()).unwrap()
+                serde_json::from_slice::<JsonValue>(&body).unwrap()
             );
         }
 
@@ -227,11 +227,11 @@ pub mod unstable {
             let (parts, body) = request.into_parts();
             assert_eq!(
                 "https://homeserver.tld/_matrix/client/unstable/org.matrix.msc4140/rooms/!roomid:example.org/delayed_event/m.room.message/1234?org.matrix.msc4354.sticky_duration_ms=300000",
-                parts.uri.to_string()
+                parts.uri
             );
             assert_eq!(
                 json!({"content":{"msgtype":"m.text","body":"test"}, "delay": 30000}),
-                serde_json::from_str::<JsonValue>(std::str::from_utf8(&body).unwrap()).unwrap()
+                serde_json::from_slice::<JsonValue>(&body).unwrap()
             );
         }
     }
@@ -241,7 +241,7 @@ pub mod unstable {
 
         use std::time::Duration;
 
-        use ruma_common::{OwnedTransactionId, api::IncomingRequestExt as _, owned_room_id};
+        use ruma_common::api::IncomingRequestExt as _;
         use serde_json::json;
 
         use super::Request;
@@ -269,9 +269,9 @@ pub mod unstable {
             )
             .unwrap();
 
-            assert_eq!(req.room_id, owned_room_id!("!roomid:example.org"));
+            assert_eq!(req.room_id, "!roomid:example.org");
             assert_eq!(req.event_type, "m.room.message".into());
-            assert_eq!(req.txn_id, OwnedTransactionId::from("5678"));
+            assert_eq!(req.txn_id, "5678");
             assert_eq!(req.delay, Duration::from_millis(103));
             assert_eq!(req.state_key, None);
             assert_eq!(

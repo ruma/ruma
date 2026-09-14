@@ -240,7 +240,7 @@ mod tests_client {
             "/_matrix/client/v3/profile/@alice:localhost/avatar_url"
         );
         assert_eq!(
-            from_json_slice::<JsonValue>(http_request.body().as_ref()).unwrap(),
+            from_json_slice::<JsonValue>(http_request.body()).unwrap(),
             json!({
                 "avatar_url": "mxc://localhost/abcdef",
             })
@@ -273,7 +273,7 @@ mod tests_client {
             "/_matrix/client/unstable/uk.tcpip.msc4133/profile/@alice:localhost/dev.ruma.custom_field"
         );
         assert_eq!(
-            from_json_slice::<JsonValue>(http_request.body().as_ref()).unwrap(),
+            from_json_slice::<JsonValue>(http_request.body()).unwrap(),
             json!({
                 "dev.ruma.custom_field": true,
             })
@@ -299,7 +299,7 @@ mod tests_client {
             "/_matrix/client/v3/profile/@alice:localhost/dev.ruma.custom_field"
         );
         assert_eq!(
-            from_json_slice::<JsonValue>(http_request.body().as_ref()).unwrap(),
+            from_json_slice::<JsonValue>(http_request.body()).unwrap(),
             json!({
                 "dev.ruma.custom_field": true,
             })
