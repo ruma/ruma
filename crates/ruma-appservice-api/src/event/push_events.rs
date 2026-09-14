@@ -392,7 +392,7 @@ pub mod v1 {
             let data = from_json_value::<EphemeralData>(typing_json.clone()).unwrap();
             assert_let!(EphemeralData::Typing(typing) = &data);
             assert_eq!(typing.room_id, room_id);
-            assert_eq!(typing.content.user_ids, &[user_id.to_owned()]);
+            assert_eq!(typing.content.user_ids, &[user_id]);
 
             assert_to_canonical_json_eq!(data, typing_json);
 
@@ -458,8 +458,6 @@ pub mod v1 {
         #[test]
         #[cfg(feature = "unstable-msc4203")]
         fn serde_any_appservice_to_device_event() {
-            use ruma_common::{device_id, user_id};
-
             use super::AnyAppserviceToDeviceEvent;
 
             let event_json = json!({
@@ -479,9 +477,9 @@ pub mod v1 {
 
             // Test deserialization
             let event = from_json_value::<AnyAppserviceToDeviceEvent>(event_json.clone()).unwrap();
-            assert_eq!(event.sender(), user_id!("@alice:example.org"));
-            assert_eq!(event.to_user_id, user_id!("@bob:example.org"));
-            assert_eq!(event.to_device_id, device_id!("DEVICEID"));
+            assert_eq!(event.sender(), "@alice:example.org");
+            assert_eq!(event.to_user_id, "@bob:example.org");
+            assert_eq!(event.to_device_id, "DEVICEID");
             assert_eq!(event.event_type().to_string(), "m.key.verification.request");
         }
     }
