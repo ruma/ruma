@@ -60,6 +60,7 @@ unstable-msc4385 = []
 unstable-msc4471 = []
 unstable-msc4494 = []
 unstable-msc4495 = []
+unstable-msc4532 = ["ruma-common/unstable-msc4532"]
 unstable-uniffi = ["dep:uniffi"]
 
 # Allow some mandatory fields to be missing, defaulting them to an empty string

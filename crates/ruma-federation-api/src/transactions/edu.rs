@@ -5,6 +5,8 @@ use std::collections::BTreeMap;
 #[cfg(feature = "unstable-msc4495")]
 use js_int::Int;
 use js_int::UInt;
+#[cfg(feature = "unstable-msc4532")]
+use ruma_common::presence::PresenceStatus;
 use ruma_common::{
     OwnedDeviceId, OwnedEventId, OwnedRoomId, OwnedTransactionId, OwnedUserId,
     encryption::{CrossSigningKey, DeviceKeys},
@@ -121,10 +123,14 @@ impl PresenceRecipientListUpdates {
     }
 }
 
-/// An update to the presence of a user.
+/// The over-the-wire format for [`PresenceUpdate`]. This exists to enable a custom
+/// (de)serialization implementation providing backwards-compatibility for the `status_msg`
+/// field when [MSC4532] is enabled.
+///
+/// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-pub struct PresenceUpdate {
+pub struct PresenceUpdateRepr {
     /// The user ID this presence EDU is for.
     pub user_id: OwnedUserId,
 
@@ -134,6 +140,19 @@ pub struct PresenceUpdate {
     /// An optional description to accompany the presence.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub status_msg: Option<String>,
+
+    /// Optional status information to accompany the presence.
+    ///
+    /// This field uses the unstable prefix defined in [MSC4532].
+    ///
+    /// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
+    #[cfg(feature = "unstable-msc4532")]
+    #[serde(
+        skip_serializing_if = "ruma_common::serde::is_default",
+        rename = "org.continuwuity.presence_v2.msc4532.status",
+        default
+    )]
+    pub status: PresenceStatus,
 
     /// The number of milliseconds that have elapsed since the user last did something.
     pub last_active_ago: UInt,
@@ -177,6 +196,121 @@ pub struct PresenceUpdate {
     pub prev_id: Option<Int>,
 }
 
+/// An update to the presence of a user.
+#[derive(Clone, Debug)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct PresenceUpdate {
+    /// The user ID this presence EDU is for.
+    pub user_id: OwnedUserId,
+
+    /// The presence of the user.
+    pub presence: PresenceState,
+
+    /// An optional description to accompany the presence.
+    #[cfg(not(feature = "unstable-msc4532"))]
+    pub status_msg: Option<String>,
+
+    /// Optional status information to accompany the presence.
+    ///
+    /// This field uses the unstable prefix defined in [MSC4532].
+    ///
+    /// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
+    #[cfg(feature = "unstable-msc4532")]
+    pub status: PresenceStatus,
+
+    /// The number of milliseconds that have elapsed since the user last did something.
+    pub last_active_ago: UInt,
+
+    /// Whether or not the user is currently active.
+    ///
+    /// Defaults to false.
+    pub currently_active: bool,
+
+    /// Changes to the user's presence recipient list since the last EDU was sent, if any.
+    ///
+    /// This field will only be present if `prev_id` is also present.
+    ///
+    /// This field uses the unstable prefix defined in [MSC4495].
+    ///
+    /// [MSC4495]: https://github.com/matrix-org/matrix-spec-proposals/pull/4495
+    #[cfg(feature = "unstable-msc4495")]
+    pub recipients: PresenceRecipientListUpdates,
+
+    /// The stream ID of the user's current presence recipient list.
+    ///
+    /// This field uses the unstable prefix defined in [MSC4495].
+    ///
+    /// [MSC4495]: https://github.com/matrix-org/matrix-spec-proposals/pull/4495
+    #[cfg(feature = "unstable-msc4495")]
+    pub stream_id: Option<Int>,
+
+    /// The prior stream ID in the user's presence delta stream, if any.
+    ///
+    /// If this field does not match the most recently seen `stream_id`, the presence list should
+    /// be re-fetched.
+    ///
+    /// This field uses the unstable prefix defined in [MSC4495].
+    ///
+    /// [MSC4495]: https://github.com/matrix-org/matrix-spec-proposals/pull/4495
+    #[cfg(feature = "unstable-msc4495")]
+    pub prev_id: Option<Int>,
+}
+
+impl<'de> Deserialize<'de> for PresenceUpdate {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: de::Deserializer<'de>,
+    {
+        let repr = PresenceUpdateRepr::deserialize(deserializer)?;
+        Ok(Self {
+            user_id: repr.user_id,
+            presence: repr.presence,
+            last_active_ago: repr.last_active_ago,
+            #[cfg(not(feature = "unstable-msc4532"))]
+            status_msg: repr.status_msg,
+            #[cfg(feature = "unstable-msc4532")]
+            status: if repr.status == PresenceStatus::default() {
+                PresenceStatus::new(repr.status_msg)
+            } else {
+                repr.status
+            },
+            currently_active: repr.currently_active,
+            #[cfg(feature = "unstable-msc4495")]
+            recipients: repr.recipients,
+            #[cfg(feature = "unstable-msc4495")]
+            stream_id: repr.stream_id,
+            #[cfg(feature = "unstable-msc4495")]
+            prev_id: repr.prev_id,
+        })
+    }
+}
+impl Serialize for PresenceUpdate {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        PresenceUpdateRepr {
+            user_id: self.user_id.clone(),
+            presence: self.presence.clone(),
+            last_active_ago: self.last_active_ago,
+            #[cfg(not(feature = "unstable-msc4532"))]
+            status_msg: self.status_msg.clone(),
+            #[cfg(feature = "unstable-msc4532")]
+            status_msg: self.status.msg.clone(),
+            #[cfg(feature = "unstable-msc4532")]
+            status: self.status.clone(),
+            currently_active: self.currently_active,
+            #[cfg(feature = "unstable-msc4495")]
+            recipients: self.recipients.clone(),
+            #[cfg(feature = "unstable-msc4495")]
+            stream_id: self.stream_id,
+            #[cfg(feature = "unstable-msc4495")]
+            prev_id: self.prev_id,
+        }
+        .serialize(serializer)
+    }
+}
+
 impl PresenceUpdate {
     /// Creates a new `PresenceUpdate` with the given `user_id`, `presence` and `last_activity`.
     pub fn new(user_id: OwnedUserId, presence: PresenceState, last_activity: UInt) -> Self {
@@ -184,7 +318,10 @@ impl PresenceUpdate {
             user_id,
             presence,
             last_active_ago: last_activity,
+            #[cfg(not(feature = "unstable-msc4532"))]
             status_msg: None,
+            #[cfg(feature = "unstable-msc4532")]
+            status: PresenceStatus::default(),
             currently_active: false,
             #[cfg(feature = "unstable-msc4495")]
             recipients: PresenceRecipientListUpdates::default(),
@@ -643,7 +780,10 @@ mod tests {
         assert_eq!(presence_update.presence, PresenceState::Online);
         assert!(presence_update.currently_active);
         assert_eq!(presence_update.last_active_ago, uint!(1000));
+        #[cfg(not(feature = "unstable-msc4532"))]
         assert_eq!(presence_update.status_msg.as_deref(), Some("Making cupcakes"));
+        #[cfg(feature = "unstable-msc4532")]
+        assert_eq!(presence_update.status.msg.as_deref(), Some("Making cupcakes"));
         #[cfg(feature = "unstable-msc4495")]
         {
             assert!(presence_update.recipients.is_empty());
@@ -690,7 +830,10 @@ mod tests {
         assert_eq!(presence_update.presence, PresenceState::Online);
         assert!(presence_update.currently_active);
         assert_eq!(presence_update.last_active_ago, uint!(1000));
+        #[cfg(not(feature = "unstable-msc4532"))]
         assert_eq!(presence_update.status_msg.as_deref(), Some("Making cupcakes"));
+        #[cfg(feature = "unstable-msc4532")]
+        assert_eq!(presence_update.status.msg.as_deref(), Some("Making cupcakes"));
         assert_eq!(presence_update.stream_id, Some(int!(321)));
         assert_eq!(presence_update.prev_id, Some(int!(123)));
         assert_matches!(&presence_update.recipients, PresenceRecipientListUpdates { add, delete });

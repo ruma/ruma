@@ -856,6 +856,15 @@ pub enum FeatureFlag {
     #[ruma_enum(rename = "uk.timedout.msc4494")]
     Msc4494,
 
+    /// `org.continuwuity.presence_v2.msc4532` ([MSC])
+    ///
+    /// Revised Social Presence.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
+    #[cfg(feature = "unstable-msc4532")]
+    #[ruma_enum(rename = "org.continuwuity.presence_v2.msc4532")]
+    Msc4532,
+
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
 }
