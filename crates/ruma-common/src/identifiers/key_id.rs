@@ -44,7 +44,7 @@ use super::{
 /// use ruma_common::{DeviceKeyAlgorithm, DeviceKeyId};
 ///
 /// let k = DeviceKeyId::from_parts(DeviceKeyAlgorithm::Curve25519, "MYDEVICE".into());
-/// assert_eq!(k.as_str(), "curve25519:MYDEVICE");
+/// assert_eq!(k, "curve25519:MYDEVICE");
 /// ```
 #[repr(transparent)]
 #[derive(IdDst)]
@@ -86,10 +86,10 @@ impl<A: KeyAlgorithm, K: KeyName + ?Sized> KeyId<A, K> {
     /// # Example
     ///
     /// ```
-    /// use ruma_common::{DeviceKeyId, device_id};
+    /// use ruma_common::DeviceKeyId;
     ///
     /// let k = DeviceKeyId::parse("ed25519:DEV1").unwrap();
-    /// assert_eq!(k.key_name(), device_id!("DEV1"));
+    /// assert_eq!(k.key_name(), "DEV1");
     /// ```
     pub fn key_name<'a>(&'a self) -> &'a K
     where

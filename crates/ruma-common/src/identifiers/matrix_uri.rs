@@ -748,10 +748,7 @@ mod tests {
         )
         .expect("Failed to create MatrixToUri.");
         assert_eq!(*matrix_to.id(), owned_room_id!("!ruma:notareal.hs").into());
-        assert_eq!(
-            matrix_to.via(),
-            &[owned_server_name!("notareal.hs"), owned_server_name!("anotherunreal.hs"),]
-        );
+        assert_eq!(matrix_to.via(), &["notareal.hs", "anotherunreal.hs"]);
 
         let matrix_to =
             MatrixToUri::parse("https://matrix.to/#/%23ruma%3Anotareal.hs/%24event%3Anotareal.hs")
@@ -785,7 +782,7 @@ mod tests {
         let matrix_to = MatrixToUri::parse("https://matrix.to/#/!ruma:notareal.hs?via=notareal.hs")
             .expect("Failed to create MatrixToUri.");
         assert_eq!(*matrix_to.id(), owned_room_id!("!ruma:notareal.hs").into());
-        assert_eq!(matrix_to.via(), &[owned_server_name!("notareal.hs")]);
+        assert_eq!(matrix_to.via(), &["notareal.hs"]);
 
         let matrix_to =
             MatrixToUri::parse("https://matrix.to/#/#ruma:notareal.hs/$event:notareal.hs")
@@ -1031,7 +1028,7 @@ mod tests {
         let matrix_uri = MatrixUri::parse("matrix:roomid/ruma:notareal.hs?via=notareal.hs")
             .expect("Failed to create MatrixToUri.");
         assert_eq!(*matrix_uri.id(), owned_room_id!("!ruma:notareal.hs").into());
-        assert_eq!(matrix_uri.via(), &[owned_server_name!("notareal.hs")]);
+        assert_eq!(matrix_uri.via(), &["notareal.hs"]);
         assert_eq!(matrix_uri.action(), None);
 
         let matrix_uri = MatrixUri::parse("matrix:r/ruma:notareal.hs/e/event:notareal.hs")
@@ -1058,10 +1055,7 @@ mod tests {
             *matrix_uri.id(),
             (owned_room_id!("!ruma:notareal.hs"), owned_event_id!("$event:notareal.hs")).into()
         );
-        assert_eq!(
-            matrix_uri.via(),
-            &vec![owned_server_name!("notareal.hs"), owned_server_name!("anotherinexistant.hs")]
-        );
+        assert_eq!(matrix_uri.via(), &["notareal.hs", "anotherinexistant.hs"]);
         assert_eq!(matrix_uri.action(), Some(&UriAction::Join));
     }
 

@@ -19,10 +19,10 @@ use super::{
 /// use ruma_common::{Base64PublicKeyOrDeviceId, OwnedBase64PublicKeyOrDeviceId};
 ///
 /// let ref_id: &Base64PublicKeyOrDeviceId = "abcdefghi".into();
-/// assert_eq!(ref_id.as_str(), "abcdefghi");
+/// assert_eq!(ref_id, "abcdefghi");
 ///
 /// let owned_id: OwnedBase64PublicKeyOrDeviceId = "ijklmnop".into();
-/// assert_eq!(owned_id.as_str(), "ijklmnop");
+/// assert_eq!(owned_id, "ijklmnop");
 /// ```
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
