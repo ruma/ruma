@@ -224,6 +224,7 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             ErrorCode::InvalidRoomState => ErrorKind::InvalidRoomState,
             ErrorCode::InvalidUsername => ErrorKind::InvalidUsername,
             ErrorCode::InviteBlocked => ErrorKind::InviteBlocked,
+            ErrorCode::KeyTooLarge => ErrorKind::KeyTooLarge,
             ErrorCode::LimitExceeded => ErrorKind::LimitExceeded(LimitExceededErrorData {
                 retry_after: retry_after_ms
                     .map(from_json_value::<UInt>)
@@ -240,6 +241,7 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             ErrorCode::NotInThread => ErrorKind::NotInThread,
             ErrorCode::NotJson => ErrorKind::NotJson,
             ErrorCode::NotYetUploaded => ErrorKind::NotYetUploaded,
+            ErrorCode::ProfileTooLarge => ErrorKind::ProfileTooLarge,
             ErrorCode::ResourceLimitExceeded => {
                 ErrorKind::ResourceLimitExceeded(ResourceLimitExceededErrorData {
                     admin_contact: from_json_value(
@@ -271,6 +273,7 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             ErrorCode::Unactionable => ErrorKind::Unactionable,
             ErrorCode::Unauthorized => ErrorKind::Unauthorized,
             ErrorCode::Unknown => ErrorKind::Unknown,
+            ErrorCode::UnknownDevice => ErrorKind::UnknownDevice,
             #[cfg(feature = "unstable-msc4186")]
             ErrorCode::UnknownPos => ErrorKind::UnknownPos,
             ErrorCode::UnknownToken => ErrorKind::UnknownToken(UnknownTokenErrorData {
@@ -398,6 +401,7 @@ impl Serialize for ErrorKind {
             | Self::InvalidRoomState
             | Self::InvalidUsername
             | Self::InviteBlocked
+            | Self::KeyTooLarge
             | Self::LimitExceeded(LimitExceededErrorData {
                 retry_after: None | Some(RetryAfter::DateTime(_)),
             })
@@ -406,6 +410,7 @@ impl Serialize for ErrorKind {
             | Self::NotFound
             | Self::NotJson
             | Self::NotYetUploaded
+            | Self::ProfileTooLarge
             | Self::RoomInUse
             | Self::ServerNotTrusted
             | Self::ThreepidAuthFailed
@@ -419,6 +424,7 @@ impl Serialize for ErrorKind {
             | Self::UnableToGrantJoin
             | Self::Unauthorized
             | Self::Unknown
+            | Self::UnknownDevice
             | Self::UnknownToken(UnknownTokenErrorData { soft_logout: false })
             | Self::Unrecognized
             | Self::UnsupportedRoomVersion
