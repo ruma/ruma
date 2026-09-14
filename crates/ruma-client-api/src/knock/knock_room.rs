@@ -215,7 +215,7 @@ pub mod v3 {
 
     #[cfg(all(test, feature = "server"))]
     mod tests_server {
-        use ruma_common::{api::IncomingRequestExt as _, owned_server_name};
+        use ruma_common::api::IncomingRequestExt as _;
 
         use super::Request;
 
@@ -245,8 +245,8 @@ pub mod v3 {
             .unwrap();
 
             assert_eq!(req.room_id_or_alias, "!foo:b.ar");
-            assert_eq!(req.reason, Some("Let me in already!".to_owned()));
-            assert_eq!(req.via, vec![owned_server_name!("f.oo")]);
+            assert_eq!(req.reason.as_deref(), Some("Let me in already!"));
+            assert_eq!(req.via, &["f.oo"]);
         }
 
         #[test]
@@ -262,8 +262,8 @@ pub mod v3 {
             .unwrap();
 
             assert_eq!(req.room_id_or_alias, "!foo:b.ar");
-            assert_eq!(req.reason, Some("Let me in already!".to_owned()));
-            assert_eq!(req.via, vec![owned_server_name!("f.oo")]);
+            assert_eq!(req.reason.as_deref(), Some("Let me in already!"));
+            assert_eq!(req.via, &["f.oo"]);
         }
 
         #[test]
@@ -279,8 +279,8 @@ pub mod v3 {
             .unwrap();
 
             assert_eq!(req.room_id_or_alias, "!foo:b.ar");
-            assert_eq!(req.reason, Some("Let me in already!".to_owned()));
-            assert_eq!(req.via, vec![owned_server_name!("f.oo")]);
+            assert_eq!(req.reason.as_deref(), Some("Let me in already!"));
+            assert_eq!(req.via, &["f.oo"]);
         }
     }
 }

@@ -121,10 +121,9 @@ pub mod unstable {
     mod client_tests {
         use std::time::Duration;
 
-        use js_int::UInt;
+        use js_int::uint;
         use ruma_common::{
             MilliSecondsSinceUnixEpoch, api::IncomingResponseExt as _, owned_event_id,
-            owned_room_id,
         };
         use ruma_events::TimelineEventType;
         use serde_json::{Value as JsonValue, json};
@@ -158,22 +157,19 @@ pub mod unstable {
                 "topic": "test topic"
             });
 
-            assert_eq!(res.delay_id, "a_delay_id".to_owned());
-            assert_eq!(res.room_id, owned_room_id!("!roomid:example.org"));
+            assert_eq!(res.delay_id, "a_delay_id");
+            assert_eq!(res.room_id, "!roomid:example.org");
             assert_eq!(res.event_type, TimelineEventType::RoomTopic);
             assert_eq!(res.state_key, Some("a_state_key".to_owned()));
             assert_eq!(res.delay, Duration::from_millis(103));
-            assert_eq!(res.running_since, MilliSecondsSinceUnixEpoch(UInt::new(70000).unwrap()));
+            assert_eq!(res.running_since, MilliSecondsSinceUnixEpoch(uint!(70000)));
             assert_eq!(
                 serde_json::from_str::<JsonValue>(res.content.json().get()).unwrap(),
                 content
             );
             assert!(res.error.is_none());
             assert_eq!(res.event_id, Some(owned_event_id!("$event:imaginary.hs")));
-            assert_eq!(
-                res.finalized_ts,
-                Some(MilliSecondsSinceUnixEpoch(UInt::new(70103).unwrap()))
-            );
+            assert_eq!(res.finalized_ts, Some(MilliSecondsSinceUnixEpoch(uint!(70103))));
         }
     }
 }

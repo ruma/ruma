@@ -323,7 +323,7 @@ mod tests {
 
 #[cfg(all(test, feature = "server", feature = "unstable-msc4354"))]
 mod server_tests {
-    use ruma_common::{api::IncomingRequestExt as _, owned_room_id};
+    use ruma_common::api::IncomingRequestExt as _;
 
     use super::v3::Request;
 
@@ -341,7 +341,7 @@ mod server_tests {
             Request::try_from_http_request(request, &["!roomid:example.org", "m.room.name", ""])
                 .unwrap();
 
-        assert_eq!(request.room_id, owned_room_id!("!roomid:example.org"));
+        assert_eq!(request.room_id, "!roomid:example.org");
         assert_eq!(request.sticky_duration_ms.map(|duration| duration.get()), Some(123_456));
     }
 }

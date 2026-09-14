@@ -166,12 +166,12 @@ pub mod unstable {
             });
             assert_eq!(
                 "https://homeserver.tld/_matrix/client/v3/rooms/!roomid:example.org/state/com.example.custom_state/@userAsStateKey:example.org?org.matrix.msc4140.delay=1234321",
-                parts.uri.to_string()
+                parts.uri
             );
-            assert_eq!("PUT", parts.method.to_string());
+            assert_eq!("PUT", parts.method);
             assert_eq!(
                 json!({ "key": "value" }),
-                serde_json::from_str::<JsonValue>(std::str::from_utf8(&body).unwrap()).unwrap()
+                serde_json::from_slice::<JsonValue>(&body).unwrap()
             );
         }
     }
