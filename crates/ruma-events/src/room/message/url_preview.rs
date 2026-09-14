@@ -323,10 +323,10 @@ mod tests {
         let PreviewImage { size, height, width, mimetype, source } = image.clone().unwrap();
         assert_eq!(size.unwrap(), uint!(16588));
         assert_matches!(source, PreviewImageSource::Url(url));
-        assert_eq!(url.as_str(), "mxc://maunium.net/zeHhTqqUtUSUTUDxQisPdwZO");
+        assert_eq!(url, "mxc://maunium.net/zeHhTqqUtUSUTUDxQisPdwZO");
         assert_eq!(height.unwrap(), uint!(400));
         assert_eq!(width.unwrap(), uint!(800));
-        assert_eq!(mimetype, Some("image/jpeg".to_owned()));
+        assert_eq!(mimetype.as_deref(), Some("image/jpeg"));
     }
 
     #[test]
@@ -368,10 +368,10 @@ mod tests {
         let PreviewImage { size, height, width, mimetype, source } = image.clone().unwrap();
         assert_eq!(size.unwrap(), uint!(16588));
         assert_matches!(source, PreviewImageSource::Url(url));
-        assert_eq!(url.as_str(), "mxc://maunium.net/zeHhTqqUtUSUTUDxQisPdwZO");
+        assert_eq!(url, "mxc://maunium.net/zeHhTqqUtUSUTUDxQisPdwZO");
         assert_eq!(height.unwrap(), uint!(400));
         assert_eq!(width.unwrap(), uint!(800));
-        assert_eq!(mimetype, Some("image/jpeg".to_owned()));
+        assert_eq!(mimetype.as_deref(), Some("image/jpeg"));
     }
 
     #[test]
@@ -468,12 +468,12 @@ mod tests {
 
         assert_matches!(source, PreviewImageSource::EncryptedImage(encrypted_image));
         assert_eq!(
-            encrypted_image.url.as_str(),
+            encrypted_image.url,
             "mxc://beeper.com/53207ac52ce3e2c722bb638987064bfdc0cc257b"
         );
         assert_eq!(height.unwrap(), uint!(400));
         assert_eq!(width.unwrap(), uint!(800));
-        assert_eq!(mimetype.as_ref().unwrap().as_str(), "image/jpeg");
+        assert_eq!(mimetype.as_ref().unwrap(), "image/jpeg");
     }
 
     #[test]
@@ -519,9 +519,9 @@ mod tests {
         let PreviewImage { size, height, width, mimetype, source } = image.clone().unwrap();
         assert_eq!(size.unwrap(), uint!(16588));
         assert_matches!(source, PreviewImageSource::Url(url));
-        assert_eq!(url.as_str(), "mxc://maunium.net/zeHhTqqUtUSUTUDxQisPdwZO");
+        assert_eq!(url, "mxc://maunium.net/zeHhTqqUtUSUTUDxQisPdwZO");
         assert_eq!(height.unwrap(), uint!(400));
         assert_eq!(width.unwrap(), uint!(800));
-        assert_eq!(mimetype, Some("image/jpeg".to_owned()));
+        assert_eq!(mimetype.as_deref(), Some("image/jpeg"));
     }
 }

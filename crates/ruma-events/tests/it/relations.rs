@@ -1,7 +1,5 @@
 use assert_matches2::{assert_let, assert_matches};
 use assign::assign;
-#[cfg(feature = "unstable-msc3381")]
-use ruma_common::event_id;
 use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_event_id, serde::Raw};
 #[cfg(feature = "unstable-msc3381")]
 use ruma_events::poll::{
@@ -366,11 +364,11 @@ fn unstable_poll_start_event_return_relations() {
         })),
     );
     assert_let!(Some(encrypted::Relation::Thread(thread)) = event_content.relation());
-    assert_eq!(thread.event_id, event_id!("$thread_root_id"));
+    assert_eq!(thread.event_id, "$thread_root_id");
     assert!(thread.is_falling_back);
 
     assert_let!(Some(in_reply_to) = thread.in_reply_to);
-    assert_eq!(in_reply_to.event_id, event_id!("$prev_event_id"));
+    assert_eq!(in_reply_to.event_id, "$prev_event_id");
 }
 
 #[cfg(feature = "unstable-msc3381")]
@@ -394,9 +392,9 @@ fn stable_poll_start_event_return_relations() {
         }));
 
     assert_let!(Some(encrypted::Relation::Thread(thread)) = event_content.relation());
-    assert_eq!(thread.event_id, event_id!("$thread_root_id"));
+    assert_eq!(thread.event_id, "$thread_root_id");
     assert!(thread.is_falling_back);
 
     assert_let!(Some(in_reply_to) = thread.in_reply_to);
-    assert_eq!(in_reply_to.event_id, event_id!("$prev_event_id"));
+    assert_eq!(in_reply_to.event_id, "$prev_event_id");
 }

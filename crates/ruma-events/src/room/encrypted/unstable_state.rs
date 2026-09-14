@@ -70,9 +70,7 @@ mod tests {
 
     use assert_matches2::assert_matches;
     use js_int::uint;
-    use ruma_common::{
-        MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, room_id, user_id,
-    };
+    use ruma_common::canonical_json::assert_to_canonical_json_eq;
     use serde_json::{from_value as from_json_value, json};
 
     use crate::{
@@ -153,9 +151,9 @@ mod tests {
         assert_eq!(scheme.device_id, None);
         assert_eq!(scheme.session_id, "session_id");
 
-        assert_eq!(ev.sender, user_id!("@example:example.com"));
-        assert_eq!(ev.room_id, room_id!("!roomid:example.com"));
-        assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1_234_567_890)));
+        assert_eq!(ev.sender, "@example:example.com");
+        assert_eq!(ev.room_id, "!roomid:example.com");
+        assert_eq!(ev.origin_server_ts.0, uint!(1_234_567_890));
         assert_eq!(ev.state_key, "");
     }
 }

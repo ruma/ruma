@@ -326,7 +326,7 @@ mod tests {
 
         let content = from_json_value::<ToDeviceRoomKeyWithheldEventContent>(json).unwrap();
         assert_eq!(content.algorithm, EventEncryptionAlgorithm::MegolmV1AesSha2);
-        assert_eq!(content.sender_key, Base64::new(PUBLIC_KEY.to_owned()));
+        assert_eq!(content.sender_key.as_bytes(), PUBLIC_KEY);
         assert_eq!(content.reason.as_deref(), Some("Could not find an olm session"));
         assert_matches!(content.code, RoomKeyWithheldCodeInfo::NoOlm);
     }
@@ -344,7 +344,7 @@ mod tests {
 
         let content = from_json_value::<ToDeviceRoomKeyWithheldEventContent>(json).unwrap();
         assert_eq!(content.algorithm, EventEncryptionAlgorithm::MegolmV1AesSha2);
-        assert_eq!(content.sender_key, Base64::new(PUBLIC_KEY.to_owned()));
+        assert_eq!(content.sender_key.as_bytes(), PUBLIC_KEY);
         assert_eq!(content.reason, None);
         assert_matches!(content.code, RoomKeyWithheldCodeInfo::Blacklisted(session_data));
         assert_eq!(session_data.room_id, room_id);
