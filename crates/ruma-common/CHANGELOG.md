@@ -8,6 +8,10 @@ Improvements:
   `OwnedDirectUserIdentifier` and an `OwnedUserId` does not perform an allocation anymore.
 - Implement `From<&OwnedId> for OwnedId` for owned identifier types generated with the `IdDst`
   derive macro.
+- Add the `KeyTooLarge`, `ProfileTooLarge` and `UnknownDevice` variants to `ErrorKind` and
+  `ErrorCode`, for the `M_KEY_TOO_LARGE` and `M_PROFILE_TOO_LARGE` error codes of the profile
+  endpoints (added in Matrix 1.16) and the `M_UNKNOWN_DEVICE` error code of identity assertion
+  (added in Matrix 1.17).
 
 ## 0.20.0
 
