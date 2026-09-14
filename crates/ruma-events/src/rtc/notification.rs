@@ -147,7 +147,7 @@ mod tests {
     use std::time::Duration;
 
     use assert_matches2::assert_matches;
-    use js_int::UInt;
+    use js_int::{UInt, uint};
     use ruma_common::{
         MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, owned_event_id,
     };
@@ -257,38 +257,38 @@ mod tests {
         );
 
         // sender_ts is trustworthy
-        let origin_server_ts = MilliSecondsSinceUnixEpoch(UInt::new(120_000).unwrap());
+        let origin_server_ts = MilliSecondsSinceUnixEpoch(uint!(120_000));
         assert_eq!(
             content.expiration_ts(origin_server_ts, None),
-            MilliSecondsSinceUnixEpoch(UInt::new(130_365).unwrap())
+            MilliSecondsSinceUnixEpoch(uint!(130_365))
         );
 
         // sender_ts is not trustworthy (sender_ts too small), origin_server_ts is used instead
-        let origin_server_ts = MilliSecondsSinceUnixEpoch(UInt::new(200_000).unwrap());
+        let origin_server_ts = MilliSecondsSinceUnixEpoch(uint!(200_000));
         assert_eq!(
             content.expiration_ts(origin_server_ts, None),
-            MilliSecondsSinceUnixEpoch(UInt::new(230_000).unwrap())
+            MilliSecondsSinceUnixEpoch(uint!(230_000))
         );
 
         // sender_ts is not trustworthy (sender_ts too large), origin_server_ts is used instead
-        let origin_server_ts = MilliSecondsSinceUnixEpoch(UInt::new(50_000).unwrap());
+        let origin_server_ts = MilliSecondsSinceUnixEpoch(uint!(50_000));
         assert_eq!(
             content.expiration_ts(origin_server_ts, None),
-            MilliSecondsSinceUnixEpoch(UInt::new(80_000).unwrap())
+            MilliSecondsSinceUnixEpoch(uint!(80_000))
         );
 
         // using a custom max offset (result in origin_server_ts)
-        let origin_server_ts = MilliSecondsSinceUnixEpoch(UInt::new(130_200).unwrap());
+        let origin_server_ts = MilliSecondsSinceUnixEpoch(uint!(130_200));
         assert_eq!(
             content.expiration_ts(origin_server_ts, Some(100)),
-            MilliSecondsSinceUnixEpoch(UInt::new(160_200).unwrap())
+            MilliSecondsSinceUnixEpoch(uint!(160_200))
         );
 
         // using a custom max offset (result in sender_ts)
-        let origin_server_ts = MilliSecondsSinceUnixEpoch(UInt::new(100_300).unwrap());
+        let origin_server_ts = MilliSecondsSinceUnixEpoch(uint!(100_300));
         assert_eq!(
             content.expiration_ts(origin_server_ts, Some(100)),
-            MilliSecondsSinceUnixEpoch(UInt::new(130_365).unwrap())
+            MilliSecondsSinceUnixEpoch(uint!(130_365))
         );
     }
 }

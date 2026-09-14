@@ -71,7 +71,7 @@ fn message_event_deserialization() {
     assert_eq!(ev.content.location.uri, "geo:51.5008,0.1247;u=35");
     assert_eq!(ev.content.ts, MilliSecondsSinceUnixEpoch(uint!(1_636_829_458)));
     assert_matches!(ev.content.relates_to, Reference { event_id, .. });
-    assert_eq!(event_id, owned_event_id!("$beacon_info_event_id:example.com"));
+    assert_eq!(event_id, "$beacon_info_event_id:example.com");
 
     assert_eq!(ev.sender, user_id!("@example:example.com"));
     assert_eq!(ev.room_id, room_id!("!roomid:example.com"));

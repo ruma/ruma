@@ -253,8 +253,9 @@ mod tests {
     use std::time::Duration;
 
     use assert_matches2::assert_matches;
+    use js_int::{int, uint};
     use ruma_common::{
-        MilliSecondsSinceUnixEpoch as TS, OwnedEventId, OwnedRoomId, OwnedUserId, device_id,
+        MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId, device_id,
         owned_device_id, user_id,
     };
     use serde_json::{Value as JsonValue, from_value as from_json_value, json};
@@ -641,7 +642,7 @@ mod tests {
         assert_eq!(member_event.event_id, event_id);
         assert_eq!(member_event.sender, sender);
         assert_eq!(member_event.room_id, room_id);
-        assert_eq!(member_event.origin_server_ts, TS(js_int::UInt::new(111).unwrap()));
+        assert_eq!(member_event.origin_server_ts.0, uint!(111));
         let membership = SessionMembershipData {
             application: Application::Call(CallApplicationContent::new(
                 "".to_owned(),
@@ -667,16 +668,13 @@ mod tests {
         // Correctly computes the active_memberships array.
         assert_eq!(
             member_event.content.active_memberships(None)[0],
-            vec![MembershipData::Session(&membership)][0]
+            MembershipData::Session(&membership)
         );
-        assert_eq!(js_int::Int::new(10), member_event.unsigned.age);
+        assert_eq!(member_event.unsigned.age, Some(int!(10)));
         assert_eq!(
+            member_event.unsigned.prev_content.unwrap(),
             CallMemberEventContent::Empty(EmptyMembershipData { leave_reason: None }),
-            member_event.unsigned.prev_content.unwrap()
         );
-
-        // assert_eq!(, StateUnsigned { age: 10, transaction_id: None, prev_content:
-        // CallMemberEventContent::Empty { leave_reason: None }, relations: None })
     }
 
     #[test]
@@ -694,16 +692,17 @@ mod tests {
         deserialize_member_event_helper("@user:example.org_THIS_DEVICE_m.call");
     }
 
-    fn timestamps() -> (TS, TS, TS) {
-        let now = TS::now();
+    fn timestamps()
+    -> (MilliSecondsSinceUnixEpoch, MilliSecondsSinceUnixEpoch, MilliSecondsSinceUnixEpoch) {
+        let now = MilliSecondsSinceUnixEpoch::now();
         let one_second_ago =
             now.to_system_time().unwrap().checked_sub(Duration::from_secs(1)).unwrap();
         let two_hours_ago =
             now.to_system_time().unwrap().checked_sub(Duration::from_secs(60 * 60 * 2)).unwrap();
         (
             now,
-            TS::from_system_time(one_second_ago).unwrap(),
-            TS::from_system_time(two_hours_ago).unwrap(),
+            MilliSecondsSinceUnixEpoch::from_system_time(one_second_ago).unwrap(),
+            MilliSecondsSinceUnixEpoch::from_system_time(two_hours_ago).unwrap(),
         )
     }
 
@@ -719,7 +718,7 @@ mod tests {
         assert_eq!(content_legacy.active_memberships(Some(now)), content_legacy.memberships());
         assert_eq!(
             content_legacy.active_memberships(Some(two_hours_ago)),
-            (vec![] as Vec<MembershipData<'_>>)
+            vec![] as Vec<MembershipData<'_>>
         );
     }
 
@@ -732,7 +731,7 @@ mod tests {
         assert_eq!(content.active_memberships(Some(one_second_ago)), content.memberships());
         assert_eq!(
             content.active_memberships(Some(two_hours_ago)),
-            (vec![] as Vec<MembershipData<'_>>)
+            vec![] as Vec<MembershipData<'_>>
         );
     }
 

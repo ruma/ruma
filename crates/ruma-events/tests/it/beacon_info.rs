@@ -5,8 +5,7 @@ use std::time::Duration;
 use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{
-    MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, event_id, room_id,
-    serde::CanBeEmpty, user_id,
+    MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, serde::CanBeEmpty,
 };
 use ruma_events::{
     AnyStateEvent, StateEvent, beacon_info::BeaconInfoEventContent, location::AssetType,
@@ -126,7 +125,7 @@ fn beacon_info_start_event_content_deserialization() {
 
     let event_content: BeaconInfoEventContent = serde_json::from_value(json_data).unwrap();
 
-    assert_eq!(event_content.description, Some("Kylie's live location".to_owned()));
+    assert_eq!(event_content.description.as_deref(), Some("Kylie's live location"));
     assert!(event_content.live);
     assert_eq!(event_content.ts, MilliSecondsSinceUnixEpoch(uint!(1_636_829_458)));
     assert_eq!(event_content.timeout, Duration::from_secs(60));
@@ -149,16 +148,16 @@ fn state_event_deserialization() {
 
     assert_matches!(event, AnyStateEvent::BeaconInfo(StateEvent::Original(ev)));
 
-    assert_eq!(ev.content.description, Some("Kylie's live location".to_owned()));
+    assert_eq!(ev.content.description.as_deref(), Some("Kylie's live location"));
     assert_eq!(ev.content.ts, MilliSecondsSinceUnixEpoch(uint!(1_636_829_458)));
     assert_eq!(ev.content.timeout, Duration::from_secs(60));
     assert_eq!(ev.content.asset.type_, AssetType::Self_);
     assert!(ev.content.live);
 
-    assert_eq!(ev.event_id, event_id!("$beacon_event_id:example.com"));
+    assert_eq!(ev.event_id, "$beacon_event_id:example.com");
     assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1_636_829_458)));
-    assert_eq!(ev.room_id, room_id!("!roomid:example.com"));
-    assert_eq!(ev.sender, user_id!("@example:example.com"));
+    assert_eq!(ev.room_id, "!roomid:example.com");
+    assert_eq!(ev.sender, "@example:example.com");
     assert_eq!(ev.state_key, "@example:example.com");
     assert!(ev.unsigned.is_empty());
 }

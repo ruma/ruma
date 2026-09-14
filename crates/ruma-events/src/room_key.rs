@@ -55,7 +55,7 @@ impl ToDeviceRoomKeyEventContent {
 
 #[cfg(test)]
 mod tests {
-    use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_room_id, room_id};
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_room_id};
     use serde_json::json;
 
     use super::ToDeviceRoomKeyEventContent;
@@ -96,7 +96,7 @@ mod tests {
         let content: ToDeviceRoomKeyEventContent = serde_json::from_value(content_json).unwrap();
 
         assert_eq!(content.algorithm, EventEncryptionAlgorithm::MegolmV1AesSha2);
-        assert_eq!(content.room_id, room_id!("!r:example.org"));
+        assert_eq!(content.room_id, "!r:example.org");
         assert_eq!(content.session_id, "Sess6");
         assert_eq!(content.session_key, "SessK");
         assert!(content.shared_history);
