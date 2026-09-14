@@ -20,13 +20,13 @@ use super::{IdParseError, KeyName};
 /// # }
 ///
 /// let static_id = device_id!("01234567");
-/// assert_eq!(static_id.as_str(), "01234567");
+/// assert_eq!(static_id, "01234567");
 ///
 /// let ref_id: &DeviceId = "abcdefghi".into();
-/// assert_eq!(ref_id.as_str(), "abcdefghi");
+/// assert_eq!(ref_id, "abcdefghi");
 ///
 /// let owned_id: OwnedDeviceId = "ijklmnop".into();
-/// assert_eq!(owned_id.as_str(), "ijklmnop");
+/// assert_eq!(owned_id, "ijklmnop");
 /// ```
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
