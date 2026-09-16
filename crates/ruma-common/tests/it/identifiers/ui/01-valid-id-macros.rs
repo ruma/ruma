@@ -1,5 +1,6 @@
 fn main() {
     _ = ruma_common::base64_public_key!("self+signing+master+public+key");
+    _ = ruma_common::device_id!("MYDEVICE");
     _ = ruma_common::event_id!("$39hvsi03hlne:example.com");
     _ = ruma_common::event_id!("$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk");
     _ = ruma_common::mxc_uri!("mxc://myserver.fish/sdfdsfsdfsdfgsdfsd");
@@ -16,5 +17,6 @@ fn main() {
     #[cfg(feature = "unstable-identifier-ref-macros")]
     {
         _ = ruma_common::base64_public_key_ref!("self+signing+master+public+key");
+        _ = ruma_common::device_id_ref!("MYDEVICE");
     }
 }

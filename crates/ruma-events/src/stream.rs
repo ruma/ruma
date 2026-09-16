@@ -4,7 +4,7 @@
 
 use std::time::Duration;
 
-use ruma_common::OwnedDeviceId;
+use ruma_common::DeviceId;
 use serde::{Deserialize, Serialize};
 
 pub mod cancel;
@@ -20,7 +20,7 @@ pub mod update;
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct StreamDescriptor {
     /// The publisher device, owned by the sender of the room event containing the descriptor.
-    pub device_id: OwnedDeviceId,
+    pub device_id: DeviceId,
 
     /// The lifetime of the descriptor in milliseconds, counted from the room
     /// event's `origin_server_ts`.
@@ -34,7 +34,7 @@ pub struct StreamDescriptor {
 
 impl StreamDescriptor {
     /// Creates a new `StreamDescriptor` for the given publisher device.
-    pub fn new(device_id: OwnedDeviceId) -> Self {
+    pub fn new(device_id: DeviceId) -> Self {
         Self { device_id, expiry_ms: None }
     }
 }
@@ -43,7 +43,7 @@ impl StreamDescriptor {
 mod tests {
     use std::time::Duration;
 
-    use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_device_id, serde::Raw};
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, device_id, serde::Raw};
     use serde_json::json;
 
     use super::StreamDescriptor;
@@ -53,7 +53,7 @@ mod tests {
     fn descriptor_round_trips_inside_room_message() {
         let mut content = RoomMessageEventContent::text_plain("Hello");
         content.stream = Some(StreamDescriptor {
-            device_id: owned_device_id!("DEVICEID"),
+            device_id: device_id!("DEVICEID"),
             expiry_ms: Some(Duration::from_millis(1_800_000)),
         });
 
@@ -79,7 +79,7 @@ mod tests {
     #[test]
     fn replacement_drops_stream() {
         let mut content = RoomMessageEventContent::text_plain("Hello");
-        content.stream = Some(StreamDescriptor::new(owned_device_id!("DEVICEID")));
+        content.stream = Some(StreamDescriptor::new(device_id!("DEVICEID")));
 
         content.apply_replacement(RoomMessageEventContentWithoutRelation::text_plain("Done"));
 
@@ -96,10 +96,10 @@ mod tests {
     #[test]
     fn replacement_keeps_stream() {
         let mut content = RoomMessageEventContent::text_plain("Hello");
-        content.stream = Some(StreamDescriptor::new(owned_device_id!("DEVICEONE")));
+        content.stream = Some(StreamDescriptor::new(device_id!("DEVICEONE")));
 
         let mut new_content = RoomMessageEventContentWithoutRelation::text_plain("world");
-        new_content.stream = Some(StreamDescriptor::new(owned_device_id!("DEVICETWO")));
+        new_content.stream = Some(StreamDescriptor::new(device_id!("DEVICETWO")));
         content.apply_replacement(new_content);
 
         let stream = content.stream.as_ref().unwrap();

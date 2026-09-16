@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 use js_int::Int;
 use js_int::UInt;
 use ruma_common::{
-    OwnedDeviceId, OwnedEventId, OwnedRoomId, OwnedTransactionId, OwnedUserId,
+    DeviceId, OwnedEventId, OwnedRoomId, OwnedTransactionId, OwnedUserId,
     encryption::{CrossSigningKey, DeviceKeys},
     presence::PresenceState,
     serde::{Raw, from_raw_json_value},
@@ -275,7 +275,7 @@ pub struct DeviceListUpdateContent {
     pub user_id: OwnedUserId,
 
     /// The ID of the device whose details are changing.
-    pub device_id: OwnedDeviceId,
+    pub device_id: DeviceId,
 
     /// The public human-readable name of this device.
     ///
@@ -303,7 +303,7 @@ pub struct DeviceListUpdateContent {
 impl DeviceListUpdateContent {
     /// Create a new `DeviceListUpdateContent` with the given `user_id`, `device_id` and
     /// `stream_id`.
-    pub fn new(user_id: OwnedUserId, device_id: OwnedDeviceId, stream_id: UInt) -> Self {
+    pub fn new(user_id: OwnedUserId, device_id: DeviceId, stream_id: UInt) -> Self {
         Self {
             user_id,
             device_id,

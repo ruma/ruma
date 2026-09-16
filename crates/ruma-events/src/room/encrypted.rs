@@ -5,7 +5,7 @@
 use std::{borrow::Cow, collections::BTreeMap};
 
 use js_int::UInt;
-use ruma_common::{OwnedDeviceId, OwnedEventId, serde::JsonObject};
+use ruma_common::{DeviceId, OwnedEventId, serde::JsonObject};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -248,7 +248,7 @@ pub struct MegolmV1AesSha2Content {
     /// The ID of the sending device.
     #[deprecated = "Since Matrix 1.3, this field should still be sent but should not be used when received"]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub device_id: Option<OwnedDeviceId>,
+    pub device_id: Option<DeviceId>,
 
     /// The ID of the session used to encrypt the message.
     pub session_id: String,
@@ -268,7 +268,7 @@ pub struct MegolmV1AesSha2ContentInit {
     pub sender_key: String,
 
     /// The ID of the sending device.
-    pub device_id: OwnedDeviceId,
+    pub device_id: DeviceId,
 
     /// The ID of the session used to encrypt the message.
     pub session_id: String,

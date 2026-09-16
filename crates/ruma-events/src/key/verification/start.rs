@@ -6,7 +6,7 @@ use std::{borrow::Cow, fmt};
 
 use as_variant::as_variant;
 use ruma_common::{
-    OwnedDeviceId, OwnedTransactionId,
+    DeviceId, OwnedTransactionId,
     serde::{Base64, JsonObject},
 };
 use ruma_macros::EventContent;
@@ -26,7 +26,7 @@ use crate::relation::Reference;
 #[ruma_event(type = "m.key.verification.start", kind = ToDevice)]
 pub struct ToDeviceKeyVerificationStartEventContent {
     /// The device ID which is initiating the process.
-    pub from_device: OwnedDeviceId,
+    pub from_device: DeviceId,
 
     /// An opaque identifier for the verification process.
     ///
@@ -44,7 +44,7 @@ impl ToDeviceKeyVerificationStartEventContent {
     /// Creates a new `ToDeviceKeyVerificationStartEventContent` with the given device ID,
     /// transaction ID and method specific content.
     pub fn new(
-        from_device: OwnedDeviceId,
+        from_device: DeviceId,
         transaction_id: OwnedTransactionId,
         method: StartMethod,
     ) -> Self {
@@ -60,7 +60,7 @@ impl ToDeviceKeyVerificationStartEventContent {
 #[ruma_event(type = "m.key.verification.start", kind = MessageLike)]
 pub struct KeyVerificationStartEventContent {
     /// The device ID which is initiating the process.
-    pub from_device: OwnedDeviceId,
+    pub from_device: DeviceId,
 
     /// Method specific content.
     #[serde(flatten)]
@@ -74,7 +74,7 @@ pub struct KeyVerificationStartEventContent {
 impl KeyVerificationStartEventContent {
     /// Creates a new `KeyVerificationStartEventContent` with the given device ID, method and
     /// reference.
-    pub fn new(from_device: OwnedDeviceId, method: StartMethod, relates_to: Reference) -> Self {
+    pub fn new(from_device: DeviceId, method: StartMethod, relates_to: Reference) -> Self {
         Self { from_device, method, relates_to }
     }
 }
