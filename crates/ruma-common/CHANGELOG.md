@@ -28,7 +28,7 @@ Breaking changes:
     `owned_mxc_uri!` macro is behind the `unstable-identifier-owned-macros` cargo feature and
     returns the same type. The `mxc_uri_ref!` macro behind the `unstable-identifier-ref-macros`
     cargo feature still allows to construct a `&'static MxcUri`.
-
+  - `OwnedOneTimeKeyName` was renamed to `OneTimeKeyName`.
 
 Improvements:
 
