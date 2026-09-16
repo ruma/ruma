@@ -17,11 +17,12 @@ Breaking changes:
     `owned_device_id!` macro is behind the `unstable-identifier-owned-macros` cargo feature and
     returns the same type. The `device_id_ref!` macro behind the
     `unstable-identifier-ref-macros` cargo feature still allows to construct a `&'static DeviceId`.
+  - The `OwnedDirectUserIdentifier` type was renamed to `DirectUserIdentifier`.
 
 Improvements:
 
-- The `(Owned)DirectUserIdentifier` types were imported from ruma-events. Converting between an
-  `OwnedDirectUserIdentifier` and an `OwnedUserId` does not perform an allocation anymore.
+- The owned `DirectUserIdentifier` type was imported from ruma-events. Converting between a
+  `DirectUserIdentifier` and an `OwnedUserId` does not perform an allocation anymore.
 - Implement `From<&OwnedId> for OwnedId` and `From<&OwnedId> for String` for owned identifier types
   generated with the `IdDst` derive macro.
 - Add the `KeyTooLarge`, `ProfileTooLarge` and `UnknownDevice` variants to `ErrorKind` and
