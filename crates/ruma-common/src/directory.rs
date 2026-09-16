@@ -7,7 +7,7 @@ mod filter_room_type_serde;
 mod room_network_serde;
 
 use crate::{
-    MxcUri, OwnedRoomAliasId, OwnedRoomId, PrivOwnedStr,
+    MxcUri, OwnedRoomId, PrivOwnedStr, RoomAliasId,
     room::{JoinRuleKind, RoomSummary, RoomType},
 };
 
@@ -25,7 +25,7 @@ pub struct PublicRoomsChunk {
         feature = "compat-empty-string-null",
         serde(default, deserialize_with = "crate::serde::empty_string_as_none")
     )]
-    pub canonical_alias: Option<OwnedRoomAliasId>,
+    pub canonical_alias: Option<RoomAliasId>,
 
     /// The name of the room, if any.
     #[serde(skip_serializing_if = "Option::is_none")]

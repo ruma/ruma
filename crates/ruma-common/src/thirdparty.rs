@@ -10,7 +10,7 @@ use std::{
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    MilliSecondsSinceUnixEpoch, OwnedRoomAliasId, OwnedUserId, PrivOwnedStr, serde::StringEnum,
+    MilliSecondsSinceUnixEpoch, OwnedUserId, PrivOwnedStr, RoomAliasId, serde::StringEnum,
 };
 
 /// Metadata about a third party protocol.
@@ -179,7 +179,7 @@ impl From<FieldTypeInit> for FieldType {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct Location {
     /// An alias for a matrix room.
-    pub alias: OwnedRoomAliasId,
+    pub alias: RoomAliasId,
 
     /// The protocol ID that the third party location is a part of.
     pub protocol: String,
@@ -190,11 +190,7 @@ pub struct Location {
 
 impl Location {
     /// Creates a new `Location` with the given alias, protocol and fields.
-    pub fn new(
-        alias: OwnedRoomAliasId,
-        protocol: String,
-        fields: BTreeMap<String, String>,
-    ) -> Self {
+    pub fn new(alias: RoomAliasId, protocol: String, fields: BTreeMap<String, String>) -> Self {
         Self { alias, protocol, fields }
     }
 }

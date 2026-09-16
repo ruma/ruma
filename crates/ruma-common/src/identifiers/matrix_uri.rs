@@ -10,8 +10,8 @@ use ruma_identifiers_validation::{
 use url::Url;
 
 use super::{
-    EventId, OwnedRoomAliasId, OwnedRoomId, OwnedRoomOrAliasId, OwnedServerName, OwnedUserId,
-    RoomAliasId, RoomId, RoomOrAliasId, UserId,
+    EventId, OwnedRoomId, OwnedRoomOrAliasId, OwnedServerName, OwnedUserId, RoomAliasId, RoomId,
+    RoomOrAliasId, UserId,
 };
 use crate::{PrivOwnedStr, percent_encode::PATH_PERCENT_ENCODE_SET};
 
@@ -26,14 +26,14 @@ pub enum MatrixId {
     Room(OwnedRoomId),
 
     /// A room alias.
-    RoomAlias(OwnedRoomAliasId),
+    RoomAlias(RoomAliasId),
 
     /// A user ID.
     User(OwnedUserId),
 
     /// An event ID.
     ///
-    /// Constructing this variant from an `OwnedRoomAliasId` is deprecated, because room aliases
+    /// Constructing this variant from an `RoomAliasId` is deprecated, because room aliases
     /// are mutable, so the URI might break after a while.
     Event(OwnedRoomOrAliasId, EventId),
 }
@@ -192,8 +192,8 @@ impl From<&RoomId> for MatrixId {
     }
 }
 
-impl From<OwnedRoomAliasId> for MatrixId {
-    fn from(room_alias: OwnedRoomAliasId) -> Self {
+impl From<RoomAliasId> for MatrixId {
+    fn from(room_alias: RoomAliasId) -> Self {
         Self::RoomAlias(room_alias)
     }
 }
@@ -240,8 +240,8 @@ impl From<(&RoomId, &EventId)> for MatrixId {
     }
 }
 
-impl From<(OwnedRoomAliasId, EventId)> for MatrixId {
-    fn from(ids: (OwnedRoomAliasId, EventId)) -> Self {
+impl From<(RoomAliasId, EventId)> for MatrixId {
+    fn from(ids: (RoomAliasId, EventId)) -> Self {
         Self::Event(ids.0.into(), ids.1)
     }
 }
@@ -560,8 +560,8 @@ mod tests {
 
     use super::{MatrixId, MatrixToUri, MatrixUri};
     use crate::{
-        event_id, matrix_uri::UriAction, owned_room_alias_id, owned_room_id, owned_server_name,
-        owned_user_id, room_alias_id, room_id, user_id,
+        event_id, matrix_uri::UriAction, owned_room_id, owned_server_name, owned_user_id,
+        room_alias_id, room_id, user_id,
     };
 
     #[test]
@@ -619,7 +619,7 @@ mod tests {
         assert_eq!(
             MatrixId::parse_with_sigil("#roomalias:imaginary.hs")
                 .expect("Failed to create MatrixId."),
-            MatrixId::RoomAlias(owned_room_alias_id!("#roomalias:imaginary.hs"))
+            MatrixId::RoomAlias(room_alias_id!("#roomalias:imaginary.hs"))
         );
         assert_eq!(
             MatrixId::parse_with_sigil("!roomid:imaginary.hs/$event:imaginary.hs")
@@ -633,7 +633,7 @@ mod tests {
             MatrixId::parse_with_sigil("#roomalias:imaginary.hs/$event:imaginary.hs")
                 .expect("Failed to create MatrixId."),
             MatrixId::Event(
-                owned_room_alias_id!("#roomalias:imaginary.hs").into(),
+                room_alias_id!("#roomalias:imaginary.hs").into(),
                 event_id!("$event:imaginary.hs")
             )
         );
@@ -650,7 +650,7 @@ mod tests {
             MatrixId::parse_with_sigil("$event:imaginary.hs/#roomalias:imaginary.hs")
                 .expect("Failed to create MatrixId."),
             MatrixId::Event(
-                owned_room_alias_id!("#roomalias:imaginary.hs").into(),
+                room_alias_id!("#roomalias:imaginary.hs").into(),
                 event_id!("$event:imaginary.hs")
             )
         );
@@ -669,7 +669,7 @@ mod tests {
         assert_eq!(
             MatrixId::parse_with_sigil("/#roomalias:imaginary.hs/")
                 .expect("Failed to create MatrixId."),
-            MatrixId::RoomAlias(owned_room_alias_id!("#roomalias:imaginary.hs"))
+            MatrixId::RoomAlias(room_alias_id!("#roomalias:imaginary.hs"))
         );
     }
 
@@ -741,7 +741,7 @@ mod tests {
 
         let matrix_to = MatrixToUri::parse("https://matrix.to/#/%23ruma%3Anotareal.hs")
             .expect("Failed to create MatrixToUri.");
-        assert_eq!(*matrix_to.id(), owned_room_alias_id!("#ruma:notareal.hs").into());
+        assert_eq!(*matrix_to.id(), room_alias_id!("#ruma:notareal.hs").into());
 
         let matrix_to = MatrixToUri::parse(
             "https://matrix.to/#/%21ruma%3Anotareal.hs?via=notareal.hs&via=anotherunreal.hs",
@@ -755,7 +755,7 @@ mod tests {
                 .expect("Failed to create MatrixToUri.");
         assert_eq!(
             *matrix_to.id(),
-            (owned_room_alias_id!("#ruma:notareal.hs"), event_id!("$event:notareal.hs")).into()
+            (room_alias_id!("#ruma:notareal.hs"), event_id!("$event:notareal.hs")).into()
         );
 
         let matrix_to =
@@ -776,7 +776,7 @@ mod tests {
 
         let matrix_to = MatrixToUri::parse("https://matrix.to/#/#ruma:notareal.hs")
             .expect("Failed to create MatrixToUri.");
-        assert_eq!(*matrix_to.id(), owned_room_alias_id!("#ruma:notareal.hs").into());
+        assert_eq!(*matrix_to.id(), room_alias_id!("#ruma:notareal.hs").into());
 
         let matrix_to = MatrixToUri::parse("https://matrix.to/#/!ruma:notareal.hs?via=notareal.hs")
             .expect("Failed to create MatrixToUri.");
@@ -788,7 +788,7 @@ mod tests {
                 .expect("Failed to create MatrixToUri.");
         assert_eq!(
             *matrix_to.id(),
-            (owned_room_alias_id!("#ruma:notareal.hs"), event_id!("$event:notareal.hs")).into()
+            (room_alias_id!("#ruma:notareal.hs"), event_id!("$event:notareal.hs")).into()
         );
 
         let matrix_to =
@@ -918,12 +918,12 @@ mod tests {
         assert_eq!(
             MatrixId::parse_with_type("r/roomalias:imaginary.hs")
                 .expect("Failed to create MatrixId."),
-            MatrixId::RoomAlias(owned_room_alias_id!("#roomalias:imaginary.hs"))
+            MatrixId::RoomAlias(room_alias_id!("#roomalias:imaginary.hs"))
         );
         assert_eq!(
             MatrixId::parse_with_type("room/roomalias:imaginary.hs")
                 .expect("Failed to create MatrixId."),
-            MatrixId::RoomAlias(owned_room_alias_id!("#roomalias:imaginary.hs"))
+            MatrixId::RoomAlias(room_alias_id!("#roomalias:imaginary.hs"))
         );
         assert_eq!(
             MatrixId::parse_with_type("roomid/roomid:imaginary.hs/e/event:imaginary.hs")
@@ -937,7 +937,7 @@ mod tests {
             MatrixId::parse_with_type("r/roomalias:imaginary.hs/e/event:imaginary.hs")
                 .expect("Failed to create MatrixId."),
             MatrixId::Event(
-                owned_room_alias_id!("#roomalias:imaginary.hs").into(),
+                room_alias_id!("#roomalias:imaginary.hs").into(),
                 event_id!("$event:imaginary.hs")
             )
         );
@@ -945,7 +945,7 @@ mod tests {
             MatrixId::parse_with_type("room/roomalias:imaginary.hs/event/event:imaginary.hs")
                 .expect("Failed to create MatrixId."),
             MatrixId::Event(
-                owned_room_alias_id!("#roomalias:imaginary.hs").into(),
+                room_alias_id!("#roomalias:imaginary.hs").into(),
                 event_id!("$event:imaginary.hs")
             )
         );
@@ -962,7 +962,7 @@ mod tests {
             MatrixId::parse_with_type("e/event:imaginary.hs/r/roomalias:imaginary.hs")
                 .expect("Failed to create MatrixId."),
             MatrixId::Event(
-                owned_room_alias_id!("#roomalias:imaginary.hs").into(),
+                room_alias_id!("#roomalias:imaginary.hs").into(),
                 event_id!("$event:imaginary.hs")
             )
         );
@@ -981,7 +981,7 @@ mod tests {
         assert_eq!(
             MatrixId::parse_with_type("/r/roomalias:imaginary.hs/")
                 .expect("Failed to create MatrixId."),
-            MatrixId::RoomAlias(owned_room_alias_id!("#roomalias:imaginary.hs"))
+            MatrixId::RoomAlias(room_alias_id!("#roomalias:imaginary.hs"))
         );
     }
 
@@ -1021,7 +1021,7 @@ mod tests {
 
         let matrix_uri =
             MatrixUri::parse("matrix:r/ruma:notareal.hs").expect("Failed to create MatrixToUri.");
-        assert_eq!(*matrix_uri.id(), owned_room_alias_id!("#ruma:notareal.hs").into());
+        assert_eq!(*matrix_uri.id(), room_alias_id!("#ruma:notareal.hs").into());
 
         let matrix_uri = MatrixUri::parse("matrix:roomid/ruma:notareal.hs?via=notareal.hs")
             .expect("Failed to create MatrixToUri.");
@@ -1033,7 +1033,7 @@ mod tests {
             .expect("Failed to create MatrixToUri.");
         assert_eq!(
             *matrix_uri.id(),
-            (owned_room_alias_id!("#ruma:notareal.hs"), event_id!("$event:notareal.hs")).into()
+            (room_alias_id!("#ruma:notareal.hs"), event_id!("$event:notareal.hs")).into()
         );
 
         let matrix_uri = MatrixUri::parse("matrix:roomid/ruma:notareal.hs/e/event:notareal.hs")
