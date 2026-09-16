@@ -4,7 +4,7 @@ use std::hint::unreachable_unchecked;
 
 use ruma_macros::IdDst;
 
-use super::{OwnedRoomAliasId, OwnedRoomId, RoomAliasId, RoomId, server_name::ServerName};
+use super::{OwnedRoomId, RoomAliasId, RoomId, server_name::ServerName};
 
 /// A Matrix [room ID] or a Matrix [room alias ID].
 ///
@@ -84,54 +84,32 @@ impl From<OwnedRoomId> for OwnedRoomOrAliasId {
     }
 }
 
-impl From<OwnedRoomAliasId> for OwnedRoomOrAliasId {
-    fn from(room_alias_id: OwnedRoomAliasId) -> Self {
+impl From<RoomAliasId> for OwnedRoomOrAliasId {
+    fn from(room_alias_id: RoomAliasId) -> Self {
         unsafe { Self::from_inner_unchecked(room_alias_id.into_inner()) }
     }
 }
 
-impl<'a> TryFrom<&'a RoomOrAliasId> for &'a RoomId {
-    type Error = &'a RoomAliasId;
-
-    fn try_from(id: &'a RoomOrAliasId) -> Result<&'a RoomId, &'a RoomAliasId> {
-        match id.variant() {
-            Variant::RoomId => Ok(RoomId::from_borrowed_unchecked(id.as_str())),
-            Variant::RoomAliasId => Err(RoomAliasId::from_borrowed_unchecked(id.as_str())),
-        }
-    }
-}
-
-impl<'a> TryFrom<&'a RoomOrAliasId> for &'a RoomAliasId {
-    type Error = &'a RoomId;
-
-    fn try_from(id: &'a RoomOrAliasId) -> Result<&'a RoomAliasId, &'a RoomId> {
-        match id.variant() {
-            Variant::RoomAliasId => Ok(RoomAliasId::from_borrowed_unchecked(id.as_str())),
-            Variant::RoomId => Err(RoomId::from_borrowed_unchecked(id.as_str())),
-        }
-    }
-}
-
 impl TryFrom<OwnedRoomOrAliasId> for OwnedRoomId {
-    type Error = OwnedRoomAliasId;
+    type Error = RoomAliasId;
 
-    fn try_from(id: OwnedRoomOrAliasId) -> Result<OwnedRoomId, OwnedRoomAliasId> {
+    fn try_from(id: OwnedRoomOrAliasId) -> Result<OwnedRoomId, RoomAliasId> {
         let variant = id.variant();
         let inner = id.into_inner();
 
         unsafe {
             match variant {
                 Variant::RoomId => Ok(Self::from_inner_unchecked(inner)),
-                Variant::RoomAliasId => Err(OwnedRoomAliasId::from_inner_unchecked(inner)),
+                Variant::RoomAliasId => Err(RoomAliasId::from_inner_unchecked(inner)),
             }
         }
     }
 }
 
-impl TryFrom<OwnedRoomOrAliasId> for OwnedRoomAliasId {
+impl TryFrom<OwnedRoomOrAliasId> for RoomAliasId {
     type Error = OwnedRoomId;
 
-    fn try_from(id: OwnedRoomOrAliasId) -> Result<OwnedRoomAliasId, OwnedRoomId> {
+    fn try_from(id: OwnedRoomOrAliasId) -> Result<RoomAliasId, OwnedRoomId> {
         let variant = id.variant();
         let inner = id.into_inner();
 

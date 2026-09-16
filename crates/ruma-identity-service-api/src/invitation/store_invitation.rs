@@ -8,7 +8,7 @@ pub mod v2 {
     //! [spec]: https://spec.matrix.org/v1.19/identity-service-api/#post_matrixidentityv2store-invite
 
     use ruma_common::{
-        MxcUri, OwnedRoomAliasId, OwnedRoomId, OwnedUserId,
+        MxcUri, OwnedRoomId, OwnedUserId, RoomAliasId,
         api::{request, response},
         metadata,
         room::RoomType,
@@ -50,7 +50,7 @@ pub mod v2 {
         ///
         /// This should be retrieved from the `m.room.canonical` state event.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub room_alias: Option<OwnedRoomAliasId>,
+        pub room_alias: Option<RoomAliasId>,
 
         /// The Content URI for the room to which the user is invited.
         ///

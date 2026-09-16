@@ -8,7 +8,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/v1.19/server-server-api/#get_matrixfederationv1querydirectory
 
     use ruma_common::{
-        OwnedRoomAliasId, OwnedRoomId, OwnedServerName,
+        OwnedRoomId, OwnedServerName, RoomAliasId,
         api::{request, response},
         metadata,
     };
@@ -27,7 +27,7 @@ pub mod v1 {
     pub struct Request {
         /// Room alias to query.
         #[ruma_api(query)]
-        pub room_alias: OwnedRoomAliasId,
+        pub room_alias: RoomAliasId,
     }
 
     /// Response type for the `get_room_information` endpoint.
@@ -42,7 +42,7 @@ pub mod v1 {
 
     impl Request {
         /// Creates a new `Request` with the given room alias ID.
-        pub fn new(room_alias: OwnedRoomAliasId) -> Self {
+        pub fn new(room_alias: RoomAliasId) -> Self {
             Self { room_alias }
         }
     }
