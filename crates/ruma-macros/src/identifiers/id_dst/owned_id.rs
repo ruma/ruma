@@ -344,6 +344,13 @@ impl OwnedId {
             }
 
             #[automatically_derived]
+            impl #impl_generics ::std::convert::From<&#owned_id> for #string {
+                fn from(id: &#owned_id) -> Self {
+                    id.as_inner_str().to_owned()
+                }
+            }
+
+            #[automatically_derived]
             impl #impl_generics ::std::convert::From<&#owned_id> for #owned_id {
                 fn from(id: &#owned_id) -> Self {
                     id.clone()
