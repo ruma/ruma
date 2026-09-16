@@ -5,7 +5,7 @@ use std::{fmt, str::FromStr};
 use http::{HeaderMap, HeaderValue};
 use http_auth::ChallengeParser;
 use ruma_common::{
-    CanonicalJsonObject, IdParseError, OwnedServerName, OwnedServerSigningKeyId, ServerName,
+    CanonicalJsonObject, IdParseError, OwnedServerName, ServerName, ServerSigningKeyId,
     api::auth_scheme::AuthScheme,
     http_headers::quote_ascii_string_if_required,
     serde::{Base64, Base64DecodeError},
@@ -102,7 +102,7 @@ pub struct XMatrix {
 
     /// The ID - including the algorithm name - of the sending server's key that was used to sign
     /// the request.
-    pub key: OwnedServerSigningKeyId,
+    pub key: ServerSigningKeyId,
 
     /// The signature of the canonical JSON request object.
     pub sig: Base64,
@@ -117,7 +117,7 @@ impl XMatrix {
     pub fn new(
         origin: OwnedServerName,
         destination: OwnedServerName,
-        key: OwnedServerSigningKeyId,
+        key: ServerSigningKeyId,
         sig: Base64,
     ) -> Self {
         Self { origin, destination: Some(destination), key, sig }
@@ -169,7 +169,7 @@ impl XMatrix {
                 if key.is_some() {
                     return Err(XMatrixParseError::DuplicateParameter("key".to_owned()));
                 } else {
-                    key = Some(OwnedServerSigningKeyId::try_from(value.to_unescaped())?);
+                    key = Some(ServerSigningKeyId::try_from(value.to_unescaped())?);
                 }
             } else if name.eq_ignore_ascii_case("sig") {
                 if sig.is_some() {
@@ -258,7 +258,7 @@ impl XMatrix {
         let serialized_request_object = serde_json::to_vec(&request_object)?;
         let (key_id, signature) = key_pair.sign(&serialized_request_object).into_parts();
 
-        let key = OwnedServerSigningKeyId::try_from(key_id.as_str())
+        let key = ServerSigningKeyId::try_from(key_id.as_str())
             .map_err(XMatrixFromRequestError::SigningKeyId)?;
         let sig = Base64::new(signature);
 

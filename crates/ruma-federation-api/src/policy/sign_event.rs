@@ -81,7 +81,7 @@ pub mod v1 {
             self.signatures
                 .get(server_name)?
                 .get(
-                    <&SigningKeyId<ServerSigningKeyVersion>>::try_from(
+                    &<SigningKeyId<ServerSigningKeyVersion>>::try_from(
                         POLICY_SERVER_ED25519_SIGNING_KEY_ID,
                     )
                     .expect("Policy Server default ed25519 signing key ID should be valid"),

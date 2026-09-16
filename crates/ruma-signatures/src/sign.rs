@@ -1,5 +1,5 @@
 use ruma_common::{
-    AnyKeyName, CanonicalJsonObject, CanonicalJsonValue, OwnedSigningKeyId, SigningKeyAlgorithm,
+    AnyKeyName, CanonicalJsonObject, CanonicalJsonValue, SigningKeyAlgorithm, SigningKeyId,
     canonical_json::{CanonicalJsonFieldError, CanonicalJsonObjectExt, RedactingSerializer},
     room_version_rules::RedactionRules,
     serde::{Base64, base64::Standard},
@@ -339,7 +339,7 @@ pub trait KeyPair: Sized {
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Signature {
     /// The ID of the key used to generate this signature.
-    pub(crate) key_id: OwnedSigningKeyId<AnyKeyName>,
+    pub(crate) key_id: SigningKeyId<AnyKeyName>,
 
     /// The signature data.
     pub(crate) signature: Vec<u8>,
@@ -354,7 +354,7 @@ impl Signature {
     ///
     /// * `key_id`: A key identifier, e.g. `ed25519:1`.
     /// * `signature`: The digital signature, as a series of bytes.
-    pub fn new(key_id: OwnedSigningKeyId<AnyKeyName>, signature: Vec<u8>) -> Self {
+    pub fn new(key_id: SigningKeyId<AnyKeyName>, signature: Vec<u8>) -> Self {
         Self { key_id, signature }
     }
 
@@ -386,11 +386,11 @@ impl Signature {
     /// Versions are used as an identifier to distinguish signatures generated from different keys
     /// but using the same algorithm on the same homeserver.
     pub fn version(&self) -> &str {
-        self.key_id.key_name().as_ref()
+        self.key_id.key_name_str()
     }
 
     /// Split this `Signature` into its key identifier and bytes.
-    pub fn into_parts(self) -> (OwnedSigningKeyId<AnyKeyName>, Vec<u8>) {
+    pub fn into_parts(self) -> (SigningKeyId<AnyKeyName>, Vec<u8>) {
         (self.key_id, self.signature)
     }
 }

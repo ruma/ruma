@@ -10,7 +10,7 @@ pub mod unstable {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        DeviceId, OwnedOneTimeKeyId,
+        DeviceId, OneTimeKeyId,
         api::{auth_scheme::AccessToken, request, response},
         encryption::{DeviceKeys, OneTimeKey},
         metadata,
@@ -46,11 +46,11 @@ pub mod unstable {
 
         /// One-time public keys for "pre-key" messages.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub one_time_keys: BTreeMap<OwnedOneTimeKeyId, Raw<OneTimeKey>>,
+        pub one_time_keys: BTreeMap<OneTimeKeyId, Raw<OneTimeKey>>,
 
         /// Fallback public keys for "pre-key" messages.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub fallback_keys: BTreeMap<OwnedOneTimeKeyId, Raw<OneTimeKey>>,
+        pub fallback_keys: BTreeMap<OneTimeKeyId, Raw<OneTimeKey>>,
     }
 
     /// Response type for the `upload_keys` endpoint.

@@ -5,7 +5,7 @@
 use std::{collections::BTreeMap, time::Duration};
 
 use ruma_common::{
-    DeviceId, OneTimeKeyAlgorithm, OwnedOneTimeKeyId, OwnedUserId,
+    DeviceId, OneTimeKeyAlgorithm, OneTimeKeyId, OwnedUserId,
     api::{auth_scheme::AccessToken, request, response},
     encryption::OneTimeKey,
     metadata,
@@ -68,4 +68,4 @@ impl Response {
 }
 
 /// The one-time keys for a given device.
-pub type OneTimeKeys = BTreeMap<DeviceId, BTreeMap<OwnedOneTimeKeyId, Raw<OneTimeKey>>>;
+pub type OneTimeKeys = BTreeMap<DeviceId, BTreeMap<OneTimeKeyId, Raw<OneTimeKey>>>;

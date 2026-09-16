@@ -7,8 +7,8 @@ use std::collections::BTreeMap;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    CrossSigningOrDeviceSignatures, DeviceId, DeviceSignatures, EventEncryptionAlgorithm,
-    OwnedCrossSigningKeyId, OwnedDeviceKeyId, OwnedUserId, PrivOwnedStr,
+    CrossSigningKeyId, CrossSigningOrDeviceSignatures, DeviceId, DeviceKeyId, DeviceSignatures,
+    EventEncryptionAlgorithm, OwnedUserId, PrivOwnedStr,
     serde::{Base64, StringEnum},
 };
 
@@ -30,7 +30,7 @@ pub struct DeviceKeys {
     pub algorithms: Vec<EventEncryptionAlgorithm>,
 
     /// Public identity keys.
-    pub keys: BTreeMap<OwnedDeviceKeyId, String>,
+    pub keys: BTreeMap<DeviceKeyId, String>,
 
     /// Signatures for the device key object.
     pub signatures: CrossSigningOrDeviceSignatures,
@@ -48,7 +48,7 @@ impl DeviceKeys {
         user_id: OwnedUserId,
         device_id: DeviceId,
         algorithms: Vec<EventEncryptionAlgorithm>,
-        keys: BTreeMap<OwnedDeviceKeyId, String>,
+        keys: BTreeMap<DeviceKeyId, String>,
         signatures: CrossSigningOrDeviceSignatures,
     ) -> Self {
         Self { user_id, device_id, algorithms, keys, signatures, unsigned: Default::default() }
@@ -130,7 +130,7 @@ pub struct CrossSigningKey {
     /// The public key.
     ///
     /// The object must have exactly one property.
-    pub keys: BTreeMap<OwnedCrossSigningKeyId, String>,
+    pub keys: BTreeMap<CrossSigningKeyId, String>,
 
     /// Signatures of the key.
     ///
@@ -148,7 +148,7 @@ impl CrossSigningKey {
     pub fn new(
         user_id: OwnedUserId,
         usage: Vec<KeyUsage>,
-        keys: BTreeMap<OwnedCrossSigningKeyId, String>,
+        keys: BTreeMap<CrossSigningKeyId, String>,
         signatures: CrossSigningOrDeviceSignatures,
     ) -> Self {
         Self { user_id, usage, keys, signatures }

@@ -3,7 +3,7 @@
 use std::collections::BTreeMap;
 
 use ruma_common::{
-    MilliSecondsSinceUnixEpoch, OwnedServerName, OwnedServerSigningKeyId, ServerSignatures,
+    MilliSecondsSinceUnixEpoch, OwnedServerName, ServerSignatures, ServerSigningKeyId,
     serde::Base64,
 };
 use serde::{Deserialize, Serialize};
@@ -57,13 +57,13 @@ pub struct ServerSigningKeys {
     pub server_name: OwnedServerName,
 
     /// Public keys of the homeserver for verifying digital signatures.
-    pub verify_keys: BTreeMap<OwnedServerSigningKeyId, VerifyKey>,
+    pub verify_keys: BTreeMap<ServerSigningKeyId, VerifyKey>,
 
     /// Public keys that the homeserver used to use and when it stopped using them.
     // This field is optional, but all fields were assumed to be required before clarification
     // in https://github.com/matrix-org/matrix-spec/pull/1930, so we still send it.
     #[serde(default)]
-    pub old_verify_keys: BTreeMap<OwnedServerSigningKeyId, OldVerifyKey>,
+    pub old_verify_keys: BTreeMap<ServerSigningKeyId, OldVerifyKey>,
 
     /// Digital signatures of this object signed using the verify_keys.
     ///

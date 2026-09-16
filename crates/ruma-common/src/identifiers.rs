@@ -28,10 +28,7 @@ pub use self::{
     event_id::EventId,
     key_id::{
         AnyKeyName, CrossSigningKeyId, CrossSigningOrDeviceSigningKeyId, DeviceKeyId,
-        DeviceSigningKeyId, KeyAlgorithm, KeyId, OneTimeKeyId, OwnedCrossSigningKeyId,
-        OwnedCrossSigningOrDeviceSigningKeyId, OwnedDeviceKeyId, OwnedDeviceSigningKeyId,
-        OwnedKeyId, OwnedOneTimeKeyId, OwnedServerSigningKeyId, OwnedSigningKeyId,
-        ServerSigningKeyId, SigningKeyId,
+        DeviceSigningKeyId, KeyAlgorithm, KeyId, OneTimeKeyId, ServerSigningKeyId, SigningKeyId,
     },
     matrix_uri::{MatrixToUri, MatrixUri},
     mxc_uri::{MxcUri, OwnedMxcUri},

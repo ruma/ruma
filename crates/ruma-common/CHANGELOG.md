@@ -19,6 +19,9 @@ Breaking changes:
   - `OwnedEventId` was renamed to `EventId`. The `event_id!` macro now returns a `EventId`, the
     `owned_event_id!` macro was removed and the `event_id_ref!` macro behind the
     `unstable-identifier-ref-macros` cargo feature allows to construct a `&'static EventId`.
+  - `OwnedKeyId` was renamed to `KeyId`, and all its type aliases lost the `Owned` prefix too.
+  - `OwnedAnyKeyName` was renamed to `AnyKeyName`.
+
 
 Improvements:
 
@@ -30,6 +33,7 @@ Improvements:
   `ErrorCode`, for the `M_KEY_TOO_LARGE` and `M_PROFILE_TOO_LARGE` error codes of the profile
   endpoints (added in Matrix 1.16) and the `M_UNKNOWN_DEVICE` error code of identity assertion
   (added in Matrix 1.17).
+- Add `KeyId::key_name_str()` to access the key name of a key ID as a `&str`.
 
 ## 0.20.0
 
@@ -560,12 +564,12 @@ Breaking changes:
   `Signatures::insert` is now dereferenced to `BTreeMap::insert`.
 - Move the `DeviceKeyAlgorithm::SignedCurve25519` into the new
   `OneTimeKeyAlgorithm` type.
-- Add `(Owned)CrossSigningKeyId` and use it instead of `OwnedDeviceKeyId` to
+- Add `(Owned)CrossSigningKeyId` and use it instead of `CrossDeviceKeyId` to
   identify `CrossSigningKey`'s `keys`.
 - Add `(Owned)CrossSigningOrDeviceSigningKeyId` and use it instead of
-  `OwnedDeviceKeyId` to identify signing keys in `DeviceKeys`'s and
+  `CrossDeviceKeyId` to identify signing keys in `DeviceKeys`'s and
   `CrossSigningKey`'s `signatures`.
-- Use `OwnedDeviceSigningKeyId` instead of `OwnedDeviceKeyId` to identify
+- Use `OwnedDeviceSigningKeyId` instead of `CrossDeviceKeyId` to identify
   signing keys in `SignedKey`'s `signatures`.
 - `(Owned)DeviceKeyId` is now a type alias of `(Owned)KeyId`.
   - Remove the `(owned_)device_key_id` macro, instead use
