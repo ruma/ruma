@@ -1,6 +1,6 @@
 use as_variant::as_variant;
 use ruma_common::{
-    EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId, RoomId, UserId,
+    EventId, MilliSecondsSinceUnixEpoch, OwnedRoomId, OwnedUserId, RoomId, UserId,
     encryption::DeviceKeys,
     room_version_rules::RedactionRules,
     serde::{JsonCastable, JsonObject, Raw, from_raw_json_value},
@@ -156,7 +156,7 @@ pub struct OriginalMessageLikeEvent<C: MessageLikeEventContent> {
     pub content: C,
 
     /// The globally unique identifier for the event.
-    pub event_id: OwnedEventId,
+    pub event_id: EventId,
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: OwnedUserId,
@@ -210,7 +210,7 @@ pub struct OriginalSyncMessageLikeEvent<C: MessageLikeEventContent> {
     pub content: C,
 
     /// The globally unique identifier for the event.
-    pub event_id: OwnedEventId,
+    pub event_id: EventId,
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: OwnedUserId,
@@ -258,7 +258,7 @@ pub struct RedactedMessageLikeEvent<C: RedactedMessageLikeEventContent> {
     pub content: C,
 
     /// The globally unique identifier for the event.
-    pub event_id: OwnedEventId,
+    pub event_id: EventId,
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: OwnedUserId,
@@ -305,7 +305,7 @@ pub struct RedactedSyncMessageLikeEvent<C: RedactedMessageLikeEventContent> {
     pub content: C,
 
     /// The globally unique identifier for the event.
-    pub event_id: OwnedEventId,
+    pub event_id: EventId,
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: OwnedUserId,
@@ -393,7 +393,7 @@ pub struct OriginalStateEvent<C: StaticStateEventContent> {
     pub content: C,
 
     /// The globally unique identifier for the event.
-    pub event_id: OwnedEventId,
+    pub event_id: EventId,
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: OwnedUserId,
@@ -459,7 +459,7 @@ pub struct OriginalSyncStateEvent<C: StaticStateEventContent> {
     pub content: C,
 
     /// The globally unique identifier for the event.
-    pub event_id: OwnedEventId,
+    pub event_id: EventId,
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: OwnedUserId,
@@ -629,7 +629,7 @@ pub struct RedactedStateEvent<C: RedactedStateEventContent> {
     pub content: C,
 
     /// The globally unique identifier for the event.
-    pub event_id: OwnedEventId,
+    pub event_id: EventId,
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: OwnedUserId,
@@ -684,7 +684,7 @@ pub struct RedactedSyncStateEvent<C: RedactedStateEventContent> {
     pub content: C,
 
     /// The globally unique identifier for the event.
-    pub event_id: OwnedEventId,
+    pub event_id: EventId,
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: OwnedUserId,

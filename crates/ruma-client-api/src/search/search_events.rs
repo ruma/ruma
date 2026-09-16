@@ -17,7 +17,7 @@ pub mod v3 {
     use as_variant::as_variant;
     use js_int::{UInt, uint};
     use ruma_common::{
-        OwnedEventId, OwnedMxcUri, OwnedRoomId, OwnedUserId,
+        EventId, OwnedMxcUri, OwnedRoomId, OwnedUserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::{Raw, StringEnum},
@@ -515,7 +515,7 @@ pub mod v3 {
 
         /// Which results are in this group.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        pub results: Vec<OwnedEventId>,
+        pub results: Vec<EventId>,
     }
 
     impl ResultGroup {
@@ -720,7 +720,7 @@ mod tests {
         );
         assert_eq!(room_id_group_map.len(), 1);
         let room_id_group = room_id_group_map.get("!qPewotXpIctQySfjSy:localhost").unwrap();
-        assert_eq!(room_id_group.results, &[result_event_id]);
+        assert_eq!(room_id_group.results, &[&result_event_id]);
         assert_eq!(results.highlights, &["martians", "men"]);
         assert_eq!(results.next_batch.as_deref(), Some("5FdgFsd234dfgsdfFD"));
         assert_eq!(results.results.len(), 1);

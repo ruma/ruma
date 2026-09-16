@@ -16,6 +16,9 @@ Breaking changes:
     `owned_device_id!` macro was removed and the `device_id_ref!` macro behind the
     `unstable-identifier-ref-macros` cargo feature allows to construct a `&'static DeviceId`.
   - The `OwnedDirectUserIdentifier` type was renamed to `DirectUserIdentifier`.
+  - `OwnedEventId` was renamed to `EventId`. The `event_id!` macro now returns a `EventId`, the
+    `owned_event_id!` macro was removed and the `event_id_ref!` macro behind the
+    `unstable-identifier-ref-macros` cargo feature allows to construct a `&'static EventId`.
 
 Improvements:
 

@@ -5,7 +5,7 @@ use std::time::Duration;
 use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{
-    MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, owned_event_id,
+    MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, event_id,
     owned_mxc_uri, serde::CanBeEmpty,
 };
 use ruma_events::{
@@ -35,7 +35,7 @@ fn event_serialization() {
     content.file.mimetype = Some("audio/opus".to_owned());
     content.file.size = Some(uint!(897_774));
     content.relates_to =
-        Some(Relation::Reply(Reply::with_event_id(owned_event_id!("$replyevent:example.com"))));
+        Some(Relation::Reply(Reply::with_event_id(event_id!("$replyevent:example.com"))));
 
     assert_to_canonical_json_eq!(
         content,

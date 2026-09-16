@@ -3,7 +3,7 @@
 //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/3030
 
 use ruma_common::{
-    MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId,
+    EventId, MilliSecondsSinceUnixEpoch, OwnedRoomId,
     api::{Direction, Metadata, path_builder::SinglePath, request, response},
 };
 
@@ -58,7 +58,7 @@ impl From<Request> for super::v1::Request {
 #[response]
 pub struct Response {
     /// The ID of the event found.
-    pub event_id: OwnedEventId,
+    pub event_id: EventId,
 
     /// The event's timestamp.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -66,7 +66,7 @@ pub struct Response {
 
 impl Response {
     /// Creates a new `Response` with the given event ID and timestamp.
-    pub fn new(event_id: OwnedEventId, origin_server_ts: MilliSecondsSinceUnixEpoch) -> Self {
+    pub fn new(event_id: EventId, origin_server_ts: MilliSecondsSinceUnixEpoch) -> Self {
         Self { event_id, origin_server_ts }
     }
 }

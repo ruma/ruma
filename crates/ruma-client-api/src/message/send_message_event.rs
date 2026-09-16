@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.19/client-server-api/#put_matrixclientv3roomsroomidsendeventtypetxnid
 
     use ruma_common::{
-        MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedTransactionId,
+        EventId, MilliSecondsSinceUnixEpoch, OwnedRoomId, OwnedTransactionId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::Raw,
@@ -90,7 +90,7 @@ pub mod v3 {
     #[response]
     pub struct Response {
         /// A unique identifier for the event.
-        pub event_id: OwnedEventId,
+        pub event_id: EventId,
     }
 
     impl Request {
@@ -141,7 +141,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given event id.
-        pub fn new(event_id: OwnedEventId) -> Self {
+        pub fn new(event_id: EventId) -> Self {
             Self { event_id }
         }
     }

@@ -9,7 +9,7 @@ pub mod v1 {
 
     use js_int::UInt;
     use ruma_common::{
-        MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedServerName,
+        EventId, MilliSecondsSinceUnixEpoch, OwnedRoomId, OwnedServerName,
         api::{request, response},
         metadata,
     };
@@ -33,7 +33,7 @@ pub mod v1 {
 
         /// The event IDs to backfill from.
         #[ruma_api(query)]
-        pub v: Vec<OwnedEventId>,
+        pub v: Vec<EventId>,
 
         /// The maximum number of PDUs to retrieve, including the given events.
         #[ruma_api(query)]
@@ -59,7 +59,7 @@ pub mod v1 {
         /// * the given room id.
         /// * the event IDs to backfill from.
         /// * the maximum number of PDUs to retrieve, including the given events.
-        pub fn new(room_id: OwnedRoomId, v: Vec<OwnedEventId>, limit: UInt) -> Self {
+        pub fn new(room_id: OwnedRoomId, v: Vec<EventId>, limit: UInt) -> Self {
             Self { room_id, v, limit }
         }
     }

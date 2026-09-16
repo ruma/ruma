@@ -401,7 +401,7 @@ pub mod v1 {
                 "type": "m.receipt",
                 "room_id": room_id,
                 "content": {
-                    event_id: {
+                    &event_id: {
                         "m.read": {
                             user_id: {
                                 "ts": 453,
@@ -414,7 +414,7 @@ pub mod v1 {
             let data = from_json_value::<EphemeralData>(receipt_json.clone()).unwrap();
             assert_let!(EphemeralData::Receipt(receipt) = &data);
             assert_eq!(receipt.room_id, room_id);
-            let event_receipts = receipt.content.get(event_id).unwrap();
+            let event_receipts = receipt.content.get(&event_id).unwrap();
             let event_read_receipts = event_receipts.get(&ReceiptType::Read).unwrap();
             let event_user_read_receipt = event_read_receipts.get(user_id).unwrap();
             assert_eq!(event_user_read_receipt.ts, Some(MilliSecondsSinceUnixEpoch(uint!(453))));

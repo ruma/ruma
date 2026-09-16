@@ -1,6 +1,6 @@
 //! Matrix event identifiers.
 
-use ruma_macros::IdDst;
+use ruma_macros::ruma_id;
 
 use super::{IdParseError, ServerName};
 
@@ -20,7 +20,7 @@ use super::{IdParseError, ServerName};
 /// ```
 /// # use ruma_common::{server_name, EventId};
 /// // Room versions 1 and 2
-/// assert_eq!(<&EventId>::try_from("$h29iv0s8:example.com").unwrap(), "$h29iv0s8:example.com");
+/// assert_eq!(EventId::try_from("$h29iv0s8:example.com").unwrap(), "$h29iv0s8:example.com");
 ///
 /// # #[cfg(feature = "rand")]
 /// # {
@@ -32,7 +32,7 @@ use super::{IdParseError, ServerName};
 ///
 /// // Room version 3
 /// assert_eq!(
-///     <&EventId>::try_from("$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk").unwrap(),
+///     EventId::try_from("$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk").unwrap(),
 ///     "$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk"
 /// );
 /// assert_eq!(
@@ -42,7 +42,7 @@ use super::{IdParseError, ServerName};
 ///
 /// // Room version 4 and later
 /// assert_eq!(
-///     <&EventId>::try_from("$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg").unwrap(),
+///     EventId::try_from("$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg").unwrap(),
 ///     "$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg"
 /// );
 /// assert_eq!(
@@ -53,14 +53,12 @@ use super::{IdParseError, ServerName};
 ///
 /// [event ID]: https://spec.matrix.org/v1.19/appendices/#event-ids
 /// [room versions]: https://spec.matrix.org/v1.19/rooms/
-#[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
 #[ruma_id(validate = ruma_identifiers_validation::event_id::validate, smallvec_inline_bytes = 48)]
-pub struct EventId(str);
+pub struct EventId;
 
 impl EventId {
-    /// Attempts to generate an `OwnedEventId` for the given origin server with a localpart
-    /// consisting of 18 random ASCII characters.
+    /// Attempts to generate an `EventId` for the given origin server with a localpart consisting of
+    /// 18 random ASCII characters.
     ///
     /// This generates an event ID matching the [`EventIdFormatVersion::V1`] variant of the
     /// `event_id_format` field of [`RoomVersionRules`]. To construct an event ID matching the
@@ -72,15 +70,11 @@ impl EventId {
     /// [`EventIdFormatVersion::V3`]: crate::room_version_rules::EventIdFormatVersion::V3
     /// [`RoomVersionRules`]: crate::room_version_rules::RoomVersionRules
     #[cfg(feature = "rand")]
-    #[allow(clippy::new_ret_no_self)]
-    pub fn new_v1(server_name: &ServerName) -> OwnedEventId {
-        OwnedEventId::from_string_unchecked(format!(
-            "${}:{server_name}",
-            super::generate_localpart(18)
-        ))
+    pub fn new_v1(server_name: &ServerName) -> Self {
+        Self::from_string_unchecked(format!("${}:{server_name}", super::generate_localpart(18)))
     }
 
-    /// Construct an `OwnedEventId` using the reference hash of the event.
+    /// Construct an `EventId` using the reference hash of the event.
     ///
     /// This generates a room ID matching the [`EventIdFormatVersion::V2`] or
     /// [`EventIdFormatVersion::V3`] variants of the `event_id_format` field of
@@ -93,8 +87,8 @@ impl EventId {
     /// [`EventIdFormatVersion::V2`]: crate::room_version_rules::EventIdFormatVersion::V2
     /// [`EventIdFormatVersion::V3`]: crate::room_version_rules::EventIdFormatVersion::V3
     /// [`RoomVersionRules`]: crate::room_version_rules::RoomVersionRules
-    pub fn new_v2_or_v3(reference_hash: &str) -> Result<OwnedEventId, IdParseError> {
-        OwnedEventId::try_from(format!("${reference_hash}"))
+    pub fn new_v2_or_v3(reference_hash: &str) -> Result<Self, IdParseError> {
+        Self::try_from(format!("${reference_hash}"))
     }
 
     /// Returns the event's unique ID.
@@ -116,13 +110,13 @@ impl EventId {
 
 #[cfg(test)]
 mod tests {
-    use super::{EventId, OwnedEventId};
+    use super::EventId;
     use crate::IdParseError;
 
     #[test]
     fn valid_original_event_id() {
         assert_eq!(
-            <&EventId>::try_from("$39hvsi03hlne:example.com").expect("Failed to create EventId."),
+            EventId::try_from("$39hvsi03hlne:example.com").expect("Failed to create EventId."),
             "$39hvsi03hlne:example.com"
         );
     }
@@ -130,7 +124,7 @@ mod tests {
     #[test]
     fn valid_base64_event_id() {
         assert_eq!(
-            <&EventId>::try_from("$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk")
+            EventId::try_from("$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk")
                 .expect("Failed to create EventId."),
             "$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk"
         );
@@ -139,7 +133,7 @@ mod tests {
     #[test]
     fn valid_url_safe_base64_event_id() {
         assert_eq!(
-            <&EventId>::try_from("$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg")
+            EventId::try_from("$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg")
                 .expect("Failed to create EventId."),
             "$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg"
         );
@@ -163,8 +157,7 @@ mod tests {
     fn serialize_valid_original_event_id() {
         assert_eq!(
             serde_json::to_string(
-                <&EventId>::try_from("$39hvsi03hlne:example.com")
-                    .expect("Failed to create EventId.")
+                &EventId::try_from("$39hvsi03hlne:example.com").expect("Failed to create EventId.")
             )
             .expect("Failed to convert EventId to JSON."),
             r#""$39hvsi03hlne:example.com""#
@@ -175,7 +168,7 @@ mod tests {
     fn serialize_valid_base64_event_id() {
         assert_eq!(
             serde_json::to_string(
-                <&EventId>::try_from("$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk")
+                &EventId::try_from("$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk")
                     .expect("Failed to create EventId.")
             )
             .expect("Failed to convert EventId to JSON."),
@@ -187,7 +180,7 @@ mod tests {
     fn serialize_valid_url_safe_base64_event_id() {
         assert_eq!(
             serde_json::to_string(
-                <&EventId>::try_from("$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg")
+                &EventId::try_from("$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg")
                     .expect("Failed to create EventId.")
             )
             .expect("Failed to convert EventId to JSON."),
@@ -198,7 +191,7 @@ mod tests {
     #[test]
     fn deserialize_valid_original_event_id() {
         assert_eq!(
-            serde_json::from_str::<OwnedEventId>(r#""$39hvsi03hlne:example.com""#)
+            serde_json::from_str::<EventId>(r#""$39hvsi03hlne:example.com""#)
                 .expect("Failed to convert JSON to EventId"),
             "$39hvsi03hlne:example.com"
         );
@@ -207,10 +200,8 @@ mod tests {
     #[test]
     fn deserialize_valid_base64_event_id() {
         assert_eq!(
-            serde_json::from_str::<OwnedEventId>(
-                r#""$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk""#
-            )
-            .expect("Failed to convert JSON to EventId"),
+            serde_json::from_str::<EventId>(r#""$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk""#)
+                .expect("Failed to convert JSON to EventId"),
             "$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk"
         );
     }
@@ -218,10 +209,8 @@ mod tests {
     #[test]
     fn deserialize_valid_url_safe_base64_event_id() {
         assert_eq!(
-            serde_json::from_str::<OwnedEventId>(
-                r#""$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg""#
-            )
-            .expect("Failed to convert JSON to EventId"),
+            serde_json::from_str::<EventId>(r#""$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg""#)
+                .expect("Failed to convert JSON to EventId"),
             "$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg"
         );
     }
@@ -229,8 +218,7 @@ mod tests {
     #[test]
     fn valid_original_event_id_with_explicit_standard_port() {
         assert_eq!(
-            <&EventId>::try_from("$39hvsi03hlne:example.com:443")
-                .expect("Failed to create EventId."),
+            EventId::try_from("$39hvsi03hlne:example.com:443").expect("Failed to create EventId."),
             "$39hvsi03hlne:example.com:443"
         );
     }
@@ -238,8 +226,7 @@ mod tests {
     #[test]
     fn valid_original_event_id_with_non_standard_port() {
         assert_eq!(
-            <&EventId>::try_from("$39hvsi03hlne:example.com:5000")
-                .expect("Failed to create EventId."),
+            EventId::try_from("$39hvsi03hlne:example.com:5000").expect("Failed to create EventId."),
             "$39hvsi03hlne:example.com:5000"
         );
     }
@@ -247,7 +234,7 @@ mod tests {
     #[test]
     fn missing_original_event_id_sigil() {
         assert_eq!(
-            <&EventId>::try_from("39hvsi03hlne:example.com").unwrap_err(),
+            EventId::try_from("39hvsi03hlne:example.com").unwrap_err(),
             IdParseError::MissingLeadingSigil
         );
     }
@@ -255,7 +242,7 @@ mod tests {
     #[test]
     fn missing_base64_event_id_sigil() {
         assert_eq!(
-            <&EventId>::try_from("acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk").unwrap_err(),
+            EventId::try_from("acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk").unwrap_err(),
             IdParseError::MissingLeadingSigil
         );
     }
@@ -263,7 +250,7 @@ mod tests {
     #[test]
     fn missing_url_safe_base64_event_id_sigil() {
         assert_eq!(
-            <&EventId>::try_from("Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg").unwrap_err(),
+            EventId::try_from("Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg").unwrap_err(),
             IdParseError::MissingLeadingSigil
         );
     }
@@ -271,7 +258,7 @@ mod tests {
     #[test]
     fn invalid_event_id_host() {
         assert_eq!(
-            <&EventId>::try_from("$39hvsi03hlne:/").unwrap_err(),
+            EventId::try_from("$39hvsi03hlne:/").unwrap_err(),
             IdParseError::InvalidServerName
         );
     }
@@ -279,7 +266,7 @@ mod tests {
     #[test]
     fn invalid_event_id_port() {
         assert_eq!(
-            <&EventId>::try_from("$39hvsi03hlne:example.com:notaport").unwrap_err(),
+            EventId::try_from("$39hvsi03hlne:example.com:notaport").unwrap_err(),
             IdParseError::InvalidServerName
         );
     }

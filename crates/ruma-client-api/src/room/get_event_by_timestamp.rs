@@ -8,7 +8,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/v1.19/client-server-api/#get_matrixclientv1roomsroomidtimestamp_to_event
 
     use ruma_common::{
-        MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId,
+        EventId, MilliSecondsSinceUnixEpoch, OwnedRoomId,
         api::{Direction, auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -43,7 +43,7 @@ pub mod v1 {
     #[response]
     pub struct Response {
         /// The ID of the event found.
-        pub event_id: OwnedEventId,
+        pub event_id: EventId,
 
         /// The event's timestamp.
         pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -74,7 +74,7 @@ pub mod v1 {
 
     impl Response {
         /// Creates a new `Response` with the given event ID and timestamp.
-        pub fn new(event_id: OwnedEventId, origin_server_ts: MilliSecondsSinceUnixEpoch) -> Self {
+        pub fn new(event_id: EventId, origin_server_ts: MilliSecondsSinceUnixEpoch) -> Self {
             Self { event_id, origin_server_ts }
         }
     }

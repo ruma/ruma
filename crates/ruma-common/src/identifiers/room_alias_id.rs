@@ -2,7 +2,7 @@
 
 use ruma_macros::IdDst;
 
-use super::{MatrixToUri, MatrixUri, OwnedEventId, matrix_uri::UriAction, server_name::ServerName};
+use super::{EventId, MatrixToUri, MatrixUri, matrix_uri::UriAction, server_name::ServerName};
 
 /// A Matrix [room alias ID].
 ///
@@ -40,7 +40,7 @@ impl RoomAliasId {
     ///
     /// This is deprecated because room aliases are mutable, so the URI might break after a while.
     #[deprecated = "Use `RoomId::matrix_to_event_uri` instead."]
-    pub fn matrix_to_event_uri(&self, ev_id: impl Into<OwnedEventId>) -> MatrixToUri {
+    pub fn matrix_to_event_uri(&self, ev_id: impl Into<EventId>) -> MatrixToUri {
         MatrixToUri::new((self.to_owned(), ev_id.into()).into(), Vec::new())
     }
 
@@ -55,7 +55,7 @@ impl RoomAliasId {
     ///
     /// This is deprecated because room aliases are mutable, so the URI might break after a while.
     #[deprecated = "Use `RoomId::matrix_event_uri` instead."]
-    pub fn matrix_event_uri(&self, ev_id: impl Into<OwnedEventId>) -> MatrixUri {
+    pub fn matrix_event_uri(&self, ev_id: impl Into<EventId>) -> MatrixUri {
         MatrixUri::new((self.to_owned(), ev_id.into()).into(), Vec::new(), None)
     }
 }

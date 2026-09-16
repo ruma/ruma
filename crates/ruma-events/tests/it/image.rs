@@ -5,7 +5,7 @@ use js_int::uint;
 use ruma_common::{
     MilliSecondsSinceUnixEpoch,
     canonical_json::assert_to_canonical_json_eq,
-    owned_event_id, owned_mxc_uri,
+    event_id, owned_mxc_uri,
     serde::{Base64, CanBeEmpty},
 };
 use ruma_events::{
@@ -116,7 +116,7 @@ fn image_event_serialization() {
     content.thumbnail = vec![thumbnail].into();
     content.caption = Some(CaptionContentBlock::plain("This is my house"));
     content.relates_to =
-        Some(Relation::Reply(Reply::with_event_id(owned_event_id!("$replyevent:example.com"))));
+        Some(Relation::Reply(Reply::with_event_id(event_id!("$replyevent:example.com"))));
 
     assert_to_canonical_json_eq!(
         content,

@@ -1,5 +1,5 @@
 use ruma_common::{
-    RoomVersionId, owned_event_id, owned_room_id,
+    RoomVersionId, event_id, owned_room_id,
     room::{AllowRule, RoomMembership},
     room_version_rules::AuthorizationRules,
 };
@@ -24,7 +24,7 @@ fn missing_state_key() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V6);
 
     let mut pdu = factory.create_room_member(
-        owned_event_id!("$room-member-charlie-join"),
+        event_id!("$room-member-charlie-join"),
         UserFactory::Charlie.user_id(),
         RoomMemberPduContent::Join,
     );
@@ -49,7 +49,7 @@ fn missing_membership() {
 
     let charlie_id = UserFactory::Charlie.user_id();
     let pdu = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-member-charlie-join"),
+        event_id!("$room-member-charlie-join"),
         charlie_id.clone(),
         TimelineEventType::RoomMember,
         charlie_id.into(),
@@ -74,7 +74,7 @@ fn join_after_create_creator_match() {
     let mut factory = RoomCreatePduBuilder::new(RoomVersionId::V6).build_factory();
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-alice-join"),
+        event_id!("$room-member-alice-join"),
         UserFactory::Alice.user_id(),
         RoomMemberPduContent::Join,
     );
@@ -94,7 +94,7 @@ fn join_after_create_creator_mismatch() {
     let mut factory = RoomCreatePduBuilder::new(RoomVersionId::V6).build_factory();
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-bob-join"),
+        event_id!("$room-member-bob-join"),
         UserFactory::Bob.user_id(),
         RoomMemberPduContent::Join,
     );
@@ -117,7 +117,7 @@ fn join_after_create_sender_match() {
     let mut factory = RoomCreatePduBuilder::new(RoomVersionId::V11).build_factory();
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-alice-join"),
+        event_id!("$room-member-alice-join"),
         UserFactory::Alice.user_id(),
         RoomMemberPduContent::Join,
     );
@@ -137,7 +137,7 @@ fn join_after_create_sender_mismatch() {
     let mut factory = RoomCreatePduBuilder::new(RoomVersionId::V11).build_factory();
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-bob-join"),
+        event_id!("$room-member-bob-join"),
         UserFactory::Bob.user_id(),
         RoomMemberPduContent::Join,
     );
@@ -160,7 +160,7 @@ fn join_sender_state_key_mismatch() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V6);
 
     let mut pdu = factory.create_room_member(
-        owned_event_id!("$room-member-charlie-join"),
+        event_id!("$room-member-charlie-join"),
         UserFactory::Charlie.user_id(),
         RoomMemberPduContent::Join,
     );
@@ -185,13 +185,13 @@ fn join_banned() {
     let charlie_id = UserFactory::Charlie.user_id();
 
     factory.add_room_member(
-        owned_event_id!("$room-member-charlie-ban"),
+        event_id!("$room-member-charlie-ban"),
         charlie_id.clone(),
         RoomMemberPduContent::Ban { sender: UserFactory::Alice.user_id() },
     );
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-charlie-join"),
+        event_id!("$room-member-charlie-join"),
         charlie_id,
         RoomMemberPduContent::Join,
     );
@@ -214,13 +214,13 @@ fn join_invite_join_rule_already_joined() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V6);
 
     factory.add_room_join_rules(
-        owned_event_id!("$room-join-rules-invite"),
+        event_id!("$room-join-rules-invite"),
         UserFactory::Alice.user_id(),
         JoinRule::Invite,
     );
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-bob-displayname"),
+        event_id!("$room-member-bob-displayname"),
         UserFactory::Bob.user_id(),
         RoomMemberPduContent::DisplayName { displayname: "Bob".to_owned() },
     );
@@ -242,18 +242,18 @@ fn join_knock_join_rule_already_invited() {
     let charlie_id = UserFactory::Charlie.user_id();
 
     factory.add_room_join_rules(
-        owned_event_id!("$room-join-rules-invite"),
+        event_id!("$room-join-rules-invite"),
         alice_id.clone(),
         JoinRule::Invite,
     );
     factory.add_room_member(
-        owned_event_id!("$room-member-charlie-invite"),
+        event_id!("$room-member-charlie-invite"),
         charlie_id.clone(),
         RoomMemberPduContent::Invite { sender: alice_id },
     );
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-charlie-join"),
+        event_id!("$room-member-charlie-join"),
         charlie_id,
         RoomMemberPduContent::Join,
     );
@@ -274,13 +274,13 @@ fn join_knock_join_rule_not_supported() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V6);
 
     factory.add_room_join_rules(
-        owned_event_id!("$room-join-rules-knock"),
+        event_id!("$room-join-rules-knock"),
         UserFactory::Alice.user_id(),
         JoinRule::Knock,
     );
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-charlie-join"),
+        event_id!("$room-member-charlie-join"),
         UserFactory::Charlie.user_id(),
         RoomMemberPduContent::Join,
     );
@@ -305,7 +305,7 @@ fn join_restricted_join_rule_not_supported() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V6);
 
     factory.add_room_join_rules(
-        owned_event_id!("$room-join-rules-restricted"),
+        event_id!("$room-join-rules-restricted"),
         UserFactory::Alice.user_id(),
         JoinRule::Restricted(Restricted::new(vec![AllowRule::RoomMembership(
             RoomMembership::new(owned_room_id!("!space:matrix.local")),
@@ -313,7 +313,7 @@ fn join_restricted_join_rule_not_supported() {
     );
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-charlie-join"),
+        event_id!("$room-member-charlie-join"),
         UserFactory::Charlie.user_id(),
         RoomMemberPduContent::Join,
     );
@@ -338,7 +338,7 @@ fn join_knock_restricted_join_rule_not_supported() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V6);
 
     factory.add_room_join_rules(
-        owned_event_id!("$room-join-rules-knock-restricted"),
+        event_id!("$room-join-rules-knock-restricted"),
         UserFactory::Alice.user_id(),
         JoinRule::KnockRestricted(Restricted::new(vec![AllowRule::RoomMembership(
             RoomMembership::new(owned_room_id!("!space:matrix.local")),
@@ -346,7 +346,7 @@ fn join_knock_restricted_join_rule_not_supported() {
     );
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-charlie-join"),
+        event_id!("$room-member-charlie-join"),
         UserFactory::Charlie.user_id(),
         RoomMemberPduContent::Join,
     );
@@ -371,7 +371,7 @@ fn join_restricted_join_rule_already_joined() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V8);
 
     factory.add_room_join_rules(
-        owned_event_id!("$room-join-rules-restricted"),
+        event_id!("$room-join-rules-restricted"),
         UserFactory::Alice.user_id(),
         JoinRule::Restricted(Restricted::new(vec![AllowRule::RoomMembership(
             RoomMembership::new(owned_room_id!("!space:matrix.local")),
@@ -379,7 +379,7 @@ fn join_restricted_join_rule_already_joined() {
     );
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-bob-displayname"),
+        event_id!("$room-member-bob-displayname"),
         UserFactory::Bob.user_id(),
         RoomMemberPduContent::DisplayName { displayname: "Bob".to_owned() },
     );
@@ -402,20 +402,20 @@ fn join_knock_restricted_join_rule_already_invited() {
     let charlie_id = UserFactory::Charlie.user_id();
 
     factory.add_room_join_rules(
-        owned_event_id!("$room-join-rules-knock-restricted"),
+        event_id!("$room-join-rules-knock-restricted"),
         alice_id.clone(),
         JoinRule::KnockRestricted(Restricted::new(vec![AllowRule::RoomMembership(
             RoomMembership::new(owned_room_id!("!space:matrix.local")),
         )])),
     );
     factory.add_room_member(
-        owned_event_id!("$room-member-charlie-invite"),
+        event_id!("$room-member-charlie-invite"),
         charlie_id.clone(),
         RoomMemberPduContent::Invite { sender: alice_id },
     );
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-charlie-join"),
+        event_id!("$room-member-charlie-join"),
         UserFactory::Charlie.user_id(),
         RoomMemberPduContent::Join,
     );
@@ -436,7 +436,7 @@ fn join_restricted_join_rule_missing_join_authorised_via_users_server() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V8);
 
     factory.add_room_join_rules(
-        owned_event_id!("$room-join-rules-restricted"),
+        event_id!("$room-join-rules-restricted"),
         UserFactory::Alice.user_id(),
         JoinRule::Restricted(Restricted::new(vec![AllowRule::RoomMembership(
             RoomMembership::new(owned_room_id!("!space:matrix.local")),
@@ -444,7 +444,7 @@ fn join_restricted_join_rule_missing_join_authorised_via_users_server() {
     );
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-charlie-join"),
+        event_id!("$room-member-charlie-join"),
         UserFactory::Charlie.user_id(),
         RoomMemberPduContent::Join,
     );
@@ -468,7 +468,7 @@ fn join_restricted_join_rule_authorised_via_user_not_in_room() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V8);
 
     factory.add_room_join_rules(
-        owned_event_id!("$room-join-rules-restricted"),
+        event_id!("$room-join-rules-restricted"),
         UserFactory::Alice.user_id(),
         JoinRule::Restricted(Restricted::new(vec![AllowRule::RoomMembership(
             RoomMembership::new(owned_room_id!("!space:matrix.local")),
@@ -476,7 +476,7 @@ fn join_restricted_join_rule_authorised_via_user_not_in_room() {
     );
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-charlie-join"),
+        event_id!("$room-member-charlie-join"),
         UserFactory::Charlie.user_id(),
         RoomMemberPduContent::JoinAuthorized { via_users_server: UserFactory::Zara.user_id() },
     );
@@ -501,20 +501,20 @@ fn join_restricted_join_rule_authorised_via_user_with_not_enough_power() {
     let alice_id = UserFactory::Alice.user_id();
 
     factory.add_room_join_rules(
-        owned_event_id!("$room-join-rules-restricted"),
+        event_id!("$room-join-rules-restricted"),
         alice_id.clone(),
         JoinRule::Restricted(Restricted::new(vec![AllowRule::RoomMembership(
             RoomMembership::new(owned_room_id!("!space:matrix.local")),
         )])),
     );
     factory.add_room_power_levels(
-        owned_event_id!("$room-power-levels-invite"),
+        event_id!("$room-power-levels-invite"),
         alice_id,
         RoomPowerLevelsPduContent::Invite { value: 50 },
     );
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-charlie-join"),
+        event_id!("$room-member-charlie-join"),
         UserFactory::Charlie.user_id(),
         RoomMemberPduContent::JoinAuthorized { via_users_server: UserFactory::Bob.user_id() },
     );
@@ -564,7 +564,7 @@ fn join_restricted_join_rule_authorised_via_user() {
     ];
 
     let mut pdu = factory.create_room_member(
-        owned_event_id!("$room-member-charlie-join"),
+        event_id!("$room-member-charlie-join"),
         UserFactory::Charlie.user_id(),
         RoomMemberPduContent::JoinAuthorized { via_users_server: UserFactory::Bob.user_id() },
     );
@@ -644,7 +644,7 @@ fn invite_via_third_party_invite_banned() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V8);
 
     factory.add_room_member(
-        owned_event_id!("$room-member-zara-ban"),
+        event_id!("$room-member-zara-ban"),
         UserFactory::Zara.user_id(),
         RoomMemberPduContent::Ban { sender: UserFactory::Alice.user_id() },
     );
@@ -675,7 +675,7 @@ fn invite_via_third_party_invite_missing_signed() {
         },
     });
     let pdu = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-member-zara-invite"),
+        event_id!("$room-member-zara-invite"),
         UserFactory::Bob.user_id(),
         TimelineEventType::RoomMember,
         UserFactory::Zara.user_id().into(),
@@ -709,7 +709,7 @@ fn invite_via_third_party_invite_missing_mxid() {
         },
     });
     let pdu = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-member-zara-invite"),
+        event_id!("$room-member-zara-invite"),
         UserFactory::Bob.user_id(),
         TimelineEventType::RoomMember,
         UserFactory::Zara.user_id().into(),
@@ -744,7 +744,7 @@ fn invite_via_third_party_invite_missing_token() {
         },
     });
     let pdu = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-member-zara-invite"),
+        event_id!("$room-member-zara-invite"),
         UserFactory::Bob.user_id(),
         TimelineEventType::RoomMember,
         zara_id.into(),
@@ -845,7 +845,7 @@ fn invite_via_third_party_invite_with_missing_signatures() {
         }
     });
     let mut pdu = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-member-zara-invite"),
+        event_id!("$room-member-zara-invite"),
         bob_id,
         TimelineEventType::RoomMember,
         zara_id.into(),
@@ -887,7 +887,7 @@ fn invite_via_third_party_invite_with_room_empty_signatures() {
         }
     });
     let mut pdu = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-member-zara-invite"),
+        event_id!("$room-member-zara-invite"),
         bob_id,
         TimelineEventType::RoomMember,
         zara_id.into(),
@@ -933,7 +933,7 @@ fn invite_via_third_party_invite_with_wrong_signature() {
         }
     });
     let mut pdu = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-member-zara-invite"),
+        event_id!("$room-member-zara-invite"),
         bob_id,
         TimelineEventType::RoomMember,
         zara_id.into(),
@@ -979,7 +979,7 @@ fn invite_via_third_party_invite_with_wrong_signing_algorithm() {
         }
     });
     let mut pdu = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-member-zara-invite"),
+        event_id!("$room-member-zara-invite"),
         bob_id,
         TimelineEventType::RoomMember,
         zara_id.into(),
@@ -1023,7 +1023,7 @@ fn invite_sender_not_joined() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V8);
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-charlie-invite"),
+        event_id!("$room-member-charlie-invite"),
         UserFactory::Charlie.user_id(),
         RoomMemberPduContent::Invite { sender: UserFactory::Zara.user_id() },
     );
@@ -1047,13 +1047,13 @@ fn invite_banned() {
     let charlie_id = UserFactory::Charlie.user_id();
 
     factory.add_room_member(
-        owned_event_id!("$room-member-charlie-ban"),
+        event_id!("$room-member-charlie-ban"),
         charlie_id.clone(),
         RoomMemberPduContent::Ban { sender: UserFactory::Alice.user_id() },
     );
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-charlie-invite"),
+        event_id!("$room-member-charlie-invite"),
         charlie_id,
         RoomMemberPduContent::Invite { sender: UserFactory::Bob.user_id() },
     );
@@ -1076,7 +1076,7 @@ fn invite_already_joined() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V8);
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-charlie-invite"),
+        event_id!("$room-member-charlie-invite"),
         UserFactory::Bob.user_id(),
         RoomMemberPduContent::Invite { sender: UserFactory::Alice.user_id() },
     );
@@ -1099,13 +1099,13 @@ fn invite_sender_not_enough_power() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V8);
 
     factory.add_room_power_levels(
-        owned_event_id!("$room-power-levels-invite"),
+        event_id!("$room-power-levels-invite"),
         UserFactory::Alice.user_id(),
         RoomPowerLevelsPduContent::Invite { value: 50 },
     );
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-charlie-invite"),
+        event_id!("$room-member-charlie-invite"),
         UserFactory::Charlie.user_id(),
         RoomMemberPduContent::Invite { sender: UserFactory::Bob.user_id() },
     );
@@ -1128,7 +1128,7 @@ fn invite() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V8);
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-charlie-invite"),
+        event_id!("$room-member-charlie-invite"),
         UserFactory::Charlie.user_id(),
         RoomMemberPduContent::Invite { sender: UserFactory::Bob.user_id() },
     );
@@ -1148,7 +1148,7 @@ fn leave_after_leave() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V8);
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-charlie-leave"),
+        event_id!("$room-member-charlie-leave"),
         UserFactory::Charlie.user_id(),
         RoomMemberPduContent::Leave,
     );
@@ -1171,7 +1171,7 @@ fn leave_after_join() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V8);
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-bob-leave"),
+        event_id!("$room-member-bob-leave"),
         UserFactory::Bob.user_id(),
         RoomMemberPduContent::Leave,
     );
@@ -1192,13 +1192,13 @@ fn leave_after_invite() {
     let charlie_id = UserFactory::Charlie.user_id();
 
     factory.add_room_member(
-        owned_event_id!("$room-member-charlie-invite"),
+        event_id!("$room-member-charlie-invite"),
         charlie_id.clone(),
         RoomMemberPduContent::Invite { sender: UserFactory::Bob.user_id() },
     );
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-charlie-leave"),
+        event_id!("$room-member-charlie-leave"),
         charlie_id,
         RoomMemberPduContent::Leave,
     );
@@ -1219,13 +1219,13 @@ fn leave_after_knock() {
     let charlie_id = UserFactory::Charlie.user_id();
 
     factory.add_room_member(
-        owned_event_id!("$room-member-charlie-knock"),
+        event_id!("$room-member-charlie-knock"),
         charlie_id.clone(),
         RoomMemberPduContent::Knock,
     );
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-charlie-leave"),
+        event_id!("$room-member-charlie-leave"),
         charlie_id,
         RoomMemberPduContent::Leave,
     );
@@ -1246,13 +1246,13 @@ fn leave_after_knock_not_supported() {
     let charlie_id = UserFactory::Charlie.user_id();
 
     factory.add_room_member(
-        owned_event_id!("$room-member-charlie-knock"),
+        event_id!("$room-member-charlie-knock"),
         charlie_id.clone(),
         RoomMemberPduContent::Knock,
     );
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-charlie-leave"),
+        event_id!("$room-member-charlie-leave"),
         charlie_id,
         RoomMemberPduContent::Leave,
     );
@@ -1276,7 +1276,7 @@ fn leave_kick_sender_left() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V6);
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-bob-leave"),
+        event_id!("$room-member-bob-leave"),
         UserFactory::Bob.user_id(),
         RoomMemberPduContent::Kick { sender: UserFactory::Charlie.user_id() },
     );
@@ -1300,18 +1300,18 @@ fn leave_unban_not_enough_power() {
     let charlie_id = UserFactory::Charlie.user_id();
 
     factory.add_room_member(
-        owned_event_id!("$room-member-charlie-join"),
+        event_id!("$room-member-charlie-join"),
         charlie_id.clone(),
         RoomMemberPduContent::Join,
     );
     factory.add_room_member(
-        owned_event_id!("$room-member-charlie-ban"),
+        event_id!("$room-member-charlie-ban"),
         charlie_id.clone(),
         RoomMemberPduContent::Ban { sender: UserFactory::Alice.user_id() },
     );
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-charlie-kick"),
+        event_id!("$room-member-charlie-kick"),
         charlie_id,
         RoomMemberPduContent::Kick { sender: UserFactory::Bob.user_id() },
     );
@@ -1336,13 +1336,13 @@ fn leave_unban() {
     let alice_id = UserFactory::Alice.user_id();
 
     factory.add_room_member(
-        owned_event_id!("$room-member-charlie-ban"),
+        event_id!("$room-member-charlie-ban"),
         bob_id.clone(),
         RoomMemberPduContent::Ban { sender: alice_id.clone() },
     );
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-charlie-kick"),
+        event_id!("$room-member-charlie-kick"),
         bob_id,
         RoomMemberPduContent::Kick { sender: alice_id },
     );
@@ -1362,7 +1362,7 @@ fn leave_kick_not_enough_power() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V6);
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-alice-kick"),
+        event_id!("$room-member-alice-kick"),
         UserFactory::Alice.user_id(),
         RoomMemberPduContent::Kick { sender: UserFactory::Bob.user_id() },
     );
@@ -1387,13 +1387,13 @@ fn leave_kick_greater_power() {
     let bob_id = UserFactory::Bob.user_id();
 
     factory.add_room_power_levels(
-        owned_event_id!("$room-power-levels-bob"),
+        event_id!("$room-power-levels-bob"),
         alice_id.clone(),
         RoomPowerLevelsPduContent::User { user_id: bob_id.clone(), value: 50 },
     );
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-alice-kick"),
+        event_id!("$room-member-alice-kick"),
         alice_id,
         RoomMemberPduContent::Kick { sender: bob_id },
     );
@@ -1418,13 +1418,13 @@ fn leave_kick_same_power() {
     let bob_id = UserFactory::Bob.user_id();
 
     factory.add_room_power_levels(
-        owned_event_id!("$room-power-levels-bob"),
+        event_id!("$room-power-levels-bob"),
         alice_id.clone(),
         RoomPowerLevelsPduContent::User { user_id: bob_id.clone(), value: 100 },
     );
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-alice-kick"),
+        event_id!("$room-member-alice-kick"),
         alice_id,
         RoomMemberPduContent::Kick { sender: bob_id },
     );
@@ -1447,7 +1447,7 @@ fn leave_kick() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V6);
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-alice-kick"),
+        event_id!("$room-member-alice-kick"),
         UserFactory::Bob.user_id(),
         RoomMemberPduContent::Kick { sender: UserFactory::Alice.user_id() },
     );
@@ -1467,7 +1467,7 @@ fn ban_sender_not_joined() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V6);
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-bob-ban"),
+        event_id!("$room-member-bob-ban"),
         UserFactory::Bob.user_id(),
         RoomMemberPduContent::Ban { sender: UserFactory::Zara.user_id() },
     );
@@ -1490,7 +1490,7 @@ fn ban_not_enough_power() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V6);
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-bob-ban"),
+        event_id!("$room-member-bob-ban"),
         UserFactory::Alice.user_id(),
         RoomMemberPduContent::Ban { sender: UserFactory::Bob.user_id() },
     );
@@ -1515,13 +1515,13 @@ fn ban_greater_power() {
     let bob_id = UserFactory::Bob.user_id();
 
     factory.add_room_power_levels(
-        owned_event_id!("$room-power-levels-bob"),
+        event_id!("$room-power-levels-bob"),
         alice_id.clone(),
         RoomPowerLevelsPduContent::User { user_id: bob_id.clone(), value: 50 },
     );
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-bob-ban"),
+        event_id!("$room-member-bob-ban"),
         alice_id,
         RoomMemberPduContent::Ban { sender: bob_id },
     );
@@ -1546,13 +1546,13 @@ fn ban_same_power() {
     let bob_id = UserFactory::Bob.user_id();
 
     factory.add_room_power_levels(
-        owned_event_id!("$room-power-levels-bob"),
+        event_id!("$room-power-levels-bob"),
         alice_id.clone(),
         RoomPowerLevelsPduContent::User { user_id: bob_id.clone(), value: 100 },
     );
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-bob-ban"),
+        event_id!("$room-member-bob-ban"),
         alice_id,
         RoomMemberPduContent::Ban { sender: bob_id },
     );
@@ -1575,7 +1575,7 @@ fn ban() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V6);
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-bob-ban"),
+        event_id!("$room-member-bob-ban"),
         UserFactory::Bob.user_id(),
         RoomMemberPduContent::Ban { sender: UserFactory::Alice.user_id() },
     );
@@ -1595,7 +1595,7 @@ fn knock_public_join_rule() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V11);
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-zara-knock"),
+        event_id!("$room-member-zara-knock"),
         UserFactory::Zara.user_id(),
         RoomMemberPduContent::Knock,
     );
@@ -1618,13 +1618,13 @@ fn knock_knock_join_rule() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V7);
 
     factory.add_room_join_rules(
-        owned_event_id!("$room-join-rules-knock"),
+        event_id!("$room-join-rules-knock"),
         UserFactory::Alice.user_id(),
         JoinRule::Knock,
     );
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-zara-knock"),
+        event_id!("$room-member-zara-knock"),
         UserFactory::Zara.user_id(),
         RoomMemberPduContent::Knock,
     );
@@ -1644,13 +1644,13 @@ fn knock_knock_join_rule_not_supported() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V6);
 
     factory.add_room_join_rules(
-        owned_event_id!("$room-join-rules-knock"),
+        event_id!("$room-join-rules-knock"),
         UserFactory::Alice.user_id(),
         JoinRule::Knock,
     );
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-zara-knock"),
+        event_id!("$room-member-zara-knock"),
         UserFactory::Zara.user_id(),
         RoomMemberPduContent::Knock,
     );
@@ -1673,7 +1673,7 @@ fn knock_knock_restricted_join_rule() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V10);
 
     factory.add_room_join_rules(
-        owned_event_id!("$room-join-rules-knock-restricted"),
+        event_id!("$room-join-rules-knock-restricted"),
         UserFactory::Alice.user_id(),
         JoinRule::KnockRestricted(Restricted::new(vec![AllowRule::RoomMembership(
             RoomMembership::new(owned_room_id!("!space:matrix.local")),
@@ -1681,7 +1681,7 @@ fn knock_knock_restricted_join_rule() {
     );
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-zara-knock"),
+        event_id!("$room-member-zara-knock"),
         UserFactory::Zara.user_id(),
         RoomMemberPduContent::Knock,
     );
@@ -1701,7 +1701,7 @@ fn knock_knock_restricted_join_rule_not_supported() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V6);
 
     factory.add_room_join_rules(
-        owned_event_id!("$room-join-rules-knock-restricted"),
+        event_id!("$room-join-rules-knock-restricted"),
         UserFactory::Alice.user_id(),
         JoinRule::KnockRestricted(Restricted::new(vec![AllowRule::RoomMembership(
             RoomMembership::new(owned_room_id!("!space:matrix.local")),
@@ -1709,7 +1709,7 @@ fn knock_knock_restricted_join_rule_not_supported() {
     );
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-zara-knock"),
+        event_id!("$room-member-zara-knock"),
         UserFactory::Zara.user_id(),
         RoomMemberPduContent::Knock,
     );
@@ -1732,13 +1732,13 @@ fn knock_sender_state_key_mismatch() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V7);
 
     factory.add_room_join_rules(
-        owned_event_id!("$room-join-rules-knock"),
+        event_id!("$room-join-rules-knock"),
         UserFactory::Alice.user_id(),
         JoinRule::Knock,
     );
 
     let mut pdu = factory.create_room_member(
-        owned_event_id!("$room-member-zara-knock"),
+        event_id!("$room-member-zara-knock"),
         UserFactory::Zara.user_id(),
         RoomMemberPduContent::Knock,
     );
@@ -1764,21 +1764,18 @@ fn knock_after_ban() {
     let bob_id = UserFactory::Bob.user_id();
 
     factory.add_room_join_rules(
-        owned_event_id!("$room-join-rules-knock"),
+        event_id!("$room-join-rules-knock"),
         alice_id.clone(),
         JoinRule::Knock,
     );
     factory.add_room_member(
-        owned_event_id!("$room-member-bob-ban"),
+        event_id!("$room-member-bob-ban"),
         bob_id.clone(),
         RoomMemberPduContent::Ban { sender: alice_id },
     );
 
-    let pdu = factory.create_room_member(
-        owned_event_id!("$room-member"),
-        bob_id,
-        RoomMemberPduContent::Knock,
-    );
+    let pdu =
+        factory.create_room_member(event_id!("$room-member"), bob_id, RoomMemberPduContent::Knock);
 
     // User cannot knock if banned.
     assert_eq!(
@@ -1799,18 +1796,18 @@ fn knock_after_invite() {
     let zara_id = UserFactory::Zara.user_id();
 
     factory.add_room_join_rules(
-        owned_event_id!("$room-join-rules-knock"),
+        event_id!("$room-join-rules-knock"),
         UserFactory::Alice.user_id(),
         JoinRule::Knock,
     );
     factory.add_room_member(
-        owned_event_id!("$room-member-zara-invite"),
+        event_id!("$room-member-zara-invite"),
         zara_id.clone(),
         RoomMemberPduContent::Invite { sender: UserFactory::Bob.user_id() },
     );
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-zara-knock"),
+        event_id!("$room-member-zara-knock"),
         zara_id,
         RoomMemberPduContent::Knock,
     );
@@ -1833,13 +1830,13 @@ fn knock_after_join() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V7);
 
     factory.add_room_join_rules(
-        owned_event_id!("$room-join-rules-knock"),
+        event_id!("$room-join-rules-knock"),
         UserFactory::Alice.user_id(),
         JoinRule::Knock,
     );
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-bob-knock"),
+        event_id!("$room-member-bob-knock"),
         UserFactory::Bob.user_id(),
         RoomMemberPduContent::Knock,
     );
@@ -1862,7 +1859,7 @@ fn knock_public_join_rule_v7() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V7);
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-zara-knock"),
+        event_id!("$room-member-zara-knock"),
         UserFactory::Zara.user_id(),
         RoomMemberPduContent::Knock,
     );
@@ -1885,13 +1882,13 @@ fn knock_invite_join_rule_v8() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V8);
 
     factory.add_room_join_rules(
-        owned_event_id!("$room-join-rules-invite"),
+        event_id!("$room-join-rules-invite"),
         UserFactory::Alice.user_id(),
         JoinRule::Invite,
     );
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-zara-knock"),
+        event_id!("$room-member-zara-knock"),
         UserFactory::Zara.user_id(),
         RoomMemberPduContent::Knock,
     );
@@ -1914,13 +1911,13 @@ fn knock_knock_restricted_join_rule_v8() {
     let mut factory = RoomTimelineFactory::with_public_chat_preset(RoomVersionId::V8);
 
     factory.add_room_join_rules(
-        owned_event_id!("$room-join-rules-knock-restricted"),
+        event_id!("$room-join-rules-knock-restricted"),
         UserFactory::Alice.user_id(),
         JoinRule::KnockRestricted(Restricted::new(vec![])),
     );
 
     let pdu = factory.create_room_member(
-        owned_event_id!("$room-member-zara-knock"),
+        event_id!("$room-member-zara-knock"),
         UserFactory::Zara.user_id(),
         RoomMemberPduContent::Knock,
     );

@@ -8,7 +8,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/v1.19/server-server-api/#get_matrixfederationv1eventeventid
 
     use ruma_common::{
-        MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedServerName,
+        EventId, MilliSecondsSinceUnixEpoch, OwnedServerName,
         api::{request, response},
         metadata,
     };
@@ -28,7 +28,7 @@ pub mod v1 {
     pub struct Request {
         /// The event ID to get.
         #[ruma_api(path)]
-        pub event_id: OwnedEventId,
+        pub event_id: EventId,
     }
 
     /// Response type for the `get_event` endpoint.
@@ -47,7 +47,7 @@ pub mod v1 {
 
     impl Request {
         /// Creates a new `Request` with the given event id.
-        pub fn new(event_id: OwnedEventId) -> Self {
+        pub fn new(event_id: EventId) -> Self {
             Self { event_id }
         }
     }

@@ -7,7 +7,7 @@ use std::{collections::BTreeMap, time::Duration};
 use as_variant::as_variant;
 use js_int::UInt;
 use ruma_common::{
-    OneTimeKeyAlgorithm, OwnedEventId, OwnedRoomId, OwnedUserId,
+    EventId, OneTimeKeyAlgorithm, OwnedRoomId, OwnedUserId,
     api::{auth_scheme::AccessToken, request, response},
     metadata,
     presence::PresenceState,
@@ -273,7 +273,7 @@ pub struct JoinedRoom {
     /// [unread notifications]: https://spec.matrix.org/v1.19/client-server-api/#receiving-notifications
     /// [`RoomEventFilter`]: crate::filter::RoomEventFilter
     #[serde(skip_serializing_if = "BTreeMap::is_empty")]
-    pub unread_thread_notifications: BTreeMap<OwnedEventId, UnreadNotificationsCount>,
+    pub unread_thread_notifications: BTreeMap<EventId, UnreadNotificationsCount>,
 
     /// The timeline of messages and state changes in the room.
     #[serde(skip_serializing_if = "Timeline::is_empty")]

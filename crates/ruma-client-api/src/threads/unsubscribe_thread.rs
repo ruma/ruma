@@ -8,7 +8,7 @@ pub mod unstable {
     //! [spec]: https://github.com/matrix-org/matrix-spec-proposals/pull/4306
 
     use ruma_common::{
-        OwnedEventId, OwnedRoomId,
+        EventId, OwnedRoomId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -31,7 +31,7 @@ pub mod unstable {
 
         /// The event ID of the thread root to unsubscribe to.
         #[ruma_api(path)]
-        pub thread_root: OwnedEventId,
+        pub thread_root: EventId,
     }
 
     /// Response type for the `unsubscribe_thread` endpoint.
@@ -40,7 +40,7 @@ pub mod unstable {
 
     impl Request {
         /// Creates a new `Request` for the given room and thread IDs.
-        pub fn new(room_id: OwnedRoomId, thread_root: OwnedEventId) -> Self {
+        pub fn new(room_id: OwnedRoomId, thread_root: EventId) -> Self {
             Self { room_id, thread_root }
         }
     }

@@ -591,9 +591,9 @@ impl Response {
 
 /// HTTP types related to a [`Response`].
 pub mod response {
-    use ruma_common::OneTimeKeyAlgorithm;
     #[cfg(feature = "unstable-msc4308")]
-    use ruma_common::OwnedEventId;
+    use ruma_common::EventId;
+    use ruma_common::OneTimeKeyAlgorithm;
     #[cfg(feature = "unstable-msc4262")]
     use ruma_common::profile::UserProfileUpdate;
     use ruma_events::{
@@ -986,11 +986,11 @@ pub mod response {
     pub struct ThreadSubscriptions {
         /// New thread subscriptions.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub subscribed: BTreeMap<OwnedRoomId, BTreeMap<OwnedEventId, ThreadSubscription>>,
+        pub subscribed: BTreeMap<OwnedRoomId, BTreeMap<EventId, ThreadSubscription>>,
 
         /// New thread unsubscriptions.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub unsubscribed: BTreeMap<OwnedRoomId, BTreeMap<OwnedEventId, ThreadUnsubscription>>,
+        pub unsubscribed: BTreeMap<OwnedRoomId, BTreeMap<EventId, ThreadUnsubscription>>,
 
         /// A token that can be used to backpaginate (via the companion endpoint) other thread
         /// subscription changes that occurred since the last sync, but that were not included in
