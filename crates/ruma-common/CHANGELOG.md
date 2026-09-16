@@ -24,7 +24,7 @@ Breaking changes:
   - `OwnedMxcUri` was renamed to `MxcUri`. The `mxc_uri!` macro now returns an `MxcUri`, the
     `owned_mxc_uri!` macro was removed and the `mxc_uri_ref!` macro behind the
     `unstable-identifier-ref-macros` cargo feature allows to construct a `&'static MxcUri`.
-
+  - `OwnedOneTimeKeyName` was renamed to `OneTimeKeyName`.
 
 Improvements:
 
