@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.19/client-server-api/#put_matrixclientv3roomsroomidsendeventtypetxnid
 
     use ruma_common::{
-        EventId, MilliSecondsSinceUnixEpoch, OwnedRoomId, OwnedTransactionId,
+        EventId, MilliSecondsSinceUnixEpoch, OwnedTransactionId, RoomId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::Raw,
@@ -33,7 +33,7 @@ pub mod v3 {
     pub struct Request {
         /// The room to send the event to.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The type of event to send.
         #[ruma_api(path)]
@@ -101,7 +101,7 @@ pub mod v3 {
         /// Since `Request` stores the request body in serialized form, this function can fail if
         /// `T`s [`Serialize`][serde::Serialize] implementation can fail.
         pub fn new<T>(
-            room_id: OwnedRoomId,
+            room_id: RoomId,
             txn_id: OwnedTransactionId,
             content: &T,
         ) -> serde_json::Result<Self>
@@ -122,7 +122,7 @@ pub mod v3 {
         /// Creates a new `Request` with the given room id, transaction id, event type and raw event
         /// content.
         pub fn new_raw(
-            room_id: OwnedRoomId,
+            room_id: RoomId,
             txn_id: OwnedTransactionId,
             event_type: MessageLikeEventType,
             body: Raw<AnyMessageLikeEventContent>,
@@ -155,7 +155,7 @@ mod tests {
         api::{
             MatrixVersion, OutgoingRequestExt as _, SupportedVersions, auth_scheme::SendAccessToken,
         },
-        owned_room_id,
+        room_id,
         serde::Raw,
     };
     use ruma_events::{MessageLikeEventType, sticky::StickyDurationMs};
@@ -169,7 +169,7 @@ mod tests {
         };
 
         let mut request = crate::message::send_message_event::v3::Request::new_raw(
-            owned_room_id!("!roomid:example.org"),
+            room_id!("!roomid:example.org"),
             "0000".into(),
             MessageLikeEventType::RoomMessage,
             Raw::new(&json!({ "body": "Hello" })).unwrap().cast_unchecked(),

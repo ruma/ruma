@@ -12,7 +12,7 @@ use std::{collections::BTreeMap, time::Duration};
 use js_int::UInt;
 use js_option::JsOption;
 use ruma_common::{
-    MxcUri, OwnedRoomId, OwnedUserId,
+    MxcUri, OwnedUserId, RoomId,
     api::{auth_scheme::AccessToken, request, response},
     metadata,
     presence::PresenceState,
@@ -87,7 +87,7 @@ pub struct Request {
     /// It is useful to receive updates from rooms that are possibly
     /// out-of-range of all the lists (see [`Self::lists`]).
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub room_subscriptions: BTreeMap<OwnedRoomId, request::RoomSubscription>,
+    pub room_subscriptions: BTreeMap<RoomId, request::RoomSubscription>,
 
     /// Extensions.
     #[serde(default, skip_serializing_if = "request::Extensions::is_empty")]
@@ -106,7 +106,7 @@ pub mod request {
     use ruma_common::{RoomId, directory::RoomTypeFilter, serde::deserialize_cow_str};
     use serde::de::Error as _;
 
-    use super::{BTreeMap, Deserialize, OwnedRoomId, Serialize, StateEventType, UInt};
+    use super::{BTreeMap, Deserialize, Serialize, StateEventType, UInt};
 
     /// A sliding sync list request (see [`super::Request::lists`]).
     #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -278,7 +278,7 @@ pub mod request {
         AllSubscribed,
 
         /// Additionally apply extension to this specific room.
-        Room(OwnedRoomId),
+        Room(RoomId),
     }
 
     impl Serialize for ExtensionRoomConfig {
@@ -569,7 +569,7 @@ pub struct Response {
 
     /// The updated rooms.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub rooms: BTreeMap<OwnedRoomId, response::Room>,
+    pub rooms: BTreeMap<RoomId, response::Room>,
 
     /// Extensions.
     #[serde(default, skip_serializing_if = "response::Extensions::is_empty")]
@@ -603,7 +603,7 @@ pub mod response {
 
     use super::{
         super::DeviceLists, AnySyncStateEvent, AnySyncTimelineEvent, BTreeMap, Deserialize,
-        JsOption, MxcUri, OwnedRoomId, OwnedUserId, Raw, Serialize, UInt, UnreadNotificationsCount,
+        JsOption, MxcUri, OwnedUserId, Raw, RoomId, Serialize, UInt, UnreadNotificationsCount,
     };
     #[cfg(feature = "unstable-msc4308")]
     use crate::threads::get_thread_subscriptions_changes::unstable::{
@@ -863,7 +863,7 @@ pub mod response {
 
         /// The sticky events, grouped by room.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub rooms: BTreeMap<OwnedRoomId, StickyEventsRoom>,
+        pub rooms: BTreeMap<RoomId, StickyEventsRoom>,
     }
 
     #[cfg(feature = "unstable-msc4480")]
@@ -929,7 +929,7 @@ pub mod response {
 
         /// The private data that this user has attached to each room.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub rooms: BTreeMap<OwnedRoomId, Vec<Raw<AnyRoomAccountDataEvent>>>,
+        pub rooms: BTreeMap<RoomId, Vec<Raw<AnyRoomAccountDataEvent>>>,
     }
 
     impl AccountData {
@@ -947,7 +947,7 @@ pub mod response {
     pub struct Receipts {
         /// The ephemeral receipt room event for each room.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub rooms: BTreeMap<OwnedRoomId, Raw<SyncReceiptEvent>>,
+        pub rooms: BTreeMap<RoomId, Raw<SyncReceiptEvent>>,
     }
 
     impl Receipts {
@@ -966,7 +966,7 @@ pub mod response {
     pub struct Typing {
         /// The ephemeral typing event for each room.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub rooms: BTreeMap<OwnedRoomId, Raw<SyncTypingEvent>>,
+        pub rooms: BTreeMap<RoomId, Raw<SyncTypingEvent>>,
     }
 
     impl Typing {
@@ -985,11 +985,11 @@ pub mod response {
     pub struct ThreadSubscriptions {
         /// New thread subscriptions.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub subscribed: BTreeMap<OwnedRoomId, BTreeMap<EventId, ThreadSubscription>>,
+        pub subscribed: BTreeMap<RoomId, BTreeMap<EventId, ThreadSubscription>>,
 
         /// New thread unsubscriptions.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub unsubscribed: BTreeMap<OwnedRoomId, BTreeMap<EventId, ThreadUnsubscription>>,
+        pub unsubscribed: BTreeMap<RoomId, BTreeMap<EventId, ThreadUnsubscription>>,
 
         /// A token that can be used to backpaginate (via the companion endpoint) other thread
         /// subscription changes that occurred since the last sync, but that were not included in
@@ -1031,7 +1031,7 @@ pub mod response {
 
 #[cfg(test)]
 mod tests {
-    use ruma_common::owned_room_id;
+    use ruma_common::room_id;
 
     use super::request::ExtensionRoomConfig;
 
@@ -1040,7 +1040,7 @@ mod tests {
         let entry = ExtensionRoomConfig::AllSubscribed;
         assert_eq!(serde_json::to_string(&entry).unwrap().as_str(), r#""*""#);
 
-        let entry = ExtensionRoomConfig::Room(owned_room_id!("!foo:bar.baz"));
+        let entry = ExtensionRoomConfig::Room(room_id!("!foo:bar.baz"));
         assert_eq!(serde_json::to_string(&entry).unwrap().as_str(), r#""!foo:bar.baz""#);
     }
 
@@ -1053,7 +1053,7 @@ mod tests {
 
         assert_eq!(
             serde_json::from_str::<ExtensionRoomConfig>(r#""!foo:bar.baz""#).unwrap(),
-            ExtensionRoomConfig::Room(owned_room_id!("!foo:bar.baz"))
+            ExtensionRoomConfig::Room(room_id!("!foo:bar.baz"))
         );
     }
 

@@ -1,6 +1,6 @@
 use js_int::int;
 use ruma_common::{
-    RoomVersionId, event_id, owned_room_id,
+    RoomVersionId, event_id, room_id,
     room_version_rules::{AuthorizationRules, RoomIdFormatVersion},
 };
 use ruma_events::TimelineEventType;
@@ -106,7 +106,7 @@ fn invalid_room_create() {
 
     // Since room v12, the `room_id` field is forbidden.
     let mut pdu = valid_v12_pdu.clone();
-    pdu.room_id = Some(owned_room_id!("!room:matrix.local"));
+    pdu.room_id = Some(room_id!("!room:matrix.local"));
     assert_eq!(
         check_room_create(RoomCreateEvent::new(pdu), &AuthorizationRules::V12).unwrap_err(),
         "`m.room.create` event cannot have a `room_id` field"
@@ -489,7 +489,7 @@ fn auth_event_in_different_room() {
         RoomMemberPduContent::Join,
     );
     // This is not the right room!
-    pdu.room_id = Some(owned_room_id!("!wrongroom:matrix.local"));
+    pdu.room_id = Some(room_id!("!wrongroom:matrix.local"));
 
     // Cannot accept with auth event in different room.
     assert_eq!(

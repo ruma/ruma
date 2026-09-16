@@ -12,11 +12,8 @@ pub(crate) trait RoomIdExt {
     fn room_create_event_id(&self) -> Result<EventId, IdParseError>;
 }
 
-impl<T> RoomIdExt for T
-where
-    T: AsRef<RoomId>,
-{
+impl RoomIdExt for RoomId {
     fn room_create_event_id(&self) -> Result<EventId, IdParseError> {
-        EventId::parse(format!("${}", self.as_ref().strip_sigil()))
+        EventId::parse(format!("${}", self.strip_sigil()))
     }
 }

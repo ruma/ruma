@@ -1,7 +1,7 @@
 //! Endpoints for managing message retention periods
 
 use ruma_common::{
-    OwnedRoomId,
+    RoomId,
     serde::{DisplayAsRefStr, SerializeAsRefStr},
 };
 use serde::{
@@ -16,7 +16,7 @@ pub mod get_retention_configuration;
 #[allow(clippy::exhaustive_enums)]
 pub enum RoomIdOrAllRooms {
     /// Represents a specific room ID.
-    RoomId(OwnedRoomId),
+    RoomId(RoomId),
 
     /// Represents all rooms on a homeserver.
     AllRooms,
@@ -41,8 +41,8 @@ impl AsRef<str> for RoomIdOrAllRooms {
     }
 }
 
-impl From<OwnedRoomId> for RoomIdOrAllRooms {
-    fn from(r: OwnedRoomId) -> Self {
+impl From<RoomId> for RoomIdOrAllRooms {
+    fn from(r: RoomId) -> Self {
         RoomIdOrAllRooms::RoomId(r)
     }
 }

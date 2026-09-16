@@ -10,7 +10,7 @@ pub mod v3 {
     #[cfg(feature = "client")]
     use ruma_common::api::EmptyBody;
     use ruma_common::{
-        OwnedRoomId,
+        RoomId,
         api::{auth_scheme::AccessToken, error::Error, response},
         metadata,
         serde::{Raw, StringEnum},
@@ -35,7 +35,7 @@ pub mod v3 {
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Request {
         /// The room to look up the state for.
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The type of state to look up.
         pub event_type: StateEventType,
@@ -49,7 +49,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given room ID, event type and state key.
-        pub fn new(room_id: OwnedRoomId, event_type: StateEventType, state_key: String) -> Self {
+        pub fn new(room_id: RoomId, event_type: StateEventType, state_key: String) -> Self {
             Self { room_id, event_type, state_key, format: StateEventFormat::default() }
         }
     }
@@ -167,25 +167,24 @@ pub mod v3 {
         ) -> Result<Self, ruma_common::api::error::DeserializationError> {
             // FIXME: find a way to make this if-else collapse with serde recognizing trailing
             // Option
-            let (room_id, event_type, state_key): (OwnedRoomId, StateEventType, String) =
-                if path_args.len() == 3 {
-                    serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
-                        _,
-                        serde::de::value::Error,
-                    >::new(
-                        path_args.iter().copied()
-                    ))?
-                } else {
-                    let (a, b) =
-                        serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
-                            _,
-                            serde::de::value::Error,
-                        >::new(
-                            path_args.iter().copied()
-                        ))?;
+            let (room_id, event_type, state_key): (RoomId, StateEventType, String) = if path_args
+                .len()
+                == 3
+            {
+                serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
+                    _,
+                    serde::de::value::Error,
+                >::new(path_args.iter().copied()))?
+            } else {
+                let (a, b) = serde::Deserialize::deserialize(serde::de::value::SeqDeserializer::<
+                    _,
+                    serde::de::value::Error,
+                >::new(
+                    path_args.iter().copied()
+                ))?;
 
-                    (a, b, "".into())
-                };
+                (a, b, "".into())
+            };
 
             let RequestQuery { format } =
                 serde_html_form::from_str(request.uri().query().unwrap_or(""))?;

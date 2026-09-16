@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.19/client-server-api/#post_matrixclientv3knockroomidoralias
 
     use ruma_common::{
-        OwnedRoomId, OwnedRoomOrAliasId, OwnedServerName,
+        OwnedRoomOrAliasId, OwnedServerName, RoomId,
         api::{auth_scheme::AccessToken, error::Error, response},
         metadata,
     };
@@ -143,7 +143,7 @@ pub mod v3 {
     #[response]
     pub struct Response {
         /// The room that the user knocked on.
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
     }
 
     impl Request {
@@ -155,7 +155,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given room ID.
-        pub fn new(room_id: OwnedRoomId) -> Self {
+        pub fn new(room_id: RoomId) -> Self {
             Self { room_id }
         }
     }
@@ -169,14 +169,14 @@ pub mod v3 {
                 MatrixVersion, OutgoingRequestExt as _, SupportedVersions,
                 auth_scheme::SendAccessToken,
             },
-            owned_room_id, owned_server_name,
+            owned_server_name, room_id,
         };
 
         use super::Request;
 
         #[test]
         fn serialize_request_via_and_server_name() {
-            let mut req = Request::new(owned_room_id!("!foo:b.ar").into());
+            let mut req = Request::new(room_id!("!foo:b.ar").into());
             req.via = vec![owned_server_name!("f.oo")];
             let supported = SupportedVersions {
                 versions: [MatrixVersion::V1_1].into(),
@@ -195,7 +195,7 @@ pub mod v3 {
 
         #[test]
         fn serialize_request_only_via() {
-            let mut req = Request::new(owned_room_id!("!foo:b.ar").into());
+            let mut req = Request::new(room_id!("!foo:b.ar").into());
             req.via = vec![owned_server_name!("f.oo")];
             let supported = SupportedVersions {
                 versions: [MatrixVersion::V1_12].into(),

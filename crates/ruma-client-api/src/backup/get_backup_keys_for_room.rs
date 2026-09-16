@@ -10,7 +10,7 @@ pub mod v3 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        OwnedRoomId,
+        RoomId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::Raw,
@@ -38,7 +38,7 @@ pub mod v3 {
 
         /// The ID of the room that the requested key is for.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
     }
 
     /// Response type for the `get_backup_keys_for_room` endpoint.
@@ -50,7 +50,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given version and room_id.
-        pub fn new(version: String, room_id: OwnedRoomId) -> Self {
+        pub fn new(version: String, room_id: RoomId) -> Self {
             Self { version, room_id }
         }
     }

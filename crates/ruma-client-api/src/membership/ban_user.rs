@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.19/client-server-api/#post_matrixclientv3roomsroomidban
 
     use ruma_common::{
-        OwnedRoomId, OwnedUserId,
+        OwnedUserId, RoomId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -28,7 +28,7 @@ pub mod v3 {
     pub struct Request {
         /// The room to kick the user from.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The user to ban.
         pub user_id: OwnedUserId,
@@ -58,7 +58,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given room id and room id.
-        pub fn new(room_id: OwnedRoomId, user_id: OwnedUserId) -> Self {
+        pub fn new(room_id: RoomId, user_id: OwnedUserId) -> Self {
             Self {
                 room_id,
                 user_id,

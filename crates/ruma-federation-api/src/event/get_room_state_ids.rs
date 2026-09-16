@@ -8,7 +8,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/v1.19/server-server-api/#get_matrixfederationv1state_idsroomid
 
     use ruma_common::{
-        EventId, OwnedRoomId,
+        EventId, RoomId,
         api::{request, response},
         metadata,
     };
@@ -27,7 +27,7 @@ pub mod v1 {
     pub struct Request {
         /// The room ID to get state for.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// An event ID in the room to retrieve the state at.
         #[ruma_api(query)]
@@ -47,7 +47,7 @@ pub mod v1 {
 
     impl Request {
         /// Creates a new `Request` with the given event id and room id.
-        pub fn new(event_id: EventId, room_id: OwnedRoomId) -> Self {
+        pub fn new(event_id: EventId, room_id: RoomId) -> Self {
             Self { room_id, event_id }
         }
     }
