@@ -46,6 +46,8 @@ impl TryFrom<syn::ItemStruct> for Request {
                 .ok_or_else(|| syn::Error::new(Span::call_site(), "missing `error` attribute"))?,
         };
 
+        request.body.set_manual_serde(request_attrs.manual_body_serde);
+
         // Parse struct fields.
         for field in input.fields {
             let RequestField { inner: field, kind } = field.try_into()?;
@@ -137,6 +139,9 @@ pub(crate) struct RequestAttrs {
     /// The type used for the `EndpointError` associated type on `OutgoingRequest` and
     /// `IncomingRequest` implementations.
     error_ty: Option<syn::Type>,
+
+    /// Whether the request implements `Serialize` and `Deserialize` manually.
+    pub(super) manual_body_serde: bool,
 }
 
 impl RequestAttrs {
@@ -155,12 +160,31 @@ impl RequestAttrs {
         Ok(())
     }
 
+    /// Set that the request implements `Serialize` and `Deserialize` manually.
+    ///
+    /// Returns an error if it is already set.
+    fn set_manual_body_serde(&mut self) -> syn::Result<()> {
+        if self.manual_body_serde {
+            return Err(syn::Error::new(
+                Span::call_site(),
+                "cannot have multiple `manual_body_serde` request attributes",
+            ));
+        }
+
+        self.manual_body_serde = true;
+        Ok(())
+    }
+
     /// Try to parse the given meta item and merge it into this `RequestAttrs`.
     ///
     /// Returns an error if parsing the meta item fails, or if it sets a field that was already set.
     pub(crate) fn try_merge(&mut self, meta: ParseNestedMeta<'_>) -> syn::Result<()> {
         if meta.path.is_ident("error") {
             return self.set_error_ty(meta.value()?.parse()?);
+        }
+
+        if meta.path.is_ident("manual_body_serde") {
+            return self.set_manual_body_serde();
         }
 
         Err(meta.error("unsupported `request` attribute"))

@@ -54,6 +54,8 @@ unstable-msc4484 = []
 unstable-msc4494 = []
 # Selective Presence
 unstable-msc4495 = []
+# Revised Social Presence
+unstable-msc4532 = []
 
 # Allow IDs to exceed 255 bytes.
 compat-arbitrary-length-ids = ["ruma-identifiers-validation/compat-arbitrary-length-ids"]
