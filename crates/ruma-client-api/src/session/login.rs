@@ -11,7 +11,7 @@ pub mod v3 {
 
     use as_variant::as_variant;
     use ruma_common::{
-        OwnedDeviceId, OwnedServerName, OwnedUserId,
+        DeviceId, OwnedServerName, OwnedUserId,
         api::{auth_scheme::AppserviceTokenOptional, request, response},
         metadata,
         serde::JsonObject,
@@ -43,7 +43,7 @@ pub mod v3 {
 
         /// ID of the client device
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub device_id: Option<OwnedDeviceId>,
+        pub device_id: Option<DeviceId>,
 
         /// A display name to assign to the newly-created device.
         ///
@@ -79,7 +79,7 @@ pub mod v3 {
         ///
         /// Will be the same as the corresponding parameter in the request, if one was
         /// specified.
-        pub device_id: OwnedDeviceId,
+        pub device_id: DeviceId,
 
         /// Client configuration provided by the server.
         ///
@@ -127,7 +127,7 @@ pub mod v3 {
     impl Response {
         /// Creates a new `Response` with the given user ID, access token and device ID.
         #[allow(deprecated)]
-        pub fn new(user_id: OwnedUserId, access_token: String, device_id: OwnedDeviceId) -> Self {
+        pub fn new(user_id: OwnedUserId, access_token: String, device_id: DeviceId) -> Self {
             Self {
                 user_id,
                 access_token,

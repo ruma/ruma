@@ -3,7 +3,7 @@
 //! [`m.room_key_request`]: https://spec.matrix.org/v1.19/client-server-api/#mroom_key_request
 
 use ruma_common::{
-    EventEncryptionAlgorithm, OwnedDeviceId, OwnedRoomId, OwnedTransactionId, serde::StringEnum,
+    DeviceId, EventEncryptionAlgorithm, OwnedRoomId, OwnedTransactionId, serde::StringEnum,
 };
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
@@ -24,7 +24,7 @@ pub struct ToDeviceRoomKeyRequestEventContent {
     pub body: Option<RequestedKeyInfo>,
 
     /// ID of the device requesting the key.
-    pub requesting_device_id: OwnedDeviceId,
+    pub requesting_device_id: DeviceId,
 
     /// A random string uniquely identifying the request for a key.
     ///
@@ -39,7 +39,7 @@ impl ToDeviceRoomKeyRequestEventContent {
     pub fn new(
         action: Action,
         body: Option<RequestedKeyInfo>,
-        requesting_device_id: OwnedDeviceId,
+        requesting_device_id: DeviceId,
         request_id: OwnedTransactionId,
     ) -> Self {
         Self { action, body, requesting_device_id, request_id }

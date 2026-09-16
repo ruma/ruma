@@ -13,6 +13,10 @@ Breaking changes:
     allows to construct a `&'static Base64PublicKey`.
   - `OwnedBase64PublicKeyOrDeviceId` was renamed to `Base64PublicKeyOrDeviceId`.
   - `OwnedClientSecret` was renamed to `ClientSecret`.
+  - `OwnedDeviceId` was renamed to `DeviceId`. The `device_id!` macro now returns a `DeviceId`, the
+    `owned_device_id!` macro is behind the `unstable-identifier-owned-macros` cargo feature and
+    returns the same type. The `device_id_ref!` macro behind the
+    `unstable-identifier-ref-macros` cargo feature still allows to construct a `&'static DeviceId`.
 
 Improvements:
 

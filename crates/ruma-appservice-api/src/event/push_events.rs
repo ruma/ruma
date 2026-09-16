@@ -16,7 +16,7 @@ pub mod v1 {
     #[cfg(feature = "unstable-msc3202")]
     use ruma_common::OneTimeKeyAlgorithm;
     #[cfg(any(feature = "unstable-msc3202", feature = "unstable-msc4203"))]
-    use ruma_common::{OwnedDeviceId, OwnedUserId};
+    use ruma_common::{DeviceId, OwnedUserId};
     use ruma_common::{
         OwnedTransactionId,
         api::{request, response},
@@ -72,7 +72,7 @@ pub mod v1 {
             rename = "org.matrix.msc3202.device_one_time_keys_count"
         )]
         pub device_one_time_keys_count:
-            BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, BTreeMap<OneTimeKeyAlgorithm, UInt>>>,
+            BTreeMap<OwnedUserId, BTreeMap<DeviceId, BTreeMap<OneTimeKeyAlgorithm, UInt>>>,
 
         /// A list of key algorithms for which the server has an unused fallback key for the
         /// device.
@@ -83,7 +83,7 @@ pub mod v1 {
             rename = "org.matrix.msc3202.device_unused_fallback_key_types"
         )]
         pub device_unused_fallback_key_types:
-            BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, Vec<OneTimeKeyAlgorithm>>>,
+            BTreeMap<OwnedUserId, BTreeMap<DeviceId, Vec<OneTimeKeyAlgorithm>>>,
 
         /// A list of ephemeral data.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
@@ -269,7 +269,7 @@ pub mod v1 {
         pub to_user_id: OwnedUserId,
 
         /// The device ID of the intended recipient.
-        pub to_device_id: OwnedDeviceId,
+        pub to_device_id: DeviceId,
     }
 
     #[cfg(feature = "unstable-msc4203")]
@@ -279,7 +279,7 @@ pub mod v1 {
         pub fn new(
             event: AnyToDeviceEvent,
             to_user_id: OwnedUserId,
-            to_device_id: OwnedDeviceId,
+            to_device_id: DeviceId,
         ) -> Self {
             Self { event, to_user_id, to_device_id }
         }
@@ -309,7 +309,7 @@ pub mod v1 {
             #[derive(Deserialize)]
             struct AppserviceFields {
                 to_user_id: OwnedUserId,
-                to_device_id: OwnedDeviceId,
+                to_device_id: DeviceId,
             }
 
             let json = Box::<RawJsonValue>::deserialize(deserializer)?;

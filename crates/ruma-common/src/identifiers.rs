@@ -23,7 +23,7 @@ pub use self::{
         DeviceKeyAlgorithm, EventEncryptionAlgorithm, KeyDerivationAlgorithm, OneTimeKeyAlgorithm,
         SigningKeyAlgorithm,
     },
-    device_id::{DeviceId, OwnedDeviceId},
+    device_id::DeviceId,
     direct_user_identifier::{DirectUserIdentifier, OwnedDirectUserIdentifier},
     event_id::{EventId, OwnedEventId},
     key_id::{
@@ -185,6 +185,9 @@ pub mod __private_macros {
 
         pub static BASE64_PUBLIC_KEY_INTERNER: LazyLock<IdInterner<crate::Base64PublicKey>> =
             LazyLock::new(IdInterner::new);
+
+        pub static DEVICE_ID_INTERNER: LazyLock<IdInterner<crate::DeviceId>> =
+            LazyLock::new(IdInterner::new);
     }
 }
 
@@ -229,36 +232,44 @@ macro_rules! owned_base64_public_key {
     };
 }
 
-/// [`&'static DeviceId`][DeviceId] construction.
+/// [`DeviceId`] construction.
 #[macro_export]
 macro_rules! device_id {
     ($s:expr) => {
-        <&$crate::DeviceId as ::std::convert::From<_>>::from($s)
+        <$crate::DeviceId as ::std::convert::From<_>>::from($s)
     };
 }
 
 /// [`&'static DeviceId`][DeviceId] construction.
 ///
-/// This is currently equivalent to [`device_id!`]. However there is a plan to remove identifier DST
-/// types, so that other macro's return type will change while this macro is guaranteed to keep its
-/// return type. This macro allows to ease the transition for the expected change by allowing to
-/// migrate tests in advance.
+/// This macro is a helper to ease the transition after the change of [`DeviceId`] from a
+/// dynamically sized type to an owned type. It has the side effect of interning and leaking the
+/// identifier.
 ///
-/// This is behind an unstable cargo feature because it is likely to be removed soon after the DST
-/// identifier type removal.
+/// This is behind an unstable cargo feature because it is likely to be removed in a future
+/// non-breaking release.
 #[cfg(feature = "unstable-identifier-ref-macros")]
 #[macro_export]
 macro_rules! device_id_ref {
     ($s:literal) => {
-        $crate::device_id!($s)
+        $crate::__private_macros::id_interner::DEVICE_ID_INTERNER
+            .get_or_insert_with($s, || $crate::device_id!($s))
     };
 }
 
-/// [`OwnedDeviceId`] construction.
+/// [`DeviceId`] construction.
+///
+/// This is currently equivalent to [`device_id!`]. This is kept for backwards compatibility
+/// to ease the transition after the change of [`DeviceId`] from a dynamically sized type to
+/// an owned type.
+///
+/// This is behind an unstable cargo feature because it is likely to be removed in a future
+/// non-breaking release.
+#[cfg(feature = "unstable-identifier-owned-macros")]
 #[macro_export]
 macro_rules! owned_device_id {
     ($s:expr) => {
-        <$crate::OwnedDeviceId as ::std::convert::From<_>>::from($s)
+        $crate::device_id!($s)
     };
 }
 

@@ -4,7 +4,7 @@
 
 use as_variant::as_variant;
 use ruma_common::{
-    OwnedDeviceId, OwnedTransactionId,
+    DeviceId, OwnedTransactionId,
     serde::{JsonObject, StringEnum},
 };
 use ruma_macros::EventContent;
@@ -27,7 +27,7 @@ pub struct ToDeviceSecretRequestEventContent {
     pub action: RequestAction,
 
     /// The ID of the device requesting the event.
-    pub requesting_device_id: OwnedDeviceId,
+    pub requesting_device_id: DeviceId,
 
     /// A random string uniquely identifying (with respect to the requester and the target) the
     /// target for a secret.
@@ -42,7 +42,7 @@ impl ToDeviceSecretRequestEventContent {
     /// request ID.
     pub fn new(
         action: RequestAction,
-        requesting_device_id: OwnedDeviceId,
+        requesting_device_id: DeviceId,
         request_id: OwnedTransactionId,
     ) -> Self {
         Self { action, requesting_device_id, request_id }

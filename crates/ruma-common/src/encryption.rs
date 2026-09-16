@@ -7,8 +7,8 @@ use std::collections::BTreeMap;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    CrossSigningOrDeviceSignatures, DeviceSignatures, EventEncryptionAlgorithm,
-    OwnedCrossSigningKeyId, OwnedDeviceId, OwnedDeviceKeyId, OwnedUserId, PrivOwnedStr,
+    CrossSigningOrDeviceSignatures, DeviceId, DeviceSignatures, EventEncryptionAlgorithm,
+    OwnedCrossSigningKeyId, OwnedDeviceKeyId, OwnedUserId, PrivOwnedStr,
     serde::{Base64, StringEnum},
 };
 
@@ -24,7 +24,7 @@ pub struct DeviceKeys {
     /// The ID of the device these keys belong to.
     ///
     /// Must match the device ID used when logging in.
-    pub device_id: OwnedDeviceId,
+    pub device_id: DeviceId,
 
     /// The encryption algorithms supported by this device.
     pub algorithms: Vec<EventEncryptionAlgorithm>,
@@ -46,7 +46,7 @@ impl DeviceKeys {
     /// signatures.
     pub fn new(
         user_id: OwnedUserId,
-        device_id: OwnedDeviceId,
+        device_id: DeviceId,
         algorithms: Vec<EventEncryptionAlgorithm>,
         keys: BTreeMap<OwnedDeviceKeyId, String>,
         signatures: CrossSigningOrDeviceSignatures,

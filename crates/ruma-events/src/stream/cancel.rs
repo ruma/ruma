@@ -2,7 +2,7 @@
 //!
 //! [MSC4471]: https://github.com/matrix-org/matrix-spec-proposals/pull/4471
 
-use ruma_common::{OwnedDeviceId, OwnedEventId, OwnedRoomId, serde::StringEnum};
+use ruma_common::{DeviceId, OwnedEventId, OwnedRoomId, serde::StringEnum};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -26,7 +26,7 @@ pub struct ToDeviceStreamCancelEventContent {
     pub event_id: OwnedEventId,
 
     /// The subscriber device whose subscription is cancelled.
-    pub subscriber_device_id: OwnedDeviceId,
+    pub subscriber_device_id: DeviceId,
 
     /// A machine-readable cancellation code.
     pub code: StreamCancelCode,
@@ -44,7 +44,7 @@ impl ToDeviceStreamCancelEventContent {
     pub fn new(
         room_id: OwnedRoomId,
         event_id: OwnedEventId,
-        subscriber_device_id: OwnedDeviceId,
+        subscriber_device_id: DeviceId,
         code: StreamCancelCode,
     ) -> Self {
         Self { room_id, event_id, subscriber_device_id, code, reason: None }
@@ -82,7 +82,7 @@ pub enum StreamCancelCode {
 #[cfg(test)]
 mod tests {
     use ruma_common::{
-        canonical_json::assert_to_canonical_json_eq, owned_device_id, owned_event_id, owned_room_id,
+        canonical_json::assert_to_canonical_json_eq, device_id, owned_event_id, owned_room_id,
     };
     use serde_json::{from_value as from_json_value, json};
     use strass::assert_let;
@@ -95,7 +95,7 @@ mod tests {
         let mut content = ToDeviceStreamCancelEventContent::new(
             owned_room_id!("!room:example.org"),
             owned_event_id!("$event:example.org"),
-            owned_device_id!("SUBSCRIBERDEVICE"),
+            device_id!("SUBSCRIBERDEVICE"),
             StreamCancelCode::UnknownStream,
         );
         content.reason = Some("because".to_owned());

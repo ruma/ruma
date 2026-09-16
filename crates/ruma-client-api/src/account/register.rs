@@ -14,7 +14,7 @@ pub mod v3 {
     use std::time::Duration;
 
     use ruma_common::{
-        OwnedDeviceId, OwnedUserId,
+        DeviceId, OwnedUserId,
         api::{auth_scheme::AppserviceTokenOptional, request, response},
         metadata,
     };
@@ -54,7 +54,7 @@ pub mod v3 {
         /// If this does not correspond to a known client device, a new device will be created.
         /// The server will auto-generate a device_id if this is not specified.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub device_id: Option<OwnedDeviceId>,
+        pub device_id: Option<DeviceId>,
 
         /// A display name to assign to the newly-created device.
         ///
@@ -126,7 +126,7 @@ pub mod v3 {
         /// Will be the same as the corresponding parameter in the request, if one was specified.
         ///
         /// Required if the request's `inhibit_login` was set to `false`.
-        pub device_id: Option<OwnedDeviceId>,
+        pub device_id: Option<DeviceId>,
 
         /// A [refresh token] for the account.
         ///

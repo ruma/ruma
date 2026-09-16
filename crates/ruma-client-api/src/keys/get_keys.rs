@@ -10,7 +10,7 @@ pub mod v3 {
     use std::{collections::BTreeMap, time::Duration};
 
     use ruma_common::{
-        OwnedDeviceId, OwnedUserId,
+        DeviceId, OwnedUserId,
         api::{auth_scheme::AccessToken, request, response},
         encryption::{CrossSigningKey, DeviceKeys},
         metadata,
@@ -45,7 +45,7 @@ pub mod v3 {
         /// The keys to be downloaded.
         ///
         /// An empty list indicates all devices for the corresponding user.
-        pub device_keys: BTreeMap<OwnedUserId, Vec<OwnedDeviceId>>,
+        pub device_keys: BTreeMap<OwnedUserId, Vec<DeviceId>>,
     }
 
     /// Response type for the `get_keys` endpoint.
@@ -60,7 +60,7 @@ pub mod v3 {
 
         /// Information on the queried devices.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub device_keys: BTreeMap<OwnedUserId, BTreeMap<OwnedDeviceId, Raw<DeviceKeys>>>,
+        pub device_keys: BTreeMap<OwnedUserId, BTreeMap<DeviceId, Raw<DeviceKeys>>>,
 
         /// Information on the master cross-signing keys of the queried users.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]

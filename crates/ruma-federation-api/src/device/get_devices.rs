@@ -9,7 +9,7 @@ pub mod v1 {
 
     use js_int::UInt;
     use ruma_common::{
-        OwnedDeviceId, OwnedUserId,
+        DeviceId, OwnedUserId,
         api::{request, response},
         encryption::{CrossSigningKey, DeviceKeys},
         metadata,
@@ -88,7 +88,7 @@ pub mod v1 {
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct UserDevice {
         /// The device ID.
-        pub device_id: OwnedDeviceId,
+        pub device_id: DeviceId,
 
         /// Identity keys for the device.
         pub keys: Raw<DeviceKeys>,
@@ -100,7 +100,7 @@ pub mod v1 {
 
     impl UserDevice {
         /// Creates a new `UserDevice` with the given device id and keys.
-        pub fn new(device_id: OwnedDeviceId, keys: Raw<DeviceKeys>) -> Self {
+        pub fn new(device_id: DeviceId, keys: Raw<DeviceKeys>) -> Self {
             Self { device_id, keys, device_display_name: None }
         }
     }
