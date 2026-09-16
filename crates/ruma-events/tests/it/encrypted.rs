@@ -1,7 +1,7 @@
 use assert_matches2::{assert_let, assert_matches};
 use ruma_common::{
     canonical_json::assert_to_canonical_json_eq,
-    device_id, event_id, owned_mxc_uri,
+    device_id, event_id, mxc_uri,
     serde::{Base64, Raw},
 };
 use ruma_events::{
@@ -566,7 +566,7 @@ fn custom_relation_serialization_roundtrip() {
 #[test]
 fn encrypted_file_v2_serialization() {
     let file = EncryptedFile::new(
-        owned_mxc_uri!("mxc://notareal.hs/file"),
+        mxc_uri!("mxc://notareal.hs/file"),
         V2EncryptedFileInfo::new(
             Base64::parse("TLlG_OpX807zzQuuwv4QZGJ21_u7weemFGYJFszMn9A").unwrap(),
             Base64::parse("S22dq3NAX8wAAAAAAAAAAA").unwrap(),

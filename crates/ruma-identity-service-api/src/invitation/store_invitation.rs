@@ -8,7 +8,7 @@ pub mod v2 {
     //! [spec]: https://spec.matrix.org/v1.19/identity-service-api/#post_matrixidentityv2store-invite
 
     use ruma_common::{
-        OwnedMxcUri, OwnedRoomAliasId, OwnedRoomId, OwnedUserId,
+        MxcUri, OwnedRoomAliasId, OwnedRoomId, OwnedUserId,
         api::{request, response},
         metadata,
         room::RoomType,
@@ -56,7 +56,7 @@ pub mod v2 {
         ///
         /// This should be retrieved from the `m.room.avatar` state event.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub room_avatar_url: Option<OwnedMxcUri>,
+        pub room_avatar_url: Option<MxcUri>,
 
         /// The `join_rule` for the room to which the user is invited.
         ///
@@ -82,7 +82,7 @@ pub mod v2 {
 
         /// The Content URI for the avater of the user ID initiating the invite.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub sender_avatar_url: Option<OwnedMxcUri>,
+        pub sender_avatar_url: Option<MxcUri>,
     }
 
     /// Response type for the `store_invitation` endpoint.

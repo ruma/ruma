@@ -12,7 +12,7 @@ use std::{collections::BTreeMap, time::Duration};
 use js_int::UInt;
 use js_option::JsOption;
 use ruma_common::{
-    OwnedMxcUri, OwnedRoomId, OwnedUserId,
+    MxcUri, OwnedRoomId, OwnedUserId,
     api::{auth_scheme::AccessToken, request, response},
     metadata,
     presence::PresenceState,
@@ -603,8 +603,7 @@ pub mod response {
 
     use super::{
         super::DeviceLists, AnySyncStateEvent, AnySyncTimelineEvent, BTreeMap, Deserialize,
-        JsOption, OwnedMxcUri, OwnedRoomId, OwnedUserId, Raw, Serialize, UInt,
-        UnreadNotificationsCount,
+        JsOption, MxcUri, OwnedRoomId, OwnedUserId, Raw, Serialize, UInt, UnreadNotificationsCount,
     };
     #[cfg(feature = "unstable-msc4308")]
     use crate::threads::get_thread_subscriptions_changes::unstable::{
@@ -644,7 +643,7 @@ pub mod response {
             feature = "unstable-compat-lax-syncv5-deser",
             serde(deserialize_with = "ruma_common::serde::default_on_error")
         )]
-        pub avatar: JsOption<OwnedMxcUri>,
+        pub avatar: JsOption<MxcUri>,
 
         /// Whether it is an initial response.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -743,7 +742,7 @@ pub mod response {
             feature = "unstable-compat-lax-syncv5-deser",
             serde(default, deserialize_with = "ruma_common::serde::default_on_error")
         )]
-        pub avatar: Option<OwnedMxcUri>,
+        pub avatar: Option<MxcUri>,
     }
 
     impl Hero {

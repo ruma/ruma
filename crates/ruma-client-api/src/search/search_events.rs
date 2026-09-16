@@ -17,7 +17,7 @@ pub mod v3 {
     use as_variant::as_variant;
     use js_int::{UInt, uint};
     use ruma_common::{
-        EventId, OwnedMxcUri, OwnedRoomId, OwnedUserId,
+        EventId, MxcUri, OwnedRoomId, OwnedUserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::{Raw, StringEnum},
@@ -576,7 +576,7 @@ pub mod v3 {
             feature = "compat-empty-string-null",
             serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
         )]
-        pub avatar_url: Option<OwnedMxcUri>,
+        pub avatar_url: Option<MxcUri>,
 
         /// The user's display name, if set.
         #[serde(skip_serializing_if = "Option::is_none")]

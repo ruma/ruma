@@ -4,7 +4,7 @@ use assert_matches2::{assert_let, assert_matches};
 use ruma_common::{
     DeviceId,
     canonical_json::assert_to_canonical_json_eq,
-    device_id, owned_mxc_uri, owned_user_id,
+    device_id, mxc_uri, owned_user_id,
     serde::{Base64, Raw},
     user_id,
 };
@@ -492,7 +492,7 @@ fn audio_msgtype_serialization() {
     let message_event_content =
         RoomMessageEventContent::new(MessageType::Audio(AudioMessageEventContent::plain(
             "Upload: my_song.mp3".to_owned(),
-            owned_mxc_uri!("mxc://notareal.hs/file"),
+            mxc_uri!("mxc://notareal.hs/file"),
         )));
 
     assert_to_canonical_json_eq!(
@@ -526,7 +526,7 @@ fn file_msgtype_plain_content_serialization() {
     let message_event_content =
         RoomMessageEventContent::new(MessageType::File(FileMessageEventContent::plain(
             "Upload: my_file.txt".to_owned(),
-            owned_mxc_uri!("mxc://notareal.hs/file"),
+            mxc_uri!("mxc://notareal.hs/file"),
         )));
 
     assert_to_canonical_json_eq!(
@@ -545,7 +545,7 @@ fn file_msgtype_encrypted_content_serialization() {
         RoomMessageEventContent::new(MessageType::File(FileMessageEventContent::encrypted(
             "Upload: my_file.txt".to_owned(),
             EncryptedFile::new(
-                owned_mxc_uri!("mxc://notareal.hs/file"),
+                mxc_uri!("mxc://notareal.hs/file"),
                 V2EncryptedFileInfo::new(
                     Base64::parse("TLlG_OpX807zzQuuwv4QZGJ21_u7weemFGYJFszMn9A").unwrap(),
                     Base64::parse("S22dq3NAX8wAAAAAAAAAAA").unwrap(),
@@ -668,7 +668,7 @@ fn gallery_msgtype_serialization_with_image() {
             )),
             vec![GalleryItemType::Image(ImageMessageEventContent::plain(
                 "my_image.jpg".to_owned(),
-                owned_mxc_uri!("mxc://notareal.hs/file"),
+                mxc_uri!("mxc://notareal.hs/file"),
             ))],
         )));
 
@@ -763,7 +763,7 @@ fn image_msgtype_serialization() {
     let message_event_content =
         RoomMessageEventContent::new(MessageType::Image(ImageMessageEventContent::plain(
             "Upload: my_image.jpg".to_owned(),
-            owned_mxc_uri!("mxc://notareal.hs/file"),
+            mxc_uri!("mxc://notareal.hs/file"),
         )));
 
     assert_to_canonical_json_eq!(
@@ -949,7 +949,7 @@ fn video_msgtype_serialization() {
     let message_event_content =
         RoomMessageEventContent::new(MessageType::Video(VideoMessageEventContent::plain(
             "Upload: my_video.mp4".to_owned(),
-            owned_mxc_uri!("mxc://notareal.hs/file"),
+            mxc_uri!("mxc://notareal.hs/file"),
         )));
 
     assert_to_canonical_json_eq!(
@@ -1176,7 +1176,7 @@ fn invalid_replacement() {
 fn test_audio_filename() {
     let mut content = AudioMessageEventContent::plain(
         "my_sound.ogg".to_owned(),
-        owned_mxc_uri!("mxc://notareal.hs/abcdef"),
+        mxc_uri!("mxc://notareal.hs/abcdef"),
     );
     assert_eq!(content.filename(), "my_sound.ogg");
 
@@ -1189,7 +1189,7 @@ fn test_audio_filename() {
 fn test_audio_caption() {
     let mut content = AudioMessageEventContent::plain(
         "my_sound.ogg".to_owned(),
-        owned_mxc_uri!("mxc://notareal.hs/abcdef"),
+        mxc_uri!("mxc://notareal.hs/abcdef"),
     );
     assert!(content.caption().is_none());
     assert!(content.formatted_caption().is_none());
@@ -1215,7 +1215,7 @@ fn test_audio_caption() {
 fn test_file_filename() {
     let mut content = FileMessageEventContent::plain(
         "my_file.txt".to_owned(),
-        owned_mxc_uri!("mxc://notareal.hs/abcdef"),
+        mxc_uri!("mxc://notareal.hs/abcdef"),
     );
     assert_eq!(content.filename(), "my_file.txt");
 
@@ -1228,7 +1228,7 @@ fn test_file_filename() {
 fn test_file_caption() {
     let mut content = FileMessageEventContent::plain(
         "my_file.txt".to_owned(),
-        owned_mxc_uri!("mxc://notareal.hs/abcdef"),
+        mxc_uri!("mxc://notareal.hs/abcdef"),
     );
     assert!(content.caption().is_none());
     assert!(content.formatted_caption().is_none());
@@ -1254,7 +1254,7 @@ fn test_file_caption() {
 fn test_image_filename() {
     let mut content = ImageMessageEventContent::plain(
         "my_image.jpg".to_owned(),
-        owned_mxc_uri!("mxc://notareal.hs/abcdef"),
+        mxc_uri!("mxc://notareal.hs/abcdef"),
     );
     assert_eq!(content.filename(), "my_image.jpg");
 
@@ -1267,7 +1267,7 @@ fn test_image_filename() {
 fn test_image_caption() {
     let mut content = ImageMessageEventContent::plain(
         "my_image.jpg".to_owned(),
-        owned_mxc_uri!("mxc://notareal.hs/abcdef"),
+        mxc_uri!("mxc://notareal.hs/abcdef"),
     );
     assert!(content.caption().is_none());
     assert!(content.formatted_caption().is_none());
@@ -1292,7 +1292,7 @@ fn test_image_caption() {
 fn test_video_filename() {
     let mut content = VideoMessageEventContent::plain(
         "my_video.mp4".to_owned(),
-        owned_mxc_uri!("mxc://notareal.hs/abcdef"),
+        mxc_uri!("mxc://notareal.hs/abcdef"),
     );
     assert_eq!(content.filename(), "my_video.mp4");
 
@@ -1305,7 +1305,7 @@ fn test_video_filename() {
 fn test_video_caption() {
     let mut content = VideoMessageEventContent::plain(
         "my_video.mp4".to_owned(),
-        owned_mxc_uri!("mxc://notareal.hs/abcdef"),
+        mxc_uri!("mxc://notareal.hs/abcdef"),
     );
     assert!(content.caption().is_none());
     assert!(content.formatted_caption().is_none());

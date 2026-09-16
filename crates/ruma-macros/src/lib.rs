@@ -581,7 +581,7 @@ pub fn server_name(input: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn mxc_uri(input: TokenStream) -> TokenStream {
     let id_ctor = parse_macro_input!(input as IdentifierConstructor);
-    id_ctor.validate_and_expand_str_conversion("&MxcUri", mxc_uri::validate).into()
+    id_ctor.validate_and_expand_str_conversion("MxcUri", mxc_uri::validate).into()
 }
 
 /// Compile-time checked `UserId` construction.
