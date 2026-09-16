@@ -6,7 +6,7 @@ use js_int::Int;
 #[cfg(feature = "unstable-msc4293")]
 use ruma_common::canonical_json::RedactionEvent;
 use ruma_common::{
-    OwnedMxcUri, OwnedTransactionId, OwnedUserId, ServerSignatures, UserId,
+    MxcUri, OwnedTransactionId, OwnedUserId, ServerSignatures, UserId,
     room_version_rules::RedactionRules,
     serde::{CanBeEmpty, Raw, StringEnum},
 };
@@ -63,7 +63,7 @@ pub struct RoomMemberEventContent {
         feature = "compat-empty-string-null",
         serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
     )]
-    pub avatar_url: Option<OwnedMxcUri>,
+    pub avatar_url: Option<MxcUri>,
 
     /// The display name for this user, if any.
     ///
@@ -144,7 +144,7 @@ impl RoomMemberEventContent {
     /// made.
     pub fn details(&self) -> MembershipDetails<'_> {
         MembershipDetails {
-            avatar_url: self.avatar_url.as_deref(),
+            avatar_url: self.avatar_url.as_ref(),
             displayname: self.displayname.as_deref(),
             membership: &self.membership,
         }
@@ -200,7 +200,7 @@ pub struct PossiblyRedactedRoomMemberEventContent {
         feature = "compat-empty-string-null",
         serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
     )]
-    pub avatar_url: Option<OwnedMxcUri>,
+    pub avatar_url: Option<MxcUri>,
 
     /// The display name for this user, if any.
     ///
@@ -285,7 +285,7 @@ impl PossiblyRedactedRoomMemberEventContent {
     /// made.
     pub fn details(&self) -> MembershipDetails<'_> {
         MembershipDetails {
-            avatar_url: self.avatar_url.as_deref(),
+            avatar_url: self.avatar_url.as_ref(),
             displayname: self.displayname.as_deref(),
             membership: &self.membership,
         }

@@ -145,13 +145,11 @@ mod tests {
     #[test]
     #[cfg(feature = "server")]
     fn serialize_response() {
-        use ruma_common::{
-            api::OutgoingResponseExt as _, owned_mxc_uri, profile::ProfileFieldValue,
-        };
+        use ruma_common::{api::OutgoingResponseExt as _, mxc_uri, profile::ProfileFieldValue};
         use serde_json::{Value as JsonValue, from_slice as from_json_slice};
 
         let response = [
-            ProfileFieldValue::AvatarUrl(owned_mxc_uri!("mxc://localhost/abcdef")),
+            ProfileFieldValue::AvatarUrl(mxc_uri!("mxc://localhost/abcdef")),
             ProfileFieldValue::DisplayName("Alice".to_owned()),
             ProfileFieldValue::new("custom_field", "value".into()).unwrap(),
         ]

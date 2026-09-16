@@ -182,7 +182,7 @@ mod tests_client {
     use http::header;
     use ruma_common::{
         api::{OutgoingRequestExt as _, SupportedVersions, auth_scheme::SendAccessToken},
-        owned_mxc_uri, owned_user_id,
+        mxc_uri, owned_user_id,
         profile::ProfileFieldValue,
     };
     use serde_json::{Value as JsonValue, from_slice as from_json_slice, json};
@@ -194,7 +194,7 @@ mod tests_client {
         // Profile field that existed in Matrix 1.0.
         let avatar_url_request = Request::new(
             owned_user_id!("@alice:localhost"),
-            ProfileFieldValue::AvatarUrl(owned_mxc_uri!("mxc://localhost/abcdef")),
+            ProfileFieldValue::AvatarUrl(mxc_uri!("mxc://localhost/abcdef")),
         );
 
         // Matrix 1.11.

@@ -276,7 +276,7 @@ pub mod v3 {
 #[cfg(all(test, feature = "client"))]
 mod tests_client {
     use ruma_common::{
-        owned_mxc_uri, owned_user_id,
+        mxc_uri, owned_user_id,
         profile::{ProfileFieldName, ProfileFieldValue},
     };
     use serde_json::{json, to_vec as to_json_vec};
@@ -404,7 +404,7 @@ mod tests_client {
         use crate::profile::AvatarUrl;
 
         let response = get_static_response::<RequestStatic<AvatarUrl>>(Some(
-            ProfileFieldValue::AvatarUrl(owned_mxc_uri!("mxc://localhost/abcdef")),
+            ProfileFieldValue::AvatarUrl(mxc_uri!("mxc://localhost/abcdef")),
         ))
         .unwrap();
         assert_eq!(response.value.unwrap(), "mxc://localhost/abcdef");
@@ -427,7 +427,7 @@ mod tests_client {
 #[cfg(all(test, feature = "server"))]
 mod tests_server {
     use ruma_common::{
-        owned_mxc_uri,
+        mxc_uri,
         profile::{ProfileFieldName, ProfileFieldValue},
     };
     use serde_json::{Value as JsonValue, from_slice as from_json_slice, json};
@@ -457,7 +457,7 @@ mod tests_server {
         use ruma_common::api::OutgoingResponseExt;
 
         let response =
-            Response::new(ProfileFieldValue::AvatarUrl(owned_mxc_uri!("mxc://localhost/abcdef")));
+            Response::new(ProfileFieldValue::AvatarUrl(mxc_uri!("mxc://localhost/abcdef")));
 
         let http_response = response.try_into_http_response::<Vec<u8>>().unwrap();
 

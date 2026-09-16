@@ -8,8 +8,7 @@ use serde::{Deserialize, Serialize, de};
 use serde_json::{Value as JsonValue, value::RawValue as RawJsonValue};
 
 use crate::{
-    EventEncryptionAlgorithm, OwnedMxcUri, OwnedRoomAliasId, OwnedRoomId, PrivOwnedStr,
-    RoomVersionId,
+    EventEncryptionAlgorithm, MxcUri, OwnedRoomAliasId, OwnedRoomId, PrivOwnedStr, RoomVersionId,
     serde::{JsonObject, StringEnum, from_raw_json_value},
 };
 
@@ -381,7 +380,7 @@ pub struct RoomSummary {
     /// If you activate the `compat-empty-string-null` feature, this field being an empty string in
     /// JSON will result in `None` here during deserialization.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub avatar_url: Option<OwnedMxcUri>,
+    pub avatar_url: Option<MxcUri>,
 
     /// The type of room from `m.room.create`, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -458,7 +457,7 @@ impl<'de> Deserialize<'de> for RoomSummary {
                 feature = "compat-empty-string-null",
                 serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
             )]
-            avatar_url: Option<OwnedMxcUri>,
+            avatar_url: Option<MxcUri>,
             room_type: Option<RoomType>,
             num_joined_members: UInt,
             world_readable: bool,

@@ -11,7 +11,7 @@ pub mod v3 {
     use std::borrow::Cow;
 
     use ruma_common::{
-        OwnedMxcUri,
+        MxcUri,
         api::{auth_scheme::NoAccessToken, request, response},
         metadata,
         serde::{JsonObject, StringEnum},
@@ -201,7 +201,7 @@ pub mod v3 {
         pub name: String,
 
         /// The icon for the provider.
-        pub icon: Option<OwnedMxcUri>,
+        pub icon: Option<MxcUri>,
 
         /// The brand identifier for the provider.
         pub brand: Option<IdentityProviderBrand>,

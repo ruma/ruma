@@ -7,7 +7,7 @@ mod filter_room_type_serde;
 mod room_network_serde;
 
 use crate::{
-    OwnedMxcUri, OwnedRoomAliasId, OwnedRoomId, PrivOwnedStr,
+    MxcUri, OwnedRoomAliasId, OwnedRoomId, PrivOwnedStr,
     room::{JoinRuleKind, RoomSummary, RoomType},
 };
 
@@ -58,7 +58,7 @@ pub struct PublicRoomsChunk {
         feature = "compat-empty-string-null",
         serde(default, deserialize_with = "crate::serde::empty_string_as_none")
     )]
-    pub avatar_url: Option<OwnedMxcUri>,
+    pub avatar_url: Option<MxcUri>,
 
     /// The join rule of the room.
     #[serde(default, skip_serializing_if = "crate::serde::is_default")]

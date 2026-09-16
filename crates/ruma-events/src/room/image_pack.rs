@@ -4,7 +4,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use ruma_common::OwnedMxcUri;
+use ruma_common::MxcUri;
 use ruma_macros::{EventContent, StringEnum};
 use serde::{Deserialize, Serialize};
 
@@ -44,7 +44,7 @@ impl RoomImagePackEventContent {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct ImagePackImage {
     /// The MXC URI to the media file.
-    pub url: OwnedMxcUri,
+    pub url: MxcUri,
 
     /// An optional text body for this image.
     ///
@@ -61,7 +61,7 @@ pub struct ImagePackImage {
 
 impl ImagePackImage {
     /// Creates a new `ImagePackImage` with the given MXC URI to the media file.
-    pub fn new(url: OwnedMxcUri) -> Self {
+    pub fn new(url: MxcUri) -> Self {
         Self { url, body: None, info: None }
     }
 }
@@ -80,7 +80,7 @@ pub struct ImagePackMeta {
     ///
     /// If absent and the pack is defined in a room, defaults to the room's avatar.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub avatar_url: Option<OwnedMxcUri>,
+    pub avatar_url: Option<MxcUri>,
 
     /// The intended usage(s) for this pack.
     ///

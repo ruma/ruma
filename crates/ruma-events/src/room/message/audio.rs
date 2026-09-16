@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use js_int::UInt;
-use ruma_common::OwnedMxcUri;
+use ruma_common::MxcUri;
 use serde::{Deserialize, Serialize};
 
 use super::FormattedBody;
@@ -75,7 +75,7 @@ impl AudioMessageEventContent {
     }
 
     /// Creates a new non-encrypted `AudioMessageEventContent` with the given body and url.
-    pub fn plain(body: String, url: OwnedMxcUri) -> Self {
+    pub fn plain(body: String, url: MxcUri) -> Self {
         Self::new(body, MediaSource::Plain(url))
     }
 

@@ -31,7 +31,7 @@ pub use self::{
         DeviceSigningKeyId, KeyAlgorithm, KeyId, OneTimeKeyId, ServerSigningKeyId, SigningKeyId,
     },
     matrix_uri::{MatrixToUri, MatrixUri},
-    mxc_uri::{MxcUri, OwnedMxcUri},
+    mxc_uri::MxcUri,
     one_time_key_name::{OneTimeKeyName, OwnedOneTimeKeyName},
     room_alias_id::{OwnedRoomAliasId, RoomAliasId},
     room_id::{OwnedRoomId, RoomId},
@@ -188,6 +188,9 @@ pub mod __private_macros {
 
         pub static EVENT_ID_INTERNER: LazyLock<IdInterner<crate::EventId>> =
             LazyLock::new(IdInterner::new);
+
+        pub static MXC_URI_INTERNER: LazyLock<IdInterner<crate::MxcUri>> =
+            LazyLock::new(IdInterner::new);
     }
 }
 
@@ -314,7 +317,7 @@ macro_rules! owned_event_id {
     };
 }
 
-/// Compile-time checked [`&'static MxcUri`][MxcUri] construction.
+/// Compile-time checked [`MxcUri`] construction.
 #[macro_export]
 macro_rules! mxc_uri {
     ($s:literal) => {
@@ -324,26 +327,34 @@ macro_rules! mxc_uri {
 
 /// Compile-time checked [`&'static MxcUri`][MxcUri] construction.
 ///
-/// This is currently equivalent to [`mxc_uri!`]. However there is a plan to remove identifier DST
-/// types, so that other macro's return type will change while this macro is guaranteed to keep its
-/// return type. This macro allows to ease the transition for the expected change by allowing to
-/// migrate tests in advance.
+/// This macro is a helper to ease the transition after the change of [`MxcUri`] from a
+/// dynamically sized type to an owned type. It has the side effect of interning and leaking the
+/// identifier.
 ///
-/// This is behind an unstable cargo feature because it is likely to be removed soon after the DST
-/// identifier type removal.
+/// This is behind an unstable cargo feature because it is likely to be removed in a future
+/// non-breaking release.
 #[cfg(feature = "unstable-identifier-ref-macros")]
 #[macro_export]
 macro_rules! mxc_uri_ref {
     ($s:literal) => {
-        $crate::mxc_uri!($s)
+        $crate::__private_macros::id_interner::MXC_URI_INTERNER
+            .get_or_insert_with($s, || $crate::mxc_uri!($s))
     };
 }
 
-/// Compile-time checked [`OwnedMxcUri`] construction.
+/// Compile-time checked [`MxcUri`] construction.
+///
+/// This is currently equivalent to [`mxc_uri!`]. This is kept for backwards compatibility
+/// to ease the transition after the change of [`MxcUri`] from a dynamically sized type to
+/// an owned type.
+///
+/// This is behind an unstable cargo feature because it is likely to be removed in a future
+/// non-breaking release.
+#[cfg(feature = "unstable-identifier-owned-macros")]
 #[macro_export]
 macro_rules! owned_mxc_uri {
     ($s:literal) => {
-        $crate::mxc_uri!($s).to_owned()
+        $crate::mxc_uri!($s)
     };
 }
 
