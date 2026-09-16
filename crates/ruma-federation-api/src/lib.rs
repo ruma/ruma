@@ -27,6 +27,8 @@ pub mod openid;
 pub mod policy;
 pub mod query;
 pub mod room;
+#[cfg(feature = "unstable-msc4195")]
+pub mod rtc;
 pub mod space;
 pub mod thirdparty;
 pub mod transactions;
