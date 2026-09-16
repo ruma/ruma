@@ -13,7 +13,7 @@ pub mod v3 {
     //! [`create_receipt`]: crate::receipt::create_receipt
 
     use ruma_common::{
-        EventId, OwnedRoomId,
+        EventId, RoomId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -33,7 +33,7 @@ pub mod v3 {
     pub struct Request {
         /// The room ID to set the read marker in for the user.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The event ID the fully-read marker should be located at.
         ///
@@ -75,7 +75,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given room ID.
-        pub fn new(room_id: OwnedRoomId) -> Self {
+        pub fn new(room_id: RoomId) -> Self {
             Self { room_id, fully_read: None, read_receipt: None, private_read_receipt: None }
         }
     }

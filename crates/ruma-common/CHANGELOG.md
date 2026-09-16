@@ -34,6 +34,10 @@ Breaking changes:
     cargo feature and returns the same type. The `room_alias_id_ref!` macro behind the
     `unstable-identifier-ref-macros` cargo feature still allows to construct a
     `&'static RoomAliasId`.
+  - `OwnedRoomId` was renamed to `RoomId`. The `room_id!` macro now returns a `RoomId`, the
+    `owned_room_id!` macro is behind the `unstable-identifier-owned-macros` cargo feature and
+    returns the same type. The `room_id_ref!` macro behind the `unstable-identifier-ref-macros`
+    cargo feature still allows to construct a `&'static RoomId`.
 
 Improvements:
 

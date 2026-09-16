@@ -8,7 +8,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/v1.19/client-server-api/#get_matrixclientv1roomsroomidtimestamp_to_event
 
     use ruma_common::{
-        EventId, MilliSecondsSinceUnixEpoch, OwnedRoomId,
+        EventId, MilliSecondsSinceUnixEpoch, RoomId,
         api::{Direction, auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -28,7 +28,7 @@ pub mod v1 {
     pub struct Request {
         /// The ID of the room the event is in.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The timestamp to search from, inclusively.
         #[ruma_api(query)]
@@ -51,7 +51,7 @@ pub mod v1 {
 
     impl Request {
         /// Creates a new `Request` with the given room ID, timestamp and direction.
-        pub fn new(room_id: OwnedRoomId, ts: MilliSecondsSinceUnixEpoch, dir: Direction) -> Self {
+        pub fn new(room_id: RoomId, ts: MilliSecondsSinceUnixEpoch, dir: Direction) -> Self {
             Self { room_id, ts, dir }
         }
 
@@ -59,7 +59,7 @@ pub mod v1 {
         /// `Backward`.
         ///
         /// Allows to have the latest event before or including the given timestamp.
-        pub fn until(room_id: OwnedRoomId, ts: MilliSecondsSinceUnixEpoch) -> Self {
+        pub fn until(room_id: RoomId, ts: MilliSecondsSinceUnixEpoch) -> Self {
             Self::new(room_id, ts, Direction::Backward)
         }
 
@@ -67,7 +67,7 @@ pub mod v1 {
         /// `Forward`.
         ///
         /// Allows to have the earliest event including or after the given timestamp.
-        pub fn since(room_id: OwnedRoomId, ts: MilliSecondsSinceUnixEpoch) -> Self {
+        pub fn since(room_id: RoomId, ts: MilliSecondsSinceUnixEpoch) -> Self {
             Self::new(room_id, ts, Direction::Forward)
         }
     }

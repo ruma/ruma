@@ -131,7 +131,7 @@ impl SyncRoomJoinRulesEvent {
 #[cfg(test)]
 mod tests {
     use assert_matches2::assert_matches;
-    use ruma_common::owned_room_id;
+    use ruma_common::room_id;
     use serde_json::json;
     use strass::assert_let;
 
@@ -173,8 +173,8 @@ mod tests {
         assert_eq!(
             restricted.allow,
             &[
-                AllowRule::room_membership(owned_room_id!("!mods:example.org")),
-                AllowRule::room_membership(owned_room_id!("!users:example.org"))
+                AllowRule::room_membership(room_id!("!mods:example.org")),
+                AllowRule::room_membership(room_id!("!users:example.org"))
             ]
         );
 
@@ -183,8 +183,8 @@ mod tests {
         assert_eq!(
             restricted.allow,
             &[
-                AllowRule::room_membership(owned_room_id!("!mods:example.org")),
-                AllowRule::room_membership(owned_room_id!("!users:example.org"))
+                AllowRule::room_membership(room_id!("!mods:example.org")),
+                AllowRule::room_membership(room_id!("!users:example.org"))
             ]
         );
     }

@@ -12,7 +12,7 @@ use serde_json::Value as JsonValue;
 use wildmatch::WildMatch;
 
 use crate::{
-    EventId, OwnedRoomId, OwnedUserId, UserId,
+    EventId, OwnedUserId, RoomId, UserId,
     power_levels::{NotificationPowerLevels, NotificationPowerLevelsKey},
     room_version_rules::RoomPowerLevelsRules,
     serde::JsonObject,
@@ -518,7 +518,7 @@ pub(super) fn check_event_match(
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct PushConditionRoomCtx {
     /// The ID of the room.
-    pub room_id: OwnedRoomId,
+    pub room_id: RoomId,
 
     /// The number of members in the room.
     pub member_count: UInt,
@@ -588,7 +588,7 @@ impl std::fmt::Debug for PushConditionRoomCtx {
 impl PushConditionRoomCtx {
     /// Create a new `PushConditionRoomCtx`.
     pub fn new(
-        room_id: OwnedRoomId,
+        room_id: RoomId,
         member_count: UInt,
         user_id: OwnedUserId,
         user_display_name: String,
@@ -896,8 +896,9 @@ mod tests {
         StrExt,
     };
     use crate::{
-        OwnedUserId, assert_to_canonical_json_eq, owned_room_id, owned_user_id,
+        OwnedUserId, assert_to_canonical_json_eq, owned_user_id,
         power_levels::{NotificationPowerLevels, NotificationPowerLevelsKey},
+        room_id,
         room_version_rules::{AuthorizationRules, RoomPowerLevelsRules},
     };
 
@@ -1102,7 +1103,7 @@ mod tests {
         };
 
         let mut ctx = PushConditionRoomCtx::new(
-            owned_room_id!("!room:server.name"),
+            room_id!("!room:server.name"),
             uint!(3),
             owned_user_id!("@gorilla:server.name"),
             "Groovy Gorilla".into(),
@@ -1223,7 +1224,7 @@ mod tests {
         let context_not_matching = push_context();
         let context_matching = assign!(
             PushConditionRoomCtx::new(
-                owned_room_id!("!room:server.name"),
+                room_id!("!room:server.name"),
                 uint!(3),
                 owned_user_id!("@gorilla:server.name"),
                 "Groovy Gorilla".into(),

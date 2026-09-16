@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.19/client-server-api/#put_matrixclientv3useruseridroomsroomidtagstag
 
     use ruma_common::{
-        OwnedRoomId, OwnedUserId,
+        OwnedUserId, RoomId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -33,7 +33,7 @@ pub mod v3 {
 
         /// The room to tag.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The name of the tag to create.
         #[ruma_api(path)]
@@ -51,12 +51,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given user ID, room ID, tag and tag info.
-        pub fn new(
-            user_id: OwnedUserId,
-            room_id: OwnedRoomId,
-            tag: String,
-            tag_info: TagInfo,
-        ) -> Self {
+        pub fn new(user_id: OwnedUserId, room_id: RoomId, tag: String, tag_info: TagInfo) -> Self {
             Self { user_id, room_id, tag, tag_info }
         }
     }

@@ -255,7 +255,7 @@ mod tests {
     use assert_matches2::assert_matches;
     use js_int::{int, uint};
     use ruma_common::{
-        EventId, MilliSecondsSinceUnixEpoch, OwnedRoomId, OwnedUserId, device_id, user_id,
+        EventId, MilliSecondsSinceUnixEpoch, OwnedUserId, RoomId, device_id, user_id,
     };
     use serde_json::{Value as JsonValue, from_value as from_json_value, json};
     use strass::assert_let;
@@ -636,7 +636,7 @@ mod tests {
 
         let event_id = EventId::try_from("$3qfxjGYSu4sL25FtR0ep6vePOc").unwrap();
         let sender = OwnedUserId::try_from("@user:example.org").unwrap();
-        let room_id = OwnedRoomId::try_from("!1234:example.org").unwrap();
+        let room_id = RoomId::try_from("!1234:example.org").unwrap();
         assert_eq!(member_event.state_key.as_ref(), state_key);
         assert_eq!(member_event.event_id, event_id);
         assert_eq!(member_event.sender, sender);

@@ -3,8 +3,7 @@
 //! [`m.room.create`]: https://spec.matrix.org/v1.19/client-server-api/#mroomcreate
 
 use ruma_common::{
-    EventId, OwnedRoomId, OwnedUserId, RoomVersionId, room::RoomType,
-    room_version_rules::RedactionRules,
+    EventId, OwnedUserId, RoomId, RoomVersionId, room::RoomType, room_version_rules::RedactionRules,
 };
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
@@ -119,7 +118,7 @@ impl RedactContent for RoomCreateEventContent {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct PreviousRoom {
     /// The ID of the old room.
-    pub room_id: OwnedRoomId,
+    pub room_id: RoomId,
 
     /// The event ID of the last known event in the old room.
     #[deprecated = "\
@@ -131,7 +130,7 @@ pub struct PreviousRoom {
 
 impl PreviousRoom {
     /// Creates a new `PreviousRoom` from the given room ID.
-    pub fn new(room_id: OwnedRoomId) -> Self {
+    pub fn new(room_id: RoomId) -> Self {
         #[allow(deprecated)]
         Self { room_id, event_id: None }
     }

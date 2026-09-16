@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.19/client-server-api/#get_matrixclientv3roomsroomideventeventid
 
     use ruma_common::{
-        EventId, OwnedRoomId,
+        EventId, RoomId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::Raw,
@@ -30,7 +30,7 @@ pub mod v3 {
     pub struct Request {
         /// The ID of the room the event is in.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The ID of the event.
         #[ruma_api(path)]
@@ -47,7 +47,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given room ID and event ID.
-        pub fn new(room_id: OwnedRoomId, event_id: EventId) -> Self {
+        pub fn new(room_id: RoomId, event_id: EventId) -> Self {
             Self { room_id, event_id }
         }
     }

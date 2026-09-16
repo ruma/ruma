@@ -67,7 +67,7 @@ pub mod unstable {
 
         use js_int::UInt;
         use ruma_common::{
-            MilliSecondsSinceUnixEpoch, api::OutgoingResponseExt as _, event_id, owned_room_id,
+            MilliSecondsSinceUnixEpoch, api::OutgoingResponseExt as _, event_id, room_id,
             serde::Raw,
         };
         use ruma_events::TimelineEventType;
@@ -85,7 +85,7 @@ pub mod unstable {
 
             let mut event_data = DelayedEventData::new(
                 "a_delay_id".to_owned(),
-                owned_room_id!("!roomid:example.org"),
+                room_id!("!roomid:example.org"),
                 TimelineEventType::RoomTopic,
                 Some("a_state_key".to_owned()),
                 Raw::from_json_string(content).unwrap(),

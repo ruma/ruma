@@ -78,9 +78,9 @@ pub fn check_pdu_format(pdu: &CanonicalJsonObject, rules: &EventFormatRules) -> 
         // The only case where the room ID should be missing is for m.room.create which shouldn't
         // have any auth_events.
         if let Some(room_id) = room_id {
-            let room_create_event_reference_hash = <&RoomId>::try_from(room_id.as_str())
-                .map_err(|e| format!("invalid `room_id` field in PDU: {e}"))?
-                .strip_sigil();
+            let room_id = RoomId::try_from(room_id.as_str())
+                .map_err(|e| format!("invalid `room_id` field in PDU: {e}"))?;
+            let room_create_event_reference_hash = room_id.strip_sigil();
 
             for event_id in auth_events {
                 let CanonicalJsonValue::String(event_id) = event_id else {

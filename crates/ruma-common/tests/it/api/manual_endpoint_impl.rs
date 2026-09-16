@@ -8,7 +8,7 @@ use std::borrow::Cow;
 use bytes::BufMut;
 use http::method::Method;
 use ruma_common::{
-    OwnedRoomId, RoomAliasId,
+    RoomAliasId, RoomId,
     api::{
         EmptyBody, IncomingRequest, IncomingResponse, MatrixVersion, Metadata, OutgoingBody,
         OutgoingRequest, OutgoingResponse, SupportedVersions,
@@ -23,7 +23,7 @@ use serde::{Deserialize, Serialize};
 /// A request to create a new room alias.
 #[derive(Debug, Clone)]
 pub struct Request {
-    pub room_id: OwnedRoomId,    // body
+    pub room_id: RoomId,         // body
     pub room_alias: RoomAliasId, // path
 }
 
@@ -105,7 +105,7 @@ impl IncomingRequest for Request {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RequestBody {
-    room_id: OwnedRoomId,
+    room_id: RoomId,
 }
 
 impl OutgoingBody for RequestBody {

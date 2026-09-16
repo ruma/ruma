@@ -1,6 +1,7 @@
 use ruma_common::{
-    RoomVersionId, event_id, owned_room_id,
+    RoomVersionId, event_id,
     room::{AllowRule, RoomMembership},
+    room_id,
     room_version_rules::AuthorizationRules,
 };
 use ruma_events::{
@@ -308,7 +309,7 @@ fn join_restricted_join_rule_not_supported() {
         event_id!("$room-join-rules-restricted"),
         UserFactory::Alice.user_id(),
         JoinRule::Restricted(Restricted::new(vec![AllowRule::RoomMembership(
-            RoomMembership::new(owned_room_id!("!space:matrix.local")),
+            RoomMembership::new(room_id!("!space:matrix.local")),
         )])),
     );
 
@@ -341,7 +342,7 @@ fn join_knock_restricted_join_rule_not_supported() {
         event_id!("$room-join-rules-knock-restricted"),
         UserFactory::Alice.user_id(),
         JoinRule::KnockRestricted(Restricted::new(vec![AllowRule::RoomMembership(
-            RoomMembership::new(owned_room_id!("!space:matrix.local")),
+            RoomMembership::new(room_id!("!space:matrix.local")),
         )])),
     );
 
@@ -374,7 +375,7 @@ fn join_restricted_join_rule_already_joined() {
         event_id!("$room-join-rules-restricted"),
         UserFactory::Alice.user_id(),
         JoinRule::Restricted(Restricted::new(vec![AllowRule::RoomMembership(
-            RoomMembership::new(owned_room_id!("!space:matrix.local")),
+            RoomMembership::new(room_id!("!space:matrix.local")),
         )])),
     );
 
@@ -405,7 +406,7 @@ fn join_knock_restricted_join_rule_already_invited() {
         event_id!("$room-join-rules-knock-restricted"),
         alice_id.clone(),
         JoinRule::KnockRestricted(Restricted::new(vec![AllowRule::RoomMembership(
-            RoomMembership::new(owned_room_id!("!space:matrix.local")),
+            RoomMembership::new(room_id!("!space:matrix.local")),
         )])),
     );
     factory.add_room_member(
@@ -439,7 +440,7 @@ fn join_restricted_join_rule_missing_join_authorised_via_users_server() {
         event_id!("$room-join-rules-restricted"),
         UserFactory::Alice.user_id(),
         JoinRule::Restricted(Restricted::new(vec![AllowRule::RoomMembership(
-            RoomMembership::new(owned_room_id!("!space:matrix.local")),
+            RoomMembership::new(room_id!("!space:matrix.local")),
         )])),
     );
 
@@ -471,7 +472,7 @@ fn join_restricted_join_rule_authorised_via_user_not_in_room() {
         event_id!("$room-join-rules-restricted"),
         UserFactory::Alice.user_id(),
         JoinRule::Restricted(Restricted::new(vec![AllowRule::RoomMembership(
-            RoomMembership::new(owned_room_id!("!space:matrix.local")),
+            RoomMembership::new(room_id!("!space:matrix.local")),
         )])),
     );
 
@@ -504,7 +505,7 @@ fn join_restricted_join_rule_authorised_via_user_with_not_enough_power() {
         event_id!("$room-join-rules-restricted"),
         alice_id.clone(),
         JoinRule::Restricted(Restricted::new(vec![AllowRule::RoomMembership(
-            RoomMembership::new(owned_room_id!("!space:matrix.local")),
+            RoomMembership::new(room_id!("!space:matrix.local")),
         )])),
     );
     factory.add_room_power_levels(
@@ -1676,7 +1677,7 @@ fn knock_knock_restricted_join_rule() {
         event_id!("$room-join-rules-knock-restricted"),
         UserFactory::Alice.user_id(),
         JoinRule::KnockRestricted(Restricted::new(vec![AllowRule::RoomMembership(
-            RoomMembership::new(owned_room_id!("!space:matrix.local")),
+            RoomMembership::new(room_id!("!space:matrix.local")),
         )])),
     );
 
@@ -1704,7 +1705,7 @@ fn knock_knock_restricted_join_rule_not_supported() {
         event_id!("$room-join-rules-knock-restricted"),
         UserFactory::Alice.user_id(),
         JoinRule::KnockRestricted(Restricted::new(vec![AllowRule::RoomMembership(
-            RoomMembership::new(owned_room_id!("!space:matrix.local")),
+            RoomMembership::new(room_id!("!space:matrix.local")),
         )])),
     );
 

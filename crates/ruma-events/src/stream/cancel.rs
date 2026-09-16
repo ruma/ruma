@@ -2,7 +2,7 @@
 //!
 //! [MSC4471]: https://github.com/matrix-org/matrix-spec-proposals/pull/4471
 
-use ruma_common::{DeviceId, EventId, OwnedRoomId, serde::StringEnum};
+use ruma_common::{DeviceId, EventId, RoomId, serde::StringEnum};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -20,7 +20,7 @@ use crate::PrivOwnedStr;
 )]
 pub struct ToDeviceStreamCancelEventContent {
     /// The room containing the stream descriptor.
-    pub room_id: OwnedRoomId,
+    pub room_id: RoomId,
 
     /// The event containing the stream descriptor.
     pub event_id: EventId,
@@ -42,7 +42,7 @@ impl ToDeviceStreamCancelEventContent {
     /// Creates a new `ToDeviceStreamCancelEventContent` with the given room,
     /// event, subscriber device, and code.
     pub fn new(
-        room_id: OwnedRoomId,
+        room_id: RoomId,
         event_id: EventId,
         subscriber_device_id: DeviceId,
         code: StreamCancelCode,
@@ -81,9 +81,7 @@ pub enum StreamCancelCode {
 
 #[cfg(test)]
 mod tests {
-    use ruma_common::{
-        canonical_json::assert_to_canonical_json_eq, device_id, event_id, owned_room_id,
-    };
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, device_id, event_id, room_id};
     use serde_json::{from_value as from_json_value, json};
     use strass::assert_let;
 
@@ -93,7 +91,7 @@ mod tests {
     #[test]
     fn cancel_round_trip() {
         let mut content = ToDeviceStreamCancelEventContent::new(
-            owned_room_id!("!room:example.org"),
+            room_id!("!room:example.org"),
             event_id!("$event:example.org"),
             device_id!("SUBSCRIBERDEVICE"),
             StreamCancelCode::UnknownStream,

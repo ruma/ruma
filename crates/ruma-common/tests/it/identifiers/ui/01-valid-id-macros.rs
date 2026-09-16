@@ -21,6 +21,7 @@ fn main() {
         _ = ruma_common::owned_event_id!("$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk");
         _ = ruma_common::owned_mxc_uri!("mxc://myserver.fish/sdfdsfsdfsdfgsdfsd");
         _ = ruma_common::owned_room_alias_id!("#alias:server.tld");
+        _ = ruma_common::owned_room_id!("!1234567890:matrix.org");
         _ = ruma_common::owned_server_name!("myserver.fish");
         _ = ruma_common::owned_server_signing_key_version!("Abc_1");
         _ = ruma_common::owned_session_id!("Sessi0n");
@@ -35,6 +36,7 @@ fn main() {
         _ = ruma_common::event_id_ref!("$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk");
         _ = ruma_common::mxc_uri_ref!("mxc://myserver.fish/sdfdsfsdfsdfgsdfsd");
         _ = ruma_common::room_alias_id_ref!("#alias:server.tld");
+        _ = ruma_common::room_id_ref!("!1234567890:matrix.org");
         _ = ruma_common::server_name_ref!("myserver.fish");
         _ = ruma_common::server_signing_key_version_ref!("Abc_1");
         _ = ruma_common::session_id_ref!("Sessi0n");

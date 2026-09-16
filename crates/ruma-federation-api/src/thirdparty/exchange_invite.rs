@@ -12,7 +12,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/v1.19/server-server-api/#put_matrixfederationv1exchange_third_party_inviteroomid
 
     use ruma_common::{
-        OwnedRoomId, OwnedUserId,
+        OwnedUserId, RoomId,
         api::{request, response},
         metadata,
         serde::Raw,
@@ -39,7 +39,7 @@ pub mod v1 {
     pub struct Request {
         /// The room ID to exchange the third-party invite in.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The event type.
         ///
@@ -67,7 +67,7 @@ pub mod v1 {
     impl Request {
         /// Creates a new `Request` for a third-party invite exchange.
         pub fn new(
-            room_id: OwnedRoomId,
+            room_id: RoomId,
             sender: OwnedUserId,
             state_key: OwnedUserId,
             content: Raw<RoomMemberEventContent>,
@@ -79,7 +79,7 @@ pub mod v1 {
         ///
         /// Returns an error if the serialization of the event content fails.
         pub fn with_third_party_invite(
-            room_id: OwnedRoomId,
+            room_id: RoomId,
             sender: OwnedUserId,
             state_key: OwnedUserId,
             third_party_invite: ThirdPartyInvite,

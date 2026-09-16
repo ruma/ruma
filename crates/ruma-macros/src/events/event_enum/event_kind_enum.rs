@@ -530,7 +530,7 @@ impl<'a> EventEnumVariation<'a> {
             #[automatically_derived]
             impl #ident {
                 /// Convert this sync event into a full event (one with a `room_id` field).
-                pub fn into_full_event(self, room_id: #ruma_common::OwnedRoomId) -> #full {
+                pub fn into_full_event(self, room_id: #ruma_common::RoomId) -> #full {
                     match self {
                         #(
                             #( #variant_attrs )*

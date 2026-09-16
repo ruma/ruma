@@ -6,7 +6,7 @@
 
 use std::collections::BTreeMap;
 
-use ruma_common::{OwnedRoomId, OwnedServerName, OwnedUserId};
+use ruma_common::{OwnedServerName, OwnedUserId, RoomId};
 use ruma_macros::{EventContent, StringEnum};
 use serde::{Deserialize, Serialize};
 
@@ -72,7 +72,7 @@ pub struct PresenceSharingEventContent {
     ///
     /// Sharing presence with rooms also depends on the room's presence sharing hint.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub rooms: BTreeMap<OwnedRoomId, RoomPresenceSharingState>,
+    pub rooms: BTreeMap<RoomId, RoomPresenceSharingState>,
 
     /// Configuration for sharing presence with servers.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
@@ -84,7 +84,7 @@ impl PresenceSharingEventContent {
     pub fn new(
         share_locally: bool,
         users: BTreeMap<OwnedUserId, UserPresenceSharingState>,
-        rooms: BTreeMap<OwnedRoomId, RoomPresenceSharingState>,
+        rooms: BTreeMap<RoomId, RoomPresenceSharingState>,
         servers: BTreeMap<OwnedServerName, ServerPresenceSharingState>,
     ) -> Self {
         Self { share_locally, users, rooms, servers }
@@ -94,8 +94,7 @@ impl PresenceSharingEventContent {
 #[cfg(test)]
 mod tests {
     use ruma_common::{
-        canonical_json::assert_to_canonical_json_eq, owned_room_id, owned_server_name,
-        owned_user_id,
+        canonical_json::assert_to_canonical_json_eq, owned_server_name, owned_user_id, room_id,
     };
     use serde_json::{from_value as from_json_value, json};
 
@@ -113,7 +112,7 @@ mod tests {
                 (owned_user_id!("@mallory:example.com"), UserPresenceSharingState::Deny),
             ]
             .into(),
-            rooms: [(owned_room_id!("!family-group-chat"), RoomPresenceSharingState::Allow)].into(),
+            rooms: [(room_id!("!family-group-chat"), RoomPresenceSharingState::Allow)].into(),
             servers: [(owned_server_name!("matrix.org"), ServerPresenceSharingState::Deny)].into(),
         };
 

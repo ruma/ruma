@@ -4,7 +4,7 @@ use std::hint::unreachable_unchecked;
 
 use ruma_macros::IdDst;
 
-use super::{OwnedRoomId, RoomAliasId, RoomId, server_name::ServerName};
+use super::{RoomAliasId, RoomId, server_name::ServerName};
 
 /// A Matrix [room ID] or a Matrix [room alias ID].
 ///
@@ -78,8 +78,8 @@ impl<'a> From<&'a RoomAliasId> for &'a RoomOrAliasId {
     }
 }
 
-impl From<OwnedRoomId> for OwnedRoomOrAliasId {
-    fn from(room_id: OwnedRoomId) -> Self {
+impl From<RoomId> for OwnedRoomOrAliasId {
+    fn from(room_id: RoomId) -> Self {
         unsafe { Self::from_inner_unchecked(room_id.into_inner()) }
     }
 }
@@ -90,10 +90,10 @@ impl From<RoomAliasId> for OwnedRoomOrAliasId {
     }
 }
 
-impl TryFrom<OwnedRoomOrAliasId> for OwnedRoomId {
+impl TryFrom<OwnedRoomOrAliasId> for RoomId {
     type Error = RoomAliasId;
 
-    fn try_from(id: OwnedRoomOrAliasId) -> Result<OwnedRoomId, RoomAliasId> {
+    fn try_from(id: OwnedRoomOrAliasId) -> Result<RoomId, RoomAliasId> {
         let variant = id.variant();
         let inner = id.into_inner();
 
@@ -107,16 +107,16 @@ impl TryFrom<OwnedRoomOrAliasId> for OwnedRoomId {
 }
 
 impl TryFrom<OwnedRoomOrAliasId> for RoomAliasId {
-    type Error = OwnedRoomId;
+    type Error = RoomId;
 
-    fn try_from(id: OwnedRoomOrAliasId) -> Result<RoomAliasId, OwnedRoomId> {
+    fn try_from(id: OwnedRoomOrAliasId) -> Result<RoomAliasId, RoomId> {
         let variant = id.variant();
         let inner = id.into_inner();
 
         unsafe {
             match variant {
                 Variant::RoomAliasId => Ok(Self::from_inner_unchecked(inner)),
-                Variant::RoomId => Err(OwnedRoomId::from_inner_unchecked(inner)),
+                Variant::RoomId => Err(RoomId::from_inner_unchecked(inner)),
             }
         }
     }

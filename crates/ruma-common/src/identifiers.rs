@@ -34,7 +34,7 @@ pub use self::{
     mxc_uri::MxcUri,
     one_time_key_name::OneTimeKeyName,
     room_alias_id::RoomAliasId,
-    room_id::{OwnedRoomId, RoomId},
+    room_id::RoomId,
     room_or_alias_id::{OwnedRoomOrAliasId, RoomOrAliasId},
     room_version_id::RoomVersionId,
     server_name::{OwnedServerName, ServerName},
@@ -193,6 +193,9 @@ pub mod __private_macros {
             LazyLock::new(IdInterner::new);
 
         pub static ROOM_ALIAS_ID_INTERNER: LazyLock<IdInterner<crate::RoomAliasId>> =
+            LazyLock::new(IdInterner::new);
+
+        pub static ROOM_ID_INTERNER: LazyLock<IdInterner<crate::RoomId>> =
             LazyLock::new(IdInterner::new);
     }
 }
@@ -402,7 +405,7 @@ macro_rules! owned_room_alias_id {
     };
 }
 
-/// Compile-time checked [`&'static RoomId`][RoomId] construction.
+/// Compile-time checked [`RoomId`] construction.
 #[macro_export]
 macro_rules! room_id {
     ($s:literal) => {
@@ -412,26 +415,33 @@ macro_rules! room_id {
 
 /// Compile-time checked [`&'static RoomId`][RoomId] construction.
 ///
-/// This is currently equivalent to [`room_id!`]. However there is a plan to remove identifier
-/// DST types, so that other macro's return type will change while this macro is guaranteed to keep
-/// its return type. This macro allows to ease the transition for the expected change by allowing to
-/// migrate tests in advance.
+/// This macro is a helper to ease the transition after the change of [`RoomId`] from a
+/// dynamically sized type to an owned type. It has the side effect of interning and leaking the
+/// identifier.
 ///
-/// This is behind an unstable cargo feature because it is likely to be removed soon after the DST
-/// identifier type removal.
+/// This is behind an unstable cargo feature because it is likely to be removed in a future
+/// non-breaking release.
 #[cfg(feature = "unstable-identifier-ref-macros")]
 #[macro_export]
 macro_rules! room_id_ref {
     ($s:literal) => {
-        $crate::room_id!($s)
+        $crate::__private_macros::id_interner::ROOM_ID_INTERNER
+            .get_or_insert_with($s, || $crate::room_id!($s))
     };
 }
 
-/// Compile-time checked [`OwnedRoomId`] construction.
+/// Compile-time checked [`RoomId`] construction.
+///
+/// This is currently equivalent to [`room_id!`]. This is kept for backwards compatibility to ease
+/// the transition after the change of [`RoomId`] from a dynamically sized type to an owned type.
+///
+/// This is behind an unstable cargo feature because it is likely to be removed in a future
+/// non-breaking release.
+#[cfg(feature = "unstable-identifier-owned-macros")]
 #[macro_export]
 macro_rules! owned_room_id {
     ($s:literal) => {
-        $crate::room_id!($s).to_owned()
+        $crate::room_id!($s)
     };
 }
 

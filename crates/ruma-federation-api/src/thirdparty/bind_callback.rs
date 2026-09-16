@@ -10,7 +10,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/v1.19/server-server-api/#put_matrixfederationv13pidonbind
 
     use ruma_common::{
-        OwnedRoomId, OwnedUserId,
+        OwnedUserId, RoomId,
         api::{auth_scheme::NoAuthentication, request, response},
         metadata,
         serde::Raw,
@@ -84,7 +84,7 @@ pub mod v1 {
         pub mxid: OwnedUserId,
 
         /// The room ID the invite is valid for.
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The user ID that sent the invite.
         pub sender: OwnedUserId,
@@ -99,7 +99,7 @@ pub mod v1 {
         pub fn new(
             address: String,
             mxid: OwnedUserId,
-            room_id: OwnedRoomId,
+            room_id: RoomId,
             sender: OwnedUserId,
             signed: Raw<SignedContent>,
         ) -> Self {
