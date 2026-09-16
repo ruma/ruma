@@ -7,8 +7,8 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
+pub use ruma_common::DirectUserIdentifier;
 use ruma_common::OwnedRoomId;
-pub use ruma_common::{DirectUserIdentifier, OwnedDirectUserIdentifier};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -21,10 +21,10 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Default, Deserialize, Serialize, EventContent)]
 #[allow(clippy::exhaustive_structs)]
 #[ruma_event(type = "m.direct", kind = GlobalAccountData)]
-pub struct DirectEventContent(pub BTreeMap<OwnedDirectUserIdentifier, Vec<OwnedRoomId>>);
+pub struct DirectEventContent(pub BTreeMap<DirectUserIdentifier, Vec<OwnedRoomId>>);
 
 impl Deref for DirectEventContent {
-    type Target = BTreeMap<OwnedDirectUserIdentifier, Vec<OwnedRoomId>>;
+    type Target = BTreeMap<DirectUserIdentifier, Vec<OwnedRoomId>>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -38,18 +38,18 @@ impl DerefMut for DirectEventContent {
 }
 
 impl IntoIterator for DirectEventContent {
-    type Item = (OwnedDirectUserIdentifier, Vec<OwnedRoomId>);
-    type IntoIter = btree_map::IntoIter<OwnedDirectUserIdentifier, Vec<OwnedRoomId>>;
+    type Item = (DirectUserIdentifier, Vec<OwnedRoomId>);
+    type IntoIter = btree_map::IntoIter<DirectUserIdentifier, Vec<OwnedRoomId>>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
     }
 }
 
-impl FromIterator<(OwnedDirectUserIdentifier, Vec<OwnedRoomId>)> for DirectEventContent {
+impl FromIterator<(DirectUserIdentifier, Vec<OwnedRoomId>)> for DirectEventContent {
     fn from_iter<T>(iter: T) -> Self
     where
-        T: IntoIterator<Item = (OwnedDirectUserIdentifier, Vec<OwnedRoomId>)>,
+        T: IntoIterator<Item = (DirectUserIdentifier, Vec<OwnedRoomId>)>,
     {
         Self(BTreeMap::from_iter(iter))
     }

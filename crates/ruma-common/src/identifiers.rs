@@ -24,7 +24,7 @@ pub use self::{
         SigningKeyAlgorithm,
     },
     device_id::DeviceId,
-    direct_user_identifier::{DirectUserIdentifier, OwnedDirectUserIdentifier},
+    direct_user_identifier::DirectUserIdentifier,
     event_id::{EventId, OwnedEventId},
     key_id::{
         AnyKeyName, CrossSigningKeyId, CrossSigningOrDeviceSigningKeyId, DeviceKeyId,
