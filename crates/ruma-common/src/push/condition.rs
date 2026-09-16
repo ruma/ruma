@@ -470,12 +470,12 @@ impl ThreadSubscriptionConditionData {
 
         // Retrieve the thread root event ID.
         let Some(Ok(thread_root)) =
-            event.get_str("content.m\\.relates_to.event_id").map(<&EventId>::try_from)
+            event.get_str("content.m\\.relates_to.event_id").map(EventId::try_from)
         else {
             return false;
         };
 
-        let is_subscribed = has_thread_subscription_fn(thread_root).await;
+        let is_subscribed = has_thread_subscription_fn(&thread_root).await;
 
         self.subscribed == is_subscribed
     }

@@ -2,8 +2,8 @@
 
 use js_int::uint;
 use ruma_common::{
-    MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, owned_event_id,
-    room_id, serde::CanBeEmpty, user_id,
+    MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, event_id, room_id,
+    serde::CanBeEmpty, user_id,
 };
 use ruma_events::{
     AnyMessageLikeEvent, MessageLikeEvent, beacon::BeaconEventContent, relation::Reference,
@@ -13,7 +13,7 @@ use strass::assert_let;
 
 fn get_beacon_event_content() -> BeaconEventContent {
     BeaconEventContent::new(
-        owned_event_id!("$beacon_info_event_id:example.com"),
+        event_id!("$beacon_info_event_id:example.com"),
         "geo:51.5008,0.1247;u=35".to_owned(),
         Some(MilliSecondsSinceUnixEpoch(uint!(1_636_829_458))),
     )

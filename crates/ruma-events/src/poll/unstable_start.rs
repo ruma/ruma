@@ -10,7 +10,7 @@ mod content_serde;
 mod unstable_poll_answers_serde;
 mod unstable_poll_kind_serde;
 
-use ruma_common::{MilliSecondsSinceUnixEpoch, OwnedEventId, room_version_rules::RedactionRules};
+use ruma_common::{EventId, MilliSecondsSinceUnixEpoch, room_version_rules::RedactionRules};
 
 use self::unstable_poll_answers_serde::UnstablePollAnswersDeHelper;
 use super::{
@@ -189,7 +189,7 @@ impl ReplacementUnstablePollStartEventContent {
     /// replaces the event with the given ID.
     ///
     /// The constructed content does not have a fallback by default.
-    pub fn new(poll_start: UnstablePollStartContentBlock, replaces: OwnedEventId) -> Self {
+    pub fn new(poll_start: UnstablePollStartContentBlock, replaces: EventId) -> Self {
         Self {
             poll_start: None,
             text: None,
@@ -207,7 +207,7 @@ impl ReplacementUnstablePollStartEventContent {
     pub fn plain_text(
         text: impl Into<String>,
         poll_start: UnstablePollStartContentBlock,
-        replaces: OwnedEventId,
+        replaces: EventId,
     ) -> Self {
         Self {
             poll_start: None,

@@ -5,8 +5,8 @@
 use as_variant::as_variant;
 use js_int::Int;
 use ruma_common::{
-    EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedTransactionId,
-    OwnedUserId, RoomId, UserId,
+    EventId, MilliSecondsSinceUnixEpoch, OwnedRoomId, OwnedTransactionId, OwnedUserId, RoomId,
+    UserId,
     canonical_json::RedactionEvent,
     room_version_rules::RedactionRules,
     serde::{CanBeEmpty, JsonCastable, JsonObject},
@@ -60,10 +60,10 @@ pub struct OriginalRoomRedactionEvent {
     /// The ID of the event that was redacted.
     ///
     /// This field is required in room versions prior to 11.
-    pub redacts: Option<OwnedEventId>,
+    pub redacts: Option<EventId>,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: OwnedEventId,
+    pub event_id: EventId,
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: OwnedUserId,
@@ -110,7 +110,7 @@ pub struct RedactedRoomRedactionEvent {
     pub content: RedactedRoomRedactionEventContent,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: OwnedEventId,
+    pub event_id: EventId,
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: OwnedUserId,
@@ -143,10 +143,10 @@ pub struct OriginalSyncRoomRedactionEvent {
     /// The ID of the event that was redacted.
     ///
     /// This field is required in room versions prior to 11.
-    pub redacts: Option<OwnedEventId>,
+    pub redacts: Option<EventId>,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: OwnedEventId,
+    pub event_id: EventId,
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: OwnedUserId,
@@ -191,7 +191,7 @@ pub struct RedactedSyncRoomRedactionEvent {
     pub content: RedactedRoomRedactionEventContent,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: OwnedEventId,
+    pub event_id: EventId,
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: OwnedUserId,
@@ -216,7 +216,7 @@ pub struct RoomRedactionEventContent {
     ///
     /// This field is required starting from room version 11.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub redacts: Option<OwnedEventId>,
+    pub redacts: Option<EventId>,
 
     /// The reason for the redaction, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -231,7 +231,7 @@ impl RoomRedactionEventContent {
 
     /// Creates a `RoomRedactionEventContent` with the required `redacts` field introduced in room
     /// version 11.
-    pub fn new_v11(redacts: OwnedEventId) -> Self {
+    pub fn new_v11(redacts: EventId) -> Self {
         Self { redacts: Some(redacts), ..Default::default() }
     }
 
@@ -259,7 +259,7 @@ pub struct RedactedRoomRedactionEventContent {
     ///
     /// This field is required starting from room version 11.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub redacts: Option<OwnedEventId>,
+    pub redacts: Option<EventId>,
 }
 
 impl StaticEventContent for RedactedRoomRedactionEventContent {
@@ -323,7 +323,7 @@ impl RoomRedactionEvent {
     pub fn redacts(&self, rules: &RedactionRules) -> Option<&EventId> {
         match self {
             Self::Original(ev) => Some(ev.redacts(rules)),
-            Self::Redacted(ev) => ev.content.redacts.as_deref(),
+            Self::Redacted(ev) => ev.content.redacts.as_ref(),
         }
     }
 
@@ -375,7 +375,7 @@ impl SyncRoomRedactionEvent {
     pub fn redacts(&self, rules: &RedactionRules) -> Option<&EventId> {
         match self {
             Self::Original(ev) => Some(ev.redacts(rules)),
-            Self::Redacted(ev) => ev.content.redacts.as_deref(),
+            Self::Redacted(ev) => ev.content.redacts.as_ref(),
         }
     }
 
@@ -414,7 +414,7 @@ impl OriginalRoomRedactionEvent {
     /// Panics if both `redacts` field are `None`, which is only possible if the event was modified
     /// after being deserialized.
     pub fn redacts(&self, rules: &RedactionRules) -> &EventId {
-        redacts(rules, self.redacts.as_deref(), self.content.redacts.as_deref())
+        redacts(rules, self.redacts.as_ref(), self.content.redacts.as_ref())
     }
 }
 
@@ -430,7 +430,7 @@ impl OriginalSyncRoomRedactionEvent {
     /// Panics if both `redacts` field are `None`, which is only possible if the event was modified
     /// after being deserialized.
     pub fn redacts(&self, rules: &RedactionRules) -> &EventId {
-        redacts(rules, self.redacts.as_deref(), self.content.redacts.as_deref())
+        redacts(rules, self.redacts.as_ref(), self.content.redacts.as_ref())
     }
 }
 

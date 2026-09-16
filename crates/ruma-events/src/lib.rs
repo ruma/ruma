@@ -43,7 +43,7 @@
 //! [`OriginalSyncMessageLikeEvent`] struct but any [`OriginalMessageLikeEvent`] struct would work.
 //!
 //! ```rust
-//! use ruma_common::OwnedEventId;
+//! use ruma_common::EventId;
 //! use ruma_events::{macros::EventContent, OriginalSyncMessageLikeEvent};
 //! use serde::{Deserialize, Serialize};
 //!
@@ -53,7 +53,7 @@
 //!     #[serde(rename = "m.annotation")]
 //!     Annotation {
 //!         /// The event this reaction relates to.
-//!         event_id: OwnedEventId,
+//!         event_id: EventId,
 //!         /// The displayable content of the reaction.
 //!         key: String,
 //!     },

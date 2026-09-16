@@ -9,7 +9,7 @@ pub mod v1 {
 
     use js_int::{UInt, uint};
     use ruma_common::{
-        OwnedEventId, OwnedRoomAliasId, OwnedRoomId, OwnedUserId, SecondsSinceUnixEpoch,
+        EventId, OwnedRoomAliasId, OwnedRoomId, OwnedUserId, SecondsSinceUnixEpoch,
         api::{auth_scheme::NoAuthentication, request, response},
         metadata,
         push::{PushFormat, Tweak},
@@ -73,7 +73,7 @@ pub mod v1 {
         /// notifications that only contain updated badge counts. This ID can and should be used to
         /// detect duplicate notification requests.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub event_id: Option<OwnedEventId>,
+        pub event_id: Option<EventId>,
 
         /// The ID of the room in which this event occurred.
         ///
@@ -351,7 +351,7 @@ pub mod v1 {
     mod tests {
         use js_int::uint;
         use ruma_common::{
-            SecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, owned_event_id,
+            SecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, event_id,
             owned_room_alias_id, owned_room_id, owned_user_id, push::HighlightTweakValue,
         };
         use ruma_events::TimelineEventType;
@@ -361,7 +361,7 @@ pub mod v1 {
 
         #[test]
         fn serialize_request() {
-            let eid = owned_event_id!("$3957tyerfgewrf384");
+            let eid = event_id!("$3957tyerfgewrf384");
             let rid = owned_room_id!("!slw48wfj34rtnrf:example.com");
             let uid = owned_user_id!("@exampleuser:matrix.org");
             let alias = owned_room_alias_id!("#exampleroom:matrix.org");

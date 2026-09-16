@@ -3,7 +3,7 @@
 //! [spec]: https://spec.matrix.org/v1.19/server-server-api/#get_matrixfederationv1timestamp_to_eventroomid
 
 use ruma_common::{
-    MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId,
+    EventId, MilliSecondsSinceUnixEpoch, OwnedRoomId,
     api::{Direction, request, response},
     metadata,
 };
@@ -37,7 +37,7 @@ pub struct Request {
 #[response]
 pub struct Response {
     /// The ID of the event found.
-    pub event_id: OwnedEventId,
+    pub event_id: EventId,
 
     /// The event's timestamp.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -52,7 +52,7 @@ impl Request {
 
 impl Response {
     /// Creates a new `Response` with the given event ID and timestamp.
-    pub fn new(event_id: OwnedEventId, origin_server_ts: MilliSecondsSinceUnixEpoch) -> Self {
+    pub fn new(event_id: EventId, origin_server_ts: MilliSecondsSinceUnixEpoch) -> Self {
         Self { event_id, origin_server_ts }
     }
 }

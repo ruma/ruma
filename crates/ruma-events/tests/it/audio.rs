@@ -6,7 +6,7 @@ use js_int::uint;
 use ruma_common::{
     MilliSecondsSinceUnixEpoch,
     canonical_json::assert_to_canonical_json_eq,
-    owned_event_id, owned_mxc_uri,
+    event_id, owned_mxc_uri,
     serde::{Base64, CanBeEmpty},
 };
 #[cfg(feature = "unstable-msc3246")]
@@ -115,7 +115,7 @@ fn event_serialization() {
     content.file.size = Some(uint!(897_774));
     content.audio_details = Some(AudioDetailsContentBlock::new(Duration::from_secs(123)));
     content.relates_to =
-        Some(Relation::Reply(Reply::with_event_id(owned_event_id!("$replyevent:example.com"))));
+        Some(Relation::Reply(Reply::with_event_id(event_id!("$replyevent:example.com"))));
 
     assert_to_canonical_json_eq!(
         content,

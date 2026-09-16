@@ -10,7 +10,7 @@
 use criterion::{Criterion, criterion_group, criterion_main};
 use js_int::{int, uint};
 use ruma_common::{
-    MilliSecondsSinceUnixEpoch, RoomVersionId, owned_event_id,
+    MilliSecondsSinceUnixEpoch, RoomVersionId, event_id,
     room_version_rules::{AuthorizationRules, StateResolutionV2Rules},
 };
 use ruma_events::StateEventType;
@@ -26,15 +26,12 @@ use ruma_state_res::{
 fn reverse_topological_power_sort(c: &mut Criterion) {
     c.bench_function("reverse_topological_power_sort", |b| {
         let graph = EventIdMap::from([
-            (owned_event_id!("$l"), EventIdSet::from([owned_event_id!("$o")])),
-            (
-                owned_event_id!("$m"),
-                EventIdSet::from([owned_event_id!("$n"), owned_event_id!("$o")]),
-            ),
-            (owned_event_id!("$n"), EventIdSet::from([owned_event_id!("$o")])),
-            (owned_event_id!("$o"), EventIdSet::new()), /* "o" has zero outgoing edges but 4
-                                                         * incoming edges */
-            (owned_event_id!("$p"), EventIdSet::from([owned_event_id!("$o")])),
+            (event_id!("$l"), EventIdSet::from([event_id!("$o")])),
+            (event_id!("$m"), EventIdSet::from([event_id!("$n"), event_id!("$o")])),
+            (event_id!("$n"), EventIdSet::from([event_id!("$o")])),
+            (event_id!("$o"), EventIdSet::new()), /* "o" has zero outgoing edges but 4
+                                                   * incoming edges */
+            (event_id!("$p"), EventIdSet::from([event_id!("$o")])),
         ]);
         b.iter(|| {
             let _ = state_res::reverse_topological_power_sort(&graph, |_id| {
@@ -51,7 +48,7 @@ fn resolution_shallow_auth_chain(c: &mut Criterion) {
         // On Charlie's fork, Charlie joins the room.
         let charlie_id = UserFactory::Charlie.user_id();
         factory.add_room_member(
-            owned_event_id!("$room-member-charlie-join"),
+            event_id!("$room-member-charlie-join"),
             charlie_id.clone(),
             RoomMemberPduContent::Join,
         );
@@ -59,7 +56,7 @@ fn resolution_shallow_auth_chain(c: &mut Criterion) {
         let charlie_auth_chain = factory.full_auth_chain(&charlie_state_map);
 
         // On Zara's fork, Zara joins the room.
-        let zara_room_member_event_id = owned_event_id!("$room-member-zara-join");
+        let zara_room_member_event_id = event_id!("$room-member-zara-join");
         let zara_room_member_pdu = factory.add_room_member(
             zara_room_member_event_id.clone(),
             UserFactory::Zara.user_id(),
@@ -96,7 +93,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
         let zara_id = UserFactory::Zara.user_id();
 
         // On Zara's fork, Zara joins the room.
-        let zara_room_member_join_event_id = owned_event_id!("$room-member-zara-join");
+        let zara_room_member_join_event_id = event_id!("$room-member-zara-join");
         factory.add_room_member(
             zara_room_member_join_event_id.clone(),
             zara_id.clone(),
@@ -105,7 +102,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
 
         // On Alice's fork, Alice bans Zara.
         let zara_room_member_ban_pdu = factory.add_room_member(
-            owned_event_id!("$room-member-zara-ban"),
+            event_id!("$room-member-zara-ban"),
             zara_id.clone(),
             RoomMemberPduContent::Ban { sender: alice_id.clone() },
         );
@@ -117,7 +114,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
         zara_room_member_ban_pdu.auth_events.remove(&zara_room_member_join_event_id);
 
         // Finally Alice changes the power levels to promote Bob, which both forks agree on.
-        let room_power_levels_event_id = owned_event_id!("$room-power-levels-bob");
+        let room_power_levels_event_id = event_id!("$room-power-levels-bob");
         let room_power_levels_pdu = factory.add_room_power_levels(
             room_power_levels_event_id.clone(),
             alice_id,

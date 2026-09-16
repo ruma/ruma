@@ -1,9 +1,7 @@
 use std::collections::BTreeSet;
 
 use js_int::uint;
-use ruma_common::{
-    MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId, RoomId, UserId,
-};
+use ruma_common::{EventId, MilliSecondsSinceUnixEpoch, OwnedRoomId, OwnedUserId, RoomId, UserId};
 use ruma_events::TimelineEventType;
 use serde::{Deserialize, Serialize};
 use serde_json::value::{RawValue as RawJsonValue, to_raw_value as to_raw_json_value};
@@ -14,7 +12,7 @@ use crate::Event;
 #[derive(Clone, Debug, Deserialize)]
 pub struct Pdu {
     /// The ID of the event.
-    pub event_id: OwnedEventId,
+    pub event_id: EventId,
 
     /// The room the event belongs to.
     pub room_id: Option<OwnedRoomId>,
@@ -38,13 +36,13 @@ pub struct Pdu {
 
     /// Event IDs for the most recent events in the room that the homeserver was aware of when it
     /// made this event.
-    pub prev_events: BTreeSet<OwnedEventId>,
+    pub prev_events: BTreeSet<EventId>,
 
     /// Event IDs for the authorization events that would allow this event to be in the room.
-    pub auth_events: BTreeSet<OwnedEventId>,
+    pub auth_events: BTreeSet<EventId>,
 
     /// For redaction events, the ID of the event being redacted.
-    pub redacts: Option<OwnedEventId>,
+    pub redacts: Option<EventId>,
 
     /// Whether this event was rejected for not passing the checks on reception of a PDU.
     pub rejected: bool,
@@ -57,7 +55,7 @@ impl Pdu {
     ///
     /// Panics if the content fails to serialize.
     pub fn with_minimal_fields<T>(
-        event_id: OwnedEventId,
+        event_id: EventId,
         sender: OwnedUserId,
         event_type: TimelineEventType,
         content: T,
@@ -89,7 +87,7 @@ impl Pdu {
     ///
     /// Panics if the content fails to serialize.
     pub fn with_minimal_state_fields<T>(
-        event_id: OwnedEventId,
+        event_id: EventId,
         sender: OwnedUserId,
         event_type: TimelineEventType,
         state_key: String,
@@ -116,7 +114,7 @@ impl Pdu {
 }
 
 impl Event for Pdu {
-    type Id = OwnedEventId;
+    type Id = EventId;
 
     fn event_id(&self) -> &Self::Id {
         &self.event_id

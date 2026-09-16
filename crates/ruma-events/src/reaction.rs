@@ -36,7 +36,7 @@ impl From<Annotation> for ReactionEventContent {
 
 #[cfg(test)]
 mod tests {
-    use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_event_id, serde::Raw};
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, event_id, serde::Raw};
     use serde_json::{from_value as from_json_value, json};
     use strass::assert_let;
 
@@ -62,10 +62,8 @@ mod tests {
 
     #[test]
     fn serialize() {
-        let content = ReactionEventContent::new(Annotation::new(
-            owned_event_id!("$my_reaction"),
-            "🏠".to_owned(),
-        ));
+        let content =
+            ReactionEventContent::new(Annotation::new(event_id!("$my_reaction"), "🏠".to_owned()));
 
         assert_to_canonical_json_eq!(
             content,
@@ -81,10 +79,8 @@ mod tests {
 
     #[test]
     fn serialization_roundtrip() {
-        let content = ReactionEventContent::new(Annotation::new(
-            owned_event_id!("$my_reaction"),
-            "🏠".to_owned(),
-        ));
+        let content =
+            ReactionEventContent::new(Annotation::new(event_id!("$my_reaction"), "🏠".to_owned()));
 
         let json_content = Raw::new(&content).unwrap();
         let deser_content = json_content.deserialize().unwrap();

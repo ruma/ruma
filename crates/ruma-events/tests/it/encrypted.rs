@@ -1,7 +1,7 @@
 use assert_matches2::assert_matches;
 use ruma_common::{
     canonical_json::assert_to_canonical_json_eq,
-    device_id, owned_event_id, owned_mxc_uri,
+    device_id, event_id, owned_mxc_uri,
     serde::{Base64, Raw},
 };
 use ruma_events::{
@@ -103,7 +103,7 @@ fn content_no_relation_serialization_roundtrip() {
 fn content_reply_serialization() {
     let content = RoomEncryptedEventContent::new(
         encrypted_scheme(),
-        Some(Relation::Reply(Reply::with_event_id(owned_event_id!("$replied_to_event")))),
+        Some(Relation::Reply(Reply::with_event_id(event_id!("$replied_to_event")))),
     );
 
     assert_to_canonical_json_eq!(
@@ -168,7 +168,7 @@ fn content_reply_deserialization() {
 
 #[test]
 fn content_reply_serialization_roundtrip() {
-    let event_id = owned_event_id!("$replied_to_event");
+    let event_id = event_id!("$replied_to_event");
     let content = RoomEncryptedEventContent::new(
         encrypted_scheme(),
         Some(Relation::Reply(Reply::with_event_id(event_id.clone()))),
@@ -186,7 +186,7 @@ fn content_reply_serialization_roundtrip() {
 fn content_replacement_serialization() {
     let content = RoomEncryptedEventContent::new(
         encrypted_scheme(),
-        Some(Relation::Replacement(Replacement::new(owned_event_id!("$replaced_event")))),
+        Some(Relation::Replacement(Replacement::new(event_id!("$replaced_event")))),
     );
 
     assert_to_canonical_json_eq!(
@@ -249,7 +249,7 @@ fn content_replacement_deserialization() {
 
 #[test]
 fn content_replacement_serialization_roundtrip() {
-    let replacement = Replacement::new(owned_event_id!("$replaced_event"));
+    let replacement = Replacement::new(event_id!("$replaced_event"));
     let content = RoomEncryptedEventContent::new(
         encrypted_scheme(),
         Some(Relation::Replacement(replacement.clone())),
@@ -267,7 +267,7 @@ fn content_replacement_serialization_roundtrip() {
 fn content_reference_serialization() {
     let content = RoomEncryptedEventContent::new(
         encrypted_scheme(),
-        Some(Relation::Reference(Reference::new(owned_event_id!("$referenced_event")))),
+        Some(Relation::Reference(Reference::new(event_id!("$referenced_event")))),
     );
 
     assert_to_canonical_json_eq!(
@@ -330,7 +330,7 @@ fn content_reference_deserialization() {
 
 #[test]
 fn content_reference_serialization_roundtrip() {
-    let reference = Reference::new(owned_event_id!("$referenced_event"));
+    let reference = Reference::new(event_id!("$referenced_event"));
     let content = RoomEncryptedEventContent::new(
         encrypted_scheme(),
         Some(Relation::Reference(reference.clone())),
@@ -348,10 +348,7 @@ fn content_reference_serialization_roundtrip() {
 fn content_thread_serialization() {
     let content = RoomEncryptedEventContent::new(
         encrypted_scheme(),
-        Some(Relation::Thread(Thread::plain(
-            owned_event_id!("$thread_root"),
-            owned_event_id!("$prev_event"),
-        ))),
+        Some(Relation::Thread(Thread::plain(event_id!("$thread_root"), event_id!("$prev_event")))),
     );
 
     assert_to_canonical_json_eq!(
@@ -423,7 +420,7 @@ fn content_thread_deserialization() {
 
 #[test]
 fn content_thread_serialization_roundtrip() {
-    let thread = Thread::plain(owned_event_id!("$thread_root"), owned_event_id!("$prev_event"));
+    let thread = Thread::plain(event_id!("$thread_root"), event_id!("$prev_event"));
     let content =
         RoomEncryptedEventContent::new(encrypted_scheme(), Some(Relation::Thread(thread.clone())));
 
@@ -442,7 +439,7 @@ fn content_annotation_serialization() {
     let content = RoomEncryptedEventContent::new(
         encrypted_scheme(),
         Some(Relation::Annotation(Annotation::new(
-            owned_event_id!("$annotated_event"),
+            event_id!("$annotated_event"),
             "some_key".to_owned(),
         ))),
     );
@@ -510,7 +507,7 @@ fn content_annotation_deserialization() {
 
 #[test]
 fn content_annotation_serialization_roundtrip() {
-    let annotation = Annotation::new(owned_event_id!("$annotated_event"), "some_key".to_owned());
+    let annotation = Annotation::new(event_id!("$annotated_event"), "some_key".to_owned());
     let content = RoomEncryptedEventContent::new(
         encrypted_scheme(),
         Some(Relation::Annotation(annotation.clone())),

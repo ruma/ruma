@@ -6,7 +6,7 @@
 //! [MSC4471]: https://github.com/matrix-org/matrix-spec-proposals/pull/4471
 
 use js_int::UInt;
-use ruma_common::{OwnedEventId, OwnedRoomId};
+use ruma_common::{EventId, OwnedRoomId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -25,7 +25,7 @@ pub struct ToDeviceStreamUpdateEventContent {
     pub room_id: OwnedRoomId,
 
     /// The event containing the stream descriptor.
-    pub event_id: OwnedEventId,
+    pub event_id: EventId,
 
     /// A monotonically increasing sequence number for this subscriber
     /// device's view of the stream.
@@ -44,7 +44,7 @@ impl ToDeviceStreamUpdateEventContent {
     /// event, sequence number, and operation.
     pub fn new(
         room_id: OwnedRoomId,
-        event_id: OwnedEventId,
+        event_id: EventId,
         seq: UInt,
         operation: StreamUpdateOperation,
     ) -> Self {
@@ -83,7 +83,7 @@ impl StreamUpdateContent {
 mod tests {
     use js_int::uint;
     use ruma_common::{
-        canonical_json::assert_to_canonical_json_eq, owned_event_id, owned_room_id, serde::Raw,
+        canonical_json::assert_to_canonical_json_eq, event_id, owned_room_id, serde::Raw,
     };
     use serde_json::{from_value as from_json_value, json};
     use strass::assert_let;
@@ -95,7 +95,7 @@ mod tests {
     fn replace_update_round_trip() {
         let content = ToDeviceStreamUpdateEventContent::new(
             owned_room_id!("!room:example.org"),
-            owned_event_id!("$event:example.org"),
+            event_id!("$event:example.org"),
             uint!(1),
             StreamUpdateOperation::Replace(StreamUpdateContent::new("hello".to_owned())),
         );
@@ -124,7 +124,7 @@ mod tests {
     fn replace_update_seq_zero_round_trip() {
         let content = ToDeviceStreamUpdateEventContent::new(
             owned_room_id!("!room:example.org"),
-            owned_event_id!("$event:example.org"),
+            event_id!("$event:example.org"),
             uint!(0),
             StreamUpdateOperation::Replace(StreamUpdateContent::new("hello".to_owned())),
         );
@@ -153,7 +153,7 @@ mod tests {
     fn append_update_round_trip() {
         let content = ToDeviceStreamUpdateEventContent::new(
             owned_room_id!("!room:example.org"),
-            owned_event_id!("$event:example.org"),
+            event_id!("$event:example.org"),
             uint!(2),
             StreamUpdateOperation::Append(StreamUpdateContent::new(" world".to_owned())),
         );
