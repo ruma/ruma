@@ -13,7 +13,7 @@ pub mod v3 {
     use js_int::UInt;
     pub use ruma_common::media::Method;
     use ruma_common::{
-        IdParseError, MxcUri, OwnedServerName,
+        IdParseError, MxcUri, ServerName,
         api::{auth_scheme::NoAccessToken, request, response},
         http_headers::{CROSS_ORIGIN_RESOURCE_POLICY, ContentDisposition},
         metadata,
@@ -39,7 +39,7 @@ pub mod v3 {
     pub struct Request {
         /// The server name from the mxc:// URI (the authoritory component).
         #[ruma_api(path)]
-        pub server_name: OwnedServerName,
+        pub server_name: ServerName,
 
         /// The media ID from the mxc:// URI (the path component).
         #[ruma_api(path)]
@@ -135,12 +135,7 @@ pub mod v3 {
     impl Request {
         /// Creates a new `Request` with the given media ID, server name, desired thumbnail width
         /// and desired thumbnail height.
-        pub fn new(
-            media_id: String,
-            server_name: OwnedServerName,
-            width: UInt,
-            height: UInt,
-        ) -> Self {
+        pub fn new(media_id: String, server_name: ServerName, width: UInt, height: UInt) -> Self {
             Self {
                 media_id,
                 server_name,

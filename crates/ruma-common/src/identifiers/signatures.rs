@@ -6,8 +6,8 @@ use std::{
 use serde::{Deserialize, Serialize};
 
 use super::{
-    Base64PublicKeyOrDeviceId, DeviceId, KeyName, OwnedServerName, OwnedUserId,
-    ServerSigningKeyVersion, SigningKeyId,
+    Base64PublicKeyOrDeviceId, DeviceId, KeyName, OwnedUserId, ServerName, ServerSigningKeyVersion,
+    SigningKeyId,
 };
 
 /// Map of key identifier to signature values.
@@ -54,7 +54,7 @@ impl<E: Ord, K: KeyName + ?Sized> Signatures<E, K> {
 }
 
 /// Map of server signatures, grouped by server.
-pub type ServerSignatures = Signatures<OwnedServerName, ServerSigningKeyVersion>;
+pub type ServerSignatures = Signatures<ServerName, ServerSigningKeyVersion>;
 
 /// Map of device signatures, grouped by user.
 pub type DeviceSignatures = Signatures<OwnedUserId, DeviceId>;
@@ -159,7 +159,7 @@ mod tests {
     #[test]
     fn signatures_into_iter() {
         use ruma_common::{
-            ServerSigningKeyId, Signatures, SigningKeyAlgorithm, owned_server_name,
+            ServerSigningKeyId, Signatures, SigningKeyAlgorithm, server_name,
             server_signing_key_version,
         };
         let key_identifier = ServerSigningKeyId::from_parts(
@@ -167,7 +167,7 @@ mod tests {
             server_signing_key_version!("1"),
         );
         let mut signatures = Signatures::new();
-        let server_name = owned_server_name!("example.org");
+        let server_name = server_name!("example.org");
         let signature = "YbJva03ihSj5mPk+CHMJKUKlCXCPFXjXOK6VqBnN9nA2evksQcTGn6hwQfrgRHIDDXO2le49x7jnWJHMJrJoBQ";
         signatures.insert_signature(server_name, key_identifier, signature.into());
 

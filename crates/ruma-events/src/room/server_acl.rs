@@ -101,7 +101,7 @@ mod tests {
             allow: vec!["*".to_owned()],
             deny: vec!["1.1.1.1".to_owned()],
         };
-        assert!(!acl_event.is_allowed(server_name!("1.1.1.1:8000")));
+        assert!(!acl_event.is_allowed(&server_name!("1.1.1.1:8000")));
     }
 
     #[test]
@@ -111,7 +111,7 @@ mod tests {
             allow: vec!["*".to_owned()],
             deny: Vec::new(),
         };
-        assert!(acl_event.is_allowed(server_name!("1.1.1.1")));
+        assert!(acl_event.is_allowed(&server_name!("1.1.1.1")));
     }
 
     #[test]
@@ -121,7 +121,7 @@ mod tests {
             allow: vec!["*".to_owned()],
             deny: Vec::new(),
         };
-        assert!(!acl_event.is_allowed(server_name!("1.1.1.1")));
+        assert!(!acl_event.is_allowed(&server_name!("1.1.1.1")));
     }
 
     #[test]
@@ -131,8 +131,8 @@ mod tests {
             allow: vec!["*".to_owned()],
             deny: vec!["matrix.org".to_owned()],
         };
-        assert!(!acl_event.is_allowed(server_name!("matrix.org")));
-        assert!(acl_event.is_allowed(server_name!("conduit.rs")));
+        assert!(!acl_event.is_allowed(&server_name!("matrix.org")));
+        assert!(acl_event.is_allowed(&server_name!("conduit.rs")));
     }
 
     #[test]
@@ -142,8 +142,8 @@ mod tests {
             allow: vec!["conduit.rs".to_owned()],
             deny: Vec::new(),
         };
-        assert!(!acl_event.is_allowed(server_name!("matrix.org")));
-        assert!(acl_event.is_allowed(server_name!("conduit.rs")));
+        assert!(!acl_event.is_allowed(&server_name!("matrix.org")));
+        assert!(acl_event.is_allowed(&server_name!("conduit.rs")));
     }
 
     #[test]
@@ -153,8 +153,8 @@ mod tests {
             allow: vec!["*.matrix.org".to_owned()],
             deny: Vec::new(),
         };
-        assert!(!acl_event.is_allowed(server_name!("matrix.org")));
-        assert!(acl_event.is_allowed(server_name!("server.matrix.org")));
+        assert!(!acl_event.is_allowed(&server_name!("matrix.org")));
+        assert!(acl_event.is_allowed(&server_name!("server.matrix.org")));
     }
 
     #[test]
@@ -164,8 +164,8 @@ mod tests {
             allow: vec!["matrix??.org".to_owned()],
             deny: Vec::new(),
         };
-        assert!(!acl_event.is_allowed(server_name!("matrix1.org")));
-        assert!(acl_event.is_allowed(server_name!("matrix02.org")));
+        assert!(!acl_event.is_allowed(&server_name!("matrix1.org")));
+        assert!(acl_event.is_allowed(&server_name!("matrix02.org")));
     }
 
     #[test]
@@ -175,8 +175,8 @@ mod tests {
             allow: vec!["[2001:db8:1234::1]".to_owned()],
             deny: Vec::new(),
         };
-        assert!(!acl_event.is_allowed(server_name!("[2001:db8:1234::2]")));
-        assert!(acl_event.is_allowed(server_name!("[2001:db8:1234::1]")));
+        assert!(!acl_event.is_allowed(&server_name!("[2001:db8:1234::2]")));
+        assert!(acl_event.is_allowed(&server_name!("[2001:db8:1234::1]")));
     }
 
     #[test]
@@ -186,11 +186,11 @@ mod tests {
             allow: vec!["good.ServEr".to_owned()],
             deny: vec!["bad.ServeR".to_owned()],
         };
-        assert!(!acl_event.is_allowed(server_name!("Bad.ServeR")));
-        assert!(!acl_event.is_allowed(server_name!("bAD.sERvER")));
-        assert!(!acl_event.is_allowed(server_name!("bAd.server")));
-        assert!(acl_event.is_allowed(server_name!("good.ServEr")));
-        assert!(acl_event.is_allowed(server_name!("good.server")));
-        assert!(acl_event.is_allowed(server_name!("GOOD.SERVER")));
+        assert!(!acl_event.is_allowed(&server_name!("Bad.ServeR")));
+        assert!(!acl_event.is_allowed(&server_name!("bAD.sERvER")));
+        assert!(!acl_event.is_allowed(&server_name!("bAd.server")));
+        assert!(acl_event.is_allowed(&server_name!("good.ServEr")));
+        assert!(acl_event.is_allowed(&server_name!("good.server")));
+        assert!(acl_event.is_allowed(&server_name!("GOOD.SERVER")));
     }
 }

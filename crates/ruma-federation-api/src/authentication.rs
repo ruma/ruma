@@ -5,7 +5,7 @@ use std::{fmt, str::FromStr};
 use http::{HeaderMap, HeaderValue};
 use http_auth::ChallengeParser;
 use ruma_common::{
-    CanonicalJsonObject, IdParseError, OwnedServerName, ServerName, ServerSigningKeyId,
+    CanonicalJsonObject, IdParseError, ServerName, ServerSigningKeyId,
     api::auth_scheme::AuthScheme,
     http_headers::quote_ascii_string_if_required,
     serde::{Base64, Base64DecodeError},
@@ -52,10 +52,10 @@ impl AuthScheme for ServerSignatures {
 #[non_exhaustive]
 pub struct XMatrixSigningInput<'a> {
     /// The server making the request.
-    pub origin: OwnedServerName,
+    pub origin: ServerName,
 
     /// The server receiving the request.
-    pub destination: OwnedServerName,
+    pub destination: ServerName,
 
     /// The key pair to use to sign the request.
     pub key_pair: &'a Ed25519KeyPair,
@@ -64,11 +64,7 @@ pub struct XMatrixSigningInput<'a> {
 impl<'a> XMatrixSigningInput<'a> {
     /// Construct a new `XMatrixSigningInput` with the given origin, destination and signing key
     /// pair.
-    pub fn new(
-        origin: OwnedServerName,
-        destination: OwnedServerName,
-        key_pair: &'a Ed25519KeyPair,
-    ) -> Self {
+    pub fn new(origin: ServerName, destination: ServerName, key_pair: &'a Ed25519KeyPair) -> Self {
         Self { origin, destination, key_pair }
     }
 }
@@ -90,7 +86,7 @@ impl<'a> XMatrixSigningInput<'a> {
 #[non_exhaustive]
 pub struct XMatrix {
     /// The server name of the sending server.
-    pub origin: OwnedServerName,
+    pub origin: ServerName,
 
     /// The server name of the receiving sender.
     ///
@@ -98,7 +94,7 @@ pub struct XMatrix {
     /// parameter, but MUST always send it. If this property is included, but the value does
     /// not match the receiving server's name, the receiving server must deny the request with
     /// a `401 Unauthorized` HTTP status code.
-    pub destination: Option<OwnedServerName>,
+    pub destination: Option<ServerName>,
 
     /// The ID - including the algorithm name - of the sending server's key that was used to sign
     /// the request.
@@ -115,8 +111,8 @@ impl XMatrix {
 
     /// Construct a new `X-Matrix` authentication scheme from its parts.
     pub fn new(
-        origin: OwnedServerName,
-        destination: OwnedServerName,
+        origin: ServerName,
+        destination: ServerName,
         key: ServerSigningKeyId,
         sig: Base64,
     ) -> Self {
@@ -157,13 +153,13 @@ impl XMatrix {
                 if origin.is_some() {
                     return Err(XMatrixParseError::DuplicateParameter("origin".to_owned()));
                 } else {
-                    origin = Some(OwnedServerName::try_from(value.to_unescaped())?);
+                    origin = Some(ServerName::try_from(value.to_unescaped())?);
                 }
             } else if name.eq_ignore_ascii_case("destination") {
                 if destination.is_some() {
                     return Err(XMatrixParseError::DuplicateParameter("destination".to_owned()));
                 } else {
-                    destination = Some(OwnedServerName::try_from(value.to_unescaped())?);
+                    destination = Some(ServerName::try_from(value.to_unescaped())?);
                 }
             } else if name.eq_ignore_ascii_case("key") {
                 if key.is_some() {
@@ -282,7 +278,7 @@ impl XMatrix {
     ) -> Result<(), XMatrixVerificationError> {
         if self
             .destination
-            .as_deref()
+            .as_ref()
             .is_some_and(|xmatrix_destination| xmatrix_destination != destination)
         {
             return Err(XMatrixVerificationError::DestinationMismatch);
@@ -433,7 +429,7 @@ pub enum XMatrixVerificationError {
 #[cfg(test)]
 mod tests {
     use http::header::HeaderValue;
-    use ruma_common::{OwnedServerName, serde::Base64};
+    use ruma_common::{ServerName, serde::Base64};
 
     use super::XMatrix;
 
@@ -464,8 +460,8 @@ mod tests {
         let header = HeaderValue::from_static(
             "X-Matrix origin=\"origin.hs.example.com\",destination=\"destination.hs.example.com\",key=\"ed25519:key1\",sig=\"dGVzdA==\"",
         );
-        let origin: OwnedServerName = "origin.hs.example.com".try_into().unwrap();
-        let destination: OwnedServerName = "destination.hs.example.com".try_into().unwrap();
+        let origin: ServerName = "origin.hs.example.com".try_into().unwrap();
+        let destination: ServerName = "destination.hs.example.com".try_into().unwrap();
         let key = "ed25519:key1".try_into().unwrap();
         let sig = Base64::new(b"test".to_vec());
         let credentials = XMatrix::try_from(&header).unwrap();
@@ -488,7 +484,7 @@ mod tests {
             r#"X-Matrix origin="example.com:1234",key="abc\"def\\:ghi",sig=dGVzdA,"#,
         );
 
-        let origin: OwnedServerName = "example.com:1234".try_into().unwrap();
+        let origin: ServerName = "example.com:1234".try_into().unwrap();
         let key = r#"abc"def\:ghi"#.try_into().unwrap();
         let sig = Base64::new(b"test".to_vec());
         let credentials = XMatrix::try_from(&header).unwrap();

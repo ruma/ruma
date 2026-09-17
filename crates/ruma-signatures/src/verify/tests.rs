@@ -2,9 +2,10 @@ use std::collections::BTreeMap;
 
 use assert_matches2::{assert_let, assert_matches};
 use ruma_common::{
-    CanonicalJsonValue, ServerSigningKeyId, SigningKeyAlgorithm, owned_server_name,
+    CanonicalJsonValue, ServerSigningKeyId, SigningKeyAlgorithm,
     room_version_rules::{RoomVersionRules, SignaturesRules},
     serde::Base64,
+    server_name,
 };
 use ruma_events::room::policy::RoomPolicyEventContent;
 use serde_json::json;
@@ -739,7 +740,7 @@ fn verify_policy_server_signature_succeeds_with_signature_from_policy_server() {
     add_key_to_map(&mut public_key_map, "domain-sender", &key_pair_sender);
 
     let room_policy = RoomPolicyEventContent::new(
-        owned_server_name!("domain-policy-server"),
+        server_name!("domain-policy-server"),
         Base64::new(key_pair_policy_server.public_key().to_vec()),
     );
 
@@ -780,7 +781,7 @@ fn verify_policy_server_signature_fails_with_invalid_signature_from_policy_serve
     add_key_to_map(&mut public_key_map, "domain-sender", &key_pair_sender);
 
     let room_policy = RoomPolicyEventContent::new(
-        owned_server_name!("domain-policy-server"),
+        server_name!("domain-policy-server"),
         Base64::new(second_key_pair_policy_server.public_key().to_vec()),
     );
 
@@ -822,7 +823,7 @@ fn verify_policy_server_signature_fails_with_missing_signature_from_policy_serve
     add_key_to_map(&mut public_key_map, "domain-sender", &key_pair_sender);
 
     let room_policy = RoomPolicyEventContent::new(
-        owned_server_name!("domain-policy-server"),
+        server_name!("domain-policy-server"),
         Base64::new(key_pair_policy_server.public_key().to_vec()),
     );
 
@@ -864,7 +865,7 @@ fn verify_policy_server_signature_succeeds_with_missing_signature_from_policy_se
     add_key_to_map(&mut public_key_map, "domain-sender", &key_pair_sender);
 
     let room_policy = RoomPolicyEventContent::new(
-        owned_server_name!("domain-policy-server"),
+        server_name!("domain-policy-server"),
         Base64::new(key_pair_policy_server.public_key().to_vec()),
     );
 

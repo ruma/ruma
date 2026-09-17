@@ -25,7 +25,7 @@ use super::{IdParseError, ServerName};
 /// # #[cfg(feature = "rand")]
 /// # {
 /// let server_name = server_name!("example.com");
-/// let event_id = EventId::new_v1(server_name);
+/// let event_id = EventId::new_v1(&server_name);
 /// assert_eq!(event_id.localpart().len(), 18);
 /// assert_eq!(event_id.server_name(), Some(server_name));
 /// # }
@@ -103,7 +103,7 @@ impl EventId {
     /// Returns the server name of the event ID.
     ///
     /// Only applicable to events in the original format as used by Matrix room versions 1 and 2.
-    pub fn server_name(&self) -> Option<&ServerName> {
+    pub fn server_name(&self) -> Option<ServerName> {
         super::find_server_name_unchecked(self.as_str())
     }
 }
@@ -145,7 +145,7 @@ mod tests {
         use crate::server_name;
 
         let server_name = server_name!("example.com");
-        let event_id = EventId::new_v1(server_name);
+        let event_id = EventId::new_v1(&server_name);
         let id_str = event_id.as_str();
 
         assert!(id_str.starts_with('$'));

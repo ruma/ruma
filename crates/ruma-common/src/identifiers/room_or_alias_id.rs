@@ -31,7 +31,7 @@ pub struct RoomOrAliasId;
 
 impl RoomOrAliasId {
     /// Returns the server name of the room (alias) ID.
-    pub fn server_name(&self) -> Option<&ServerName> {
+    pub fn server_name(&self) -> Option<ServerName> {
         // We can use the room ID function because the server name in a room alias is already
         // validated.
         super::room_id::find_server_name(self.as_str())

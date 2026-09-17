@@ -11,7 +11,7 @@ pub mod v3 {
 
     use as_variant::as_variant;
     use ruma_common::{
-        DeviceId, OwnedServerName, OwnedUserId,
+        DeviceId, OwnedUserId, ServerName,
         api::{auth_scheme::AppserviceTokenOptional, request, response},
         metadata,
         serde::JsonObject,
@@ -73,7 +73,7 @@ pub mod v3 {
             Since Matrix Client-Server API r0.4.0. Clients should instead use the \
             `user_id.server_name()` method if they require it.\
         "]
-        pub home_server: Option<OwnedServerName>,
+        pub home_server: Option<ServerName>,
 
         /// ID of the logged-in device.
         ///

@@ -3,8 +3,7 @@
 use std::collections::BTreeMap;
 
 use ruma_common::{
-    MilliSecondsSinceUnixEpoch, OwnedServerName, ServerSignatures, ServerSigningKeyId,
-    serde::Base64,
+    MilliSecondsSinceUnixEpoch, ServerName, ServerSignatures, ServerSigningKeyId, serde::Base64,
 };
 use serde::{Deserialize, Serialize};
 
@@ -54,7 +53,7 @@ impl OldVerifyKey {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct ServerSigningKeys {
     /// DNS name of the homeserver.
-    pub server_name: OwnedServerName,
+    pub server_name: ServerName,
 
     /// Public keys of the homeserver for verifying digital signatures.
     pub verify_keys: BTreeMap<ServerSigningKeyId, VerifyKey>,
@@ -80,7 +79,7 @@ impl ServerSigningKeys {
     /// Creates a new `ServerSigningKeys` with the given server name and validity timestamp.
     ///
     /// All other fields will be empty.
-    pub fn new(server_name: OwnedServerName, valid_until_ts: MilliSecondsSinceUnixEpoch) -> Self {
+    pub fn new(server_name: ServerName, valid_until_ts: MilliSecondsSinceUnixEpoch) -> Self {
         Self {
             server_name,
             verify_keys: BTreeMap::new(),
