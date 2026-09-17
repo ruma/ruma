@@ -35,7 +35,7 @@ pub use self::{
     one_time_key_name::OneTimeKeyName,
     room_alias_id::RoomAliasId,
     room_id::RoomId,
-    room_or_alias_id::{OwnedRoomOrAliasId, RoomOrAliasId},
+    room_or_alias_id::RoomOrAliasId,
     room_version_id::RoomVersionId,
     server_name::{OwnedServerName, ServerName},
     server_signing_key_version::{OwnedServerSigningKeyVersion, ServerSigningKeyVersion},
