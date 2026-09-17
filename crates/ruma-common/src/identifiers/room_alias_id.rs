@@ -26,7 +26,7 @@ impl RoomAliasId {
     }
 
     /// Returns the server name of the room alias ID.
-    pub fn server_name(&self) -> &ServerName {
+    pub fn server_name(&self) -> ServerName {
         super::find_server_name_unchecked(self.as_str()).expect("room alias should contain a colon")
     }
 

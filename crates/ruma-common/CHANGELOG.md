@@ -39,6 +39,11 @@ Breaking changes:
     returns the same type. The `room_id_ref!` macro behind the `unstable-identifier-ref-macros`
     cargo feature still allows to construct a `&'static RoomId`.
   - `OwnedRoomOrAliasId` was renamed to `RoomOrAliasId`.
+  - `OwnedServerName` was renamed to `ServerName`. The `server_name!` macro now returns a
+    `ServerName`, the `owned_server_name!` macro is behind the `unstable-identifier-owned-macros`
+    cargo feature and returns the same type. The `server_name_ref!` macro behind the
+    `unstable-identifier-ref-macros` cargo feature still allows to construct a
+    `&'static ServerName`.
 
 Improvements:
 

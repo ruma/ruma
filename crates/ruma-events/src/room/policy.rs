@@ -4,7 +4,7 @@
 
 use std::collections::BTreeMap;
 
-use ruma_common::{OwnedServerName, SigningKeyAlgorithm, serde::Base64};
+use ruma_common::{ServerName, SigningKeyAlgorithm, serde::Base64};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -28,7 +28,7 @@ pub struct RoomPolicyEventContent {
     /// The server name to use as a Policy Server.
     ///
     /// MUST have a joined user in the room.
-    pub via: OwnedServerName,
+    pub via: ServerName,
 
     /// The public keys for the Policy Server.
     ///
@@ -38,7 +38,7 @@ pub struct RoomPolicyEventContent {
 
 impl RoomPolicyEventContent {
     /// Creates a new `RoomPolicyEventContent` with the given server name and ed25519 public key.
-    pub fn new(via: OwnedServerName, ed25519_public_key: Base64) -> Self {
+    pub fn new(via: ServerName, ed25519_public_key: Base64) -> Self {
         Self { via, public_keys: [(SigningKeyAlgorithm::Ed25519, ed25519_public_key)].into() }
     }
 }

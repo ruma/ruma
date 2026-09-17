@@ -37,7 +37,7 @@ pub use self::{
     room_id::RoomId,
     room_or_alias_id::RoomOrAliasId,
     room_version_id::RoomVersionId,
-    server_name::{OwnedServerName, ServerName},
+    server_name::ServerName,
     server_signing_key_version::{OwnedServerSigningKeyVersion, ServerSigningKeyVersion},
     session_id::{OwnedSessionId, SessionId},
     signatures::{
@@ -114,8 +114,8 @@ fn find_server_name_str(s: &str) -> Option<&str> {
 /// that it was already validated.
 ///
 /// Returns `None` if there is no colon in the string.
-fn find_server_name_unchecked(s: &str) -> Option<&ServerName> {
-    find_server_name_str(s).map(ServerName::from_borrowed_unchecked)
+fn find_server_name_unchecked(s: &str) -> Option<ServerName> {
+    find_server_name_str(s).map(ServerName::from_str_unchecked)
 }
 
 /// Deserializes any type of id using the provided `TryFrom` implementation.
@@ -196,6 +196,9 @@ pub mod __private_macros {
             LazyLock::new(IdInterner::new);
 
         pub static ROOM_ID_INTERNER: LazyLock<IdInterner<crate::RoomId>> =
+            LazyLock::new(IdInterner::new);
+
+        pub static SERVER_NAME_INTERNER: LazyLock<IdInterner<crate::ServerName>> =
             LazyLock::new(IdInterner::new);
     }
 }
@@ -453,7 +456,7 @@ macro_rules! room_version_id {
     };
 }
 
-/// Compile-time checked [`&'static ServerName`][ServerName] construction.
+/// Compile-time checked [`ServerName`] construction.
 #[macro_export]
 macro_rules! server_name {
     ($s:literal) => {
@@ -463,26 +466,34 @@ macro_rules! server_name {
 
 /// Compile-time checked [`&'static ServerName`][ServerName] construction.
 ///
-/// This is currently equivalent to [`server_name!`]. However there is a plan to remove identifier
-/// DST types, so that other macro's return type will change while this macro is guaranteed to keep
-/// its return type. This macro allows to ease the transition for the expected change by allowing to
-/// migrate tests in advance.
+/// This macro is a helper to ease the transition after the change of [`ServerName`] from a
+/// dynamically sized type to an owned type. It has the side effect of interning and leaking the
+/// identifier.
 ///
-/// This is behind an unstable cargo feature because it is likely to be removed soon after the DST
-/// identifier type removal.
+/// This is behind an unstable cargo feature because it is likely to be removed in a future
+/// non-breaking release.
 #[cfg(feature = "unstable-identifier-ref-macros")]
 #[macro_export]
 macro_rules! server_name_ref {
     ($s:literal) => {
-        $crate::server_name!($s)
+        $crate::__private_macros::id_interner::SERVER_NAME_INTERNER
+            .get_or_insert_with($s, || $crate::server_name!($s))
     };
 }
 
-/// Compile-time checked [`OwnedServerName`] construction.
+/// Compile-time checked [`ServerName`] construction.
+///
+/// This is currently equivalent to [`server_name!`]. This is kept for backwards compatibility to
+/// ease the transition after the change of [`ServerName`] from a dynamically sized type to an owned
+/// type.
+///
+/// This is behind an unstable cargo feature because it is likely to be removed in a future
+/// non-breaking release.
+#[cfg(feature = "unstable-identifier-owned-macros")]
 #[macro_export]
 macro_rules! owned_server_name {
     ($s:literal) => {
-        $crate::server_name!($s).to_owned()
+        $crate::server_name!($s)
     };
 }
 

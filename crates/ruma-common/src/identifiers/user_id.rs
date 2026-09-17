@@ -64,7 +64,7 @@ impl UserId {
     }
 
     /// Returns the server name of the user ID.
-    pub fn server_name(&self) -> &ServerName {
+    pub fn server_name(&self) -> ServerName {
         super::find_server_name_unchecked(self.as_str()).expect("user ID should contain a colon")
     }
 
@@ -175,7 +175,7 @@ mod tests {
     #[test]
     fn parse_valid_user_id() {
         let server_name = server_name!("example.com");
-        let user_id = UserId::parse_with_server_name("@carl:example.com", server_name)
+        let user_id = UserId::parse_with_server_name("@carl:example.com", &server_name)
             .expect("Failed to create UserId.");
         assert_eq!(user_id, "@carl:example.com");
         assert_eq!(user_id.localpart(), "carl");
@@ -189,7 +189,7 @@ mod tests {
     fn parse_valid_user_id_parts() {
         let server_name = server_name!("example.com");
         let user_id =
-            UserId::parse_with_server_name("carl", server_name).expect("Failed to create UserId.");
+            UserId::parse_with_server_name("carl", &server_name).expect("Failed to create UserId.");
         assert_eq!(user_id, "@carl:example.com");
         assert_eq!(user_id.localpart(), "carl");
         assert_eq!(user_id.server_name(), "example.com");
@@ -212,7 +212,7 @@ mod tests {
         user_id.validate_historical().unwrap_err();
         user_id.validate_strict().unwrap_err();
 
-        let user_id = UserId::parse_with_server_name(user_id_str, server_name).unwrap();
+        let user_id = UserId::parse_with_server_name(user_id_str, &server_name).unwrap();
         assert_eq!(user_id, user_id_str);
         assert_eq!(user_id.localpart(), localpart);
         assert_eq!(user_id.server_name(), server_name);
@@ -220,7 +220,7 @@ mod tests {
         user_id.validate_historical().unwrap_err();
         user_id.validate_strict().unwrap_err();
 
-        let user_id = UserId::parse_with_server_name(localpart, server_name).unwrap();
+        let user_id = UserId::parse_with_server_name(localpart, &server_name).unwrap();
         assert_eq!(user_id, user_id_str);
         assert_eq!(user_id.localpart(), localpart);
         assert_eq!(user_id.server_name(), server_name);
@@ -231,7 +231,7 @@ mod tests {
 
     #[test]
     fn definitely_invalid_user_id() {
-        UserId::parse_with_server_name("a:b", server_name!("example.com")).unwrap_err();
+        UserId::parse_with_server_name("a:b", &server_name!("example.com")).unwrap_err();
     }
 
     #[test]
@@ -249,7 +249,7 @@ mod tests {
     #[test]
     fn parse_valid_historical_user_id() {
         let server_name = server_name!("example.com");
-        let user_id = UserId::parse_with_server_name("@a%b[irc]:example.com", server_name)
+        let user_id = UserId::parse_with_server_name("@a%b[irc]:example.com", &server_name)
             .expect("Failed to create UserId.");
         assert_eq!(user_id, "@a%b[irc]:example.com");
         assert_eq!(user_id.localpart(), "a%b[irc]");
@@ -262,7 +262,7 @@ mod tests {
     #[test]
     fn parse_valid_historical_user_id_parts() {
         let server_name = server_name!("example.com");
-        let user_id = UserId::parse_with_server_name("a%b[irc]", server_name)
+        let user_id = UserId::parse_with_server_name("a%b[irc]", &server_name)
             .expect("Failed to create UserId.");
         assert_eq!(user_id, "@a%b[irc]:example.com");
         assert_eq!(user_id.localpart(), "a%b[irc]");
@@ -285,7 +285,7 @@ mod tests {
     #[test]
     fn generate_random_valid_user_id() {
         let server_name = server_name!("example.com");
-        let user_id = UserId::new(server_name);
+        let user_id = UserId::new(&server_name);
         assert_eq!(user_id.localpart().len(), 12);
         assert_eq!(user_id.server_name(), "example.com");
         user_id.validate_historical().unwrap();

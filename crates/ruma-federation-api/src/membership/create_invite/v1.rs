@@ -3,7 +3,7 @@
 //! [spec]: https://spec.matrix.org/v1.19/server-server-api/#put_matrixfederationv1inviteroomideventid
 
 use ruma_common::{
-    EventId, MilliSecondsSinceUnixEpoch, OwnedServerName, OwnedUserId, RoomId,
+    EventId, MilliSecondsSinceUnixEpoch, OwnedUserId, RoomId, ServerName,
     api::{request, response},
     metadata,
 };
@@ -35,7 +35,7 @@ pub struct Request {
     pub sender: OwnedUserId,
 
     /// The name of the inviting homeserver.
-    pub origin: OwnedServerName,
+    pub origin: ServerName,
 
     /// A timestamp added by the inviting homeserver.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -101,7 +101,7 @@ pub struct RequestInit {
     pub sender: OwnedUserId,
 
     /// The name of the inviting homeserver.
-    pub origin: OwnedServerName,
+    pub origin: ServerName,
 
     /// A timestamp added by the inviting homeserver.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,

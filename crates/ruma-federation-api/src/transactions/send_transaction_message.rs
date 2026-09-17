@@ -10,7 +10,7 @@ pub mod v1 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        EventId, MilliSecondsSinceUnixEpoch, OwnedServerName, OwnedTransactionId,
+        EventId, MilliSecondsSinceUnixEpoch, OwnedTransactionId, ServerName,
         api::{request, response},
         metadata,
         serde::Raw,
@@ -34,7 +34,7 @@ pub mod v1 {
         pub transaction_id: OwnedTransactionId,
 
         /// The server_name of the homeserver sending this transaction.
-        pub origin: OwnedServerName,
+        pub origin: ServerName,
 
         /// POSIX timestamp in milliseconds on the originating homeserver when this transaction
         /// started.
@@ -75,7 +75,7 @@ pub mod v1 {
         /// The PDU and EDU lists will start off empty.
         pub fn new(
             transaction_id: OwnedTransactionId,
-            origin: OwnedServerName,
+            origin: ServerName,
             origin_server_ts: MilliSecondsSinceUnixEpoch,
         ) -> Self {
             Self { transaction_id, origin, origin_server_ts, pdus: vec![], edus: vec![] }

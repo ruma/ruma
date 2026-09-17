@@ -8,7 +8,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/v1.19/server-server-api/#get_matrixfederationv1eventeventid
 
     use ruma_common::{
-        EventId, MilliSecondsSinceUnixEpoch, OwnedServerName,
+        EventId, MilliSecondsSinceUnixEpoch, ServerName,
         api::{request, response},
         metadata,
     };
@@ -35,7 +35,7 @@ pub mod v1 {
     #[response]
     pub struct Response {
         /// The `server_name` of the homeserver sending this transaction.
-        pub origin: OwnedServerName,
+        pub origin: ServerName,
 
         /// Time on originating homeserver when this transaction started.
         pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -55,7 +55,7 @@ pub mod v1 {
     impl Response {
         /// Creates a new `Response` with the given server name, timestamp, and event.
         pub fn new(
-            origin: OwnedServerName,
+            origin: ServerName,
             origin_server_ts: MilliSecondsSinceUnixEpoch,
             pdu: Box<RawJsonValue>,
         ) -> Self {

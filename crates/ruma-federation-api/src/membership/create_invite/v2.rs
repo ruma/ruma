@@ -3,7 +3,7 @@
 //! [spec]: https://spec.matrix.org/v1.19/server-server-api/#put_matrixfederationv2inviteroomideventid
 
 #[cfg(feature = "unstable-msc4125")]
-use ruma_common::OwnedServerName;
+use ruma_common::ServerName;
 use ruma_common::{
     EventId, RoomId, RoomVersionId,
     api::{request, response},
@@ -46,7 +46,7 @@ pub struct Request {
     /// If present, it must not be empty.
     #[cfg(feature = "unstable-msc4125")]
     #[serde(skip_serializing_if = "Option::is_none", rename = "org.matrix.msc4125.via")]
-    pub via: Option<Vec<OwnedServerName>>,
+    pub via: Option<Vec<ServerName>>,
 }
 
 /// Response type for the `create_invite` endpoint.

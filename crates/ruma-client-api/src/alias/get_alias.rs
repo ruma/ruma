@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.19/client-server-api/#get_matrixclientv3directoryroomroomalias
 
     use ruma_common::{
-        OwnedServerName, RoomAliasId, RoomId,
+        RoomAliasId, RoomId, ServerName,
         api::{auth_scheme::NoAccessToken, request, response},
         metadata,
     };
@@ -38,7 +38,7 @@ pub mod v3 {
         pub room_id: RoomId,
 
         /// A list of servers that are aware of this room ID.
-        pub servers: Vec<OwnedServerName>,
+        pub servers: Vec<ServerName>,
     }
 
     impl Request {
@@ -50,7 +50,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given room id and servers
-        pub fn new(room_id: RoomId, servers: Vec<OwnedServerName>) -> Self {
+        pub fn new(room_id: RoomId, servers: Vec<ServerName>) -> Self {
             Self { room_id, servers }
         }
     }

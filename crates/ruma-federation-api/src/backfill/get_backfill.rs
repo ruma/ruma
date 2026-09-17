@@ -9,7 +9,7 @@ pub mod v1 {
 
     use js_int::UInt;
     use ruma_common::{
-        EventId, MilliSecondsSinceUnixEpoch, OwnedServerName, RoomId,
+        EventId, MilliSecondsSinceUnixEpoch, RoomId, ServerName,
         api::{request, response},
         metadata,
     };
@@ -44,7 +44,7 @@ pub mod v1 {
     #[response]
     pub struct Response {
         /// The `server_name` of the homeserver sending this transaction.
-        pub origin: OwnedServerName,
+        pub origin: ServerName,
 
         /// POSIX timestamp in milliseconds on originating homeserver when this transaction
         /// started.
@@ -70,7 +70,7 @@ pub mod v1 {
         /// * the timestamp in milliseconds of when this transaction started.
         /// * the list of persistent updates to rooms.
         pub fn new(
-            origin: OwnedServerName,
+            origin: ServerName,
             origin_server_ts: MilliSecondsSinceUnixEpoch,
             pdus: Vec<Box<RawJsonValue>>,
         ) -> Self {
