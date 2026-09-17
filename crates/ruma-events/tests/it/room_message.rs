@@ -979,6 +979,43 @@ fn video_msgtype_deserialization() {
 }
 
 #[test]
+#[cfg(feature = "unstable-msc4546")]
+fn video_msgtype_circle_serialization() {
+    let content = VideoMessageEventContent::plain(
+        "Upload: my_video.mp4".to_owned(),
+        owned_mxc_uri!("mxc://notareal.hs/file"),
+    )
+    .circle(true);
+
+    let message_event_content = RoomMessageEventContent::new(MessageType::Video(content));
+
+    assert_to_canonical_json_eq!(
+        message_event_content,
+        json!({
+            "body": "Upload: my_video.mp4",
+            "url": "mxc://notareal.hs/file",
+            "msgtype": "m.video",
+            "org.interferolog.circle": true,
+        })
+    );
+}
+
+#[test]
+#[cfg(feature = "unstable-msc4546")]
+fn video_msgtype_circle_deserialization() {
+    let json_data = json!({
+        "body": "Upload: my_video.mp4",
+        "url": "mxc://notareal.hs/file",
+        "msgtype": "m.video",
+        "org.interferolog.circle": true,
+    });
+
+    let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
+    assert_matches!(event_content.msgtype, MessageType::Video(content));
+    assert_eq!(content.circle, Some(true));
+}
+
+#[test]
 fn add_mentions_then_make_replacement() {
     let alice = owned_user_id!("@alice:localhost");
     let bob = owned_user_id!("@bob:localhost");
