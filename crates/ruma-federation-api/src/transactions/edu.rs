@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 use js_int::Int;
 use js_int::UInt;
 use ruma_common::{
-    DeviceId, EventId, OwnedTransactionId, OwnedUserId, RoomId,
+    DeviceId, EventId, OwnedUserId, RoomId, TransactionId,
     encryption::{CrossSigningKey, DeviceKeys},
     presence::PresenceState,
     serde::{Raw, from_raw_json_value},
@@ -328,7 +328,7 @@ pub struct DirectDeviceContent {
     pub ev_type: ToDeviceEventType,
 
     /// Unique utf8 string ID for the message, used for idempotency.
-    pub message_id: OwnedTransactionId,
+    pub message_id: TransactionId,
 
     /// The contents of the messages to be sent.
     ///
@@ -339,11 +339,7 @@ pub struct DirectDeviceContent {
 
 impl DirectDeviceContent {
     /// Creates a new `DirectDeviceContent` with the given `sender, `ev_type` and `message_id`.
-    pub fn new(
-        sender: OwnedUserId,
-        ev_type: ToDeviceEventType,
-        message_id: OwnedTransactionId,
-    ) -> Self {
+    pub fn new(sender: OwnedUserId, ev_type: ToDeviceEventType, message_id: TransactionId) -> Self {
         Self { sender, ev_type, message_id, messages: DirectDeviceMessages::new() }
     }
 }

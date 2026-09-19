@@ -55,6 +55,7 @@ Breaking changes:
     returns the same type. The `session_id_ref!` macro behind the `unstable-identifier-ref-macros`
     cargo feature still allows to construct a `&'static SessionId`.
   - `OwnedSpaceChildOrder` was renamed to `SpaceChildOrder`.
+  - `OwnedTransactionId` was renamed to `TransactionId`.
 
 Improvements:
 

@@ -2,9 +2,7 @@
 //!
 //! [`m.room_key_request`]: https://spec.matrix.org/v1.19/client-server-api/#mroom_key_request
 
-use ruma_common::{
-    DeviceId, EventEncryptionAlgorithm, OwnedTransactionId, RoomId, serde::StringEnum,
-};
+use ruma_common::{DeviceId, EventEncryptionAlgorithm, RoomId, TransactionId, serde::StringEnum};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -30,7 +28,7 @@ pub struct ToDeviceRoomKeyRequestEventContent {
     ///
     /// If the key is requested multiple times, it should be reused. It should also reused
     /// in order to cancel a request.
-    pub request_id: OwnedTransactionId,
+    pub request_id: TransactionId,
 }
 
 impl ToDeviceRoomKeyRequestEventContent {
@@ -40,7 +38,7 @@ impl ToDeviceRoomKeyRequestEventContent {
         action: Action,
         body: Option<RequestedKeyInfo>,
         requesting_device_id: DeviceId,
-        request_id: OwnedTransactionId,
+        request_id: TransactionId,
     ) -> Self {
         Self { action, body, requesting_device_id, request_id }
     }

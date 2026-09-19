@@ -8,7 +8,7 @@ pub mod unstable {
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4388
 
     use ruma_common::{
-        OwnedTransactionId,
+        TransactionId,
         api::{auth_scheme::NoAccessToken, request, response},
         metadata,
     };
@@ -36,7 +36,7 @@ pub mod unstable {
         /// instead of evaluating the request again. A client that changes the `sequence_token` or
         /// `data` it sends must use a new transaction ID.
         #[ruma_api(path)]
-        pub txn_id: OwnedTransactionId,
+        pub txn_id: TransactionId,
 
         /// The expected sequence token for the session. If it doesn't match the server state then
         /// an error is returned.
@@ -50,7 +50,7 @@ pub mod unstable {
         /// Creates a new `Request` with the given id, transaction ID, sequence token and data.
         pub fn new(
             id: String,
-            txn_id: OwnedTransactionId,
+            txn_id: TransactionId,
             sequence_token: String,
             data: String,
         ) -> Self {

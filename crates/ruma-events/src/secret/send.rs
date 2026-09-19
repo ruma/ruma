@@ -4,7 +4,7 @@
 
 use std::fmt;
 
-use ruma_common::OwnedTransactionId;
+use ruma_common::TransactionId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -19,7 +19,7 @@ use serde::{Deserialize, Serialize};
 #[ruma_event(type = "m.secret.send", kind = ToDevice)]
 pub struct ToDeviceSecretSendEventContent {
     /// The ID of the request that this is a response to.
-    pub request_id: OwnedTransactionId,
+    pub request_id: TransactionId,
 
     /// The contents of the secret.
     pub secret: String,
@@ -27,7 +27,7 @@ pub struct ToDeviceSecretSendEventContent {
 
 impl ToDeviceSecretSendEventContent {
     /// Creates a new `SecretSendEventContent` with the given request ID and secret.
-    pub fn new(request_id: OwnedTransactionId, secret: String) -> Self {
+    pub fn new(request_id: TransactionId, secret: String) -> Self {
         Self { request_id, secret }
     }
 }
