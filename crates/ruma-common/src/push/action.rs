@@ -331,9 +331,8 @@ mod tests {
             "set_tweak": "sound",
             "value": "default"
         });
-        assert_matches!(
-            from_json_value::<Action>(json_data),
-            Ok(Action::SetTweak(Tweak::Sound(value)))
+        assert_let!(
+            Ok(Action::SetTweak(Tweak::Sound(value))) = from_json_value::<Action>(json_data)
         );
         assert_eq!(value, SoundTweakValue::Default);
 
@@ -341,9 +340,8 @@ mod tests {
             "set_tweak": "sound",
             "value": "custom"
         });
-        assert_matches!(
-            from_json_value::<Action>(json_data),
-            Ok(Action::SetTweak(Tweak::Sound(value)))
+        assert_let!(
+            Ok(Action::SetTweak(Tweak::Sound(value))) = from_json_value::<Action>(json_data)
         );
         assert_eq!(value.as_str(), "custom");
     }

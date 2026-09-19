@@ -92,9 +92,9 @@ fn deserialize_avatar_without_prev_content() {
         "type": "m.room.avatar"
     });
 
-    assert_matches!(
-        from_json_value::<AnyStateEvent>(json_data),
-        Ok(AnyStateEvent::RoomAvatar(StateEvent::Original(ev)))
+    assert_let!(
+        Ok(AnyStateEvent::RoomAvatar(StateEvent::Original(ev))) =
+            from_json_value::<AnyStateEvent>(json_data)
     );
     assert_eq!(ev.event_id, "$h29iv0s8:example.com");
     assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
@@ -137,9 +137,9 @@ fn deserialize_member_event_with_top_level_membership_field() {
         }
     });
 
-    assert_matches!(
-        from_json_value::<AnyTimelineEvent>(json_data),
-        Ok(AnyTimelineEvent::State(AnyStateEvent::RoomMember(StateEvent::Original(ev))))
+    assert_let!(
+        Ok(AnyTimelineEvent::State(AnyStateEvent::RoomMember(StateEvent::Original(ev)))) =
+            from_json_value::<AnyTimelineEvent>(json_data)
     );
     assert_eq!(ev.event_id, "$h29iv0s8:example.com");
     assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));

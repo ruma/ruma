@@ -1,4 +1,3 @@
-use assert_matches2::assert_matches;
 use http::header;
 use ruma_common::api::auth_scheme::{
     AccessToken, AccessTokenOptional, AppserviceToken, AppserviceTokenOptional, AuthScheme,
@@ -50,12 +49,10 @@ fn send_access_token_if_required() {
     assert_eq!(request.headers_mut().remove(header::AUTHORIZATION), None);
 
     AccessToken::add_authentication(&mut request, input).unwrap();
-    assert_matches!(request.headers_mut().remove(header::AUTHORIZATION), Some(value));
-    assert_eq!(value, HEADER_VALUE);
+    assert_eq!(request.headers_mut().remove(header::AUTHORIZATION), Some(HEADER_VALUE));
 
     AccessTokenOptional::add_authentication(&mut request, input).unwrap();
-    assert_matches!(request.headers_mut().remove(header::AUTHORIZATION), Some(value));
-    assert_eq!(value, HEADER_VALUE);
+    assert_eq!(request.headers_mut().remove(header::AUTHORIZATION), Some(HEADER_VALUE));
 
     AppserviceToken::add_authentication(&mut request, input).unwrap_err();
 
@@ -72,24 +69,19 @@ fn send_access_token_always() {
     assert_eq!(request.headers_mut().remove(header::AUTHORIZATION), None);
 
     NoAccessToken::add_authentication(&mut request, input).unwrap();
-    assert_matches!(request.headers_mut().remove(header::AUTHORIZATION), Some(value));
-    assert_eq!(value, HEADER_VALUE);
+    assert_eq!(request.headers_mut().remove(header::AUTHORIZATION), Some(HEADER_VALUE));
 
     AccessToken::add_authentication(&mut request, input).unwrap();
-    assert_matches!(request.headers_mut().remove(header::AUTHORIZATION), Some(value));
-    assert_eq!(value, HEADER_VALUE);
+    assert_eq!(request.headers_mut().remove(header::AUTHORIZATION), Some(HEADER_VALUE));
 
     AccessTokenOptional::add_authentication(&mut request, input).unwrap();
-    assert_matches!(request.headers_mut().remove(header::AUTHORIZATION), Some(value));
-    assert_eq!(value, HEADER_VALUE);
+    assert_eq!(request.headers_mut().remove(header::AUTHORIZATION), Some(HEADER_VALUE));
 
     AppserviceToken::add_authentication(&mut request, input).unwrap();
-    assert_matches!(request.headers_mut().remove(header::AUTHORIZATION), Some(value));
-    assert_eq!(value, HEADER_VALUE);
+    assert_eq!(request.headers_mut().remove(header::AUTHORIZATION), Some(HEADER_VALUE));
 
     AppserviceTokenOptional::add_authentication(&mut request, input).unwrap();
-    assert_matches!(request.headers_mut().remove(header::AUTHORIZATION), Some(value));
-    assert_eq!(value, HEADER_VALUE);
+    assert_eq!(request.headers_mut().remove(header::AUTHORIZATION), Some(HEADER_VALUE));
 }
 
 #[test]
@@ -104,20 +96,16 @@ fn send_access_token_appservice() {
     assert_eq!(request.headers_mut().remove(header::AUTHORIZATION), None);
 
     AccessToken::add_authentication(&mut request, input).unwrap();
-    assert_matches!(request.headers_mut().remove(header::AUTHORIZATION), Some(value));
-    assert_eq!(value, HEADER_VALUE);
+    assert_eq!(request.headers_mut().remove(header::AUTHORIZATION), Some(HEADER_VALUE));
 
     AccessTokenOptional::add_authentication(&mut request, input).unwrap();
-    assert_matches!(request.headers_mut().remove(header::AUTHORIZATION), Some(value));
-    assert_eq!(value, HEADER_VALUE);
+    assert_eq!(request.headers_mut().remove(header::AUTHORIZATION), Some(HEADER_VALUE));
 
     AppserviceToken::add_authentication(&mut request, input).unwrap();
-    assert_matches!(request.headers_mut().remove(header::AUTHORIZATION), Some(value));
-    assert_eq!(value, HEADER_VALUE);
+    assert_eq!(request.headers_mut().remove(header::AUTHORIZATION), Some(HEADER_VALUE));
 
     AppserviceTokenOptional::add_authentication(&mut request, input).unwrap();
-    assert_matches!(request.headers_mut().remove(header::AUTHORIZATION), Some(value));
-    assert_eq!(value, HEADER_VALUE);
+    assert_eq!(request.headers_mut().remove(header::AUTHORIZATION), Some(HEADER_VALUE));
 }
 
 #[test]

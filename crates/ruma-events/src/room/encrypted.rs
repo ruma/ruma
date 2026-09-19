@@ -289,7 +289,7 @@ mod tests {
     use js_int::uint;
     use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_event_id, serde::Raw};
     use serde_json::{from_value as from_json_value, json};
-    use strass::assert_variant_eq;
+    use strass::{assert_let, assert_variant_eq};
 
     use super::{
         EncryptedEventScheme, MegolmV1AesSha2ContentInit, Relation, Reply,
@@ -348,13 +348,13 @@ mod tests {
 
         let content: RoomEncryptedEventContent = from_json_value(json_data).unwrap();
 
-        assert_matches!(content.scheme, EncryptedEventScheme::MegolmV1AesSha2(scheme));
+        assert_let!(EncryptedEventScheme::MegolmV1AesSha2(scheme) = content.scheme);
         assert_eq!(scheme.ciphertext, "ciphertext");
         assert_eq!(scheme.sender_key.as_deref(), Some("sender_key"));
         assert_variant_eq!(scheme.device_id, Some("device_id"));
         assert_eq!(scheme.session_id, "session_id");
 
-        assert_matches!(content.relates_to, Some(Relation::Reply(reply)));
+        assert_let!(Some(Relation::Reply(reply)) = content.relates_to);
         assert_eq!(reply.in_reply_to.event_id, "$h29iv0s8:example.com");
     }
 
@@ -372,7 +372,7 @@ mod tests {
         });
         let content: RoomEncryptedEventContent = from_json_value(json_data).unwrap();
 
-        assert_matches!(content.scheme, EncryptedEventScheme::OlmV1Curve25519AesSha2(c));
+        assert_let!(EncryptedEventScheme::OlmV1Curve25519AesSha2(c) = content.scheme);
         assert_eq!(c.sender_key, "test_key");
         assert_eq!(c.ciphertext.len(), 1);
         assert_eq!(c.ciphertext["test_curve_key"].body, "encrypted_body");

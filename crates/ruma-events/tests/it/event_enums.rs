@@ -10,6 +10,7 @@ use ruma_events::{
     secret_storage::key::{SecretStorageEncryptionAlgorithm, SecretStorageV1AesHmacSha2Properties},
 };
 use serde_json::{from_value as from_json_value, json, value::to_raw_value as to_raw_json_value};
+use strass::assert_let;
 
 #[test]
 fn ui() {
@@ -37,9 +38,9 @@ fn deserialize_message_event() {
         "type": "m.call.answer"
     });
 
-    assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::CallAnswer(MessageLikeEvent::Original(message_event))
+    assert_let!(
+        AnyMessageLikeEvent::CallAnswer(MessageLikeEvent::Original(message_event)) =
+            from_json_value::<AnyMessageLikeEvent>(json_data).unwrap()
     );
 
     assert_eq!(message_event.event_id, "$h29iv0s8:example.com");
@@ -66,7 +67,7 @@ fn text_msgtype_plain_text_deserialization_as_any() {
 
     let event = raw_event.deserialize_with_type("m.room.message").unwrap();
 
-    assert_matches!(event, AnyMessageLikeEventContent::RoomMessage(content));
+    assert_let!(AnyMessageLikeEventContent::RoomMessage(content) = event);
     assert_eq!(content.body(), "Hello world!");
 }
 
@@ -85,19 +86,18 @@ fn secret_storage_key_deserialization_as_any() {
 
     let event = raw_event.deserialize_with_type("m.secret_storage.key.test").unwrap();
 
-    assert_matches!(event, AnyGlobalAccountDataEventContent::SecretStorageKey(content));
+    assert_let!(AnyGlobalAccountDataEventContent::SecretStorageKey(content) = event);
 
     assert_eq!(content.name.unwrap(), "my_key");
     assert_eq!(content.key_id, "test");
     assert_matches!(content.passphrase, None);
 
-    assert_matches!(
-        content.algorithm,
+    assert_let!(
         SecretStorageEncryptionAlgorithm::V1AesHmacSha2(SecretStorageV1AesHmacSha2Properties {
             iv: Some(iv),
             mac: Some(mac),
             ..
-        })
+        }) = content.algorithm
     );
 
     assert_eq!(iv.encode(), "YWJjZGVmZ2hpamtsbW5vcA");

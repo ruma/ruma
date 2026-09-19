@@ -276,7 +276,6 @@ impl From<SasV1ContentInit> for SasV1Content {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::assert_matches;
     use ruma_common::{canonical_json::assert_to_canonical_json_eq, event_id, serde::Base64};
     use serde_json::{Value as JsonValue, from_value as from_json_value, json};
     use strass::assert_let;
@@ -409,7 +408,7 @@ mod tests {
         assert_eq!(content.from_device, "123");
         assert_eq!(content.transaction_id, "456");
 
-        assert_matches!(content.method, StartMethod::SasV1(sas));
+        assert_let!(StartMethod::SasV1(sas) = content.method);
         assert_eq!(sas.hashes, vec![HashAlgorithm::Sha256]);
         assert_eq!(sas.key_agreement_protocols, vec![KeyAgreementProtocol::Curve25519]);
         assert_eq!(
@@ -438,7 +437,7 @@ mod tests {
         assert_eq!(ev.content.from_device, "123");
         assert_eq!(ev.content.transaction_id, "456");
 
-        assert_matches!(ev.content.method, StartMethod::SasV1(sas));
+        assert_let!(StartMethod::SasV1(sas) = ev.content.method);
         assert_eq!(sas.hashes, vec![HashAlgorithm::Sha256]);
         assert_eq!(sas.key_agreement_protocols, vec![KeyAgreementProtocol::Curve25519]);
         assert_eq!(
@@ -464,7 +463,7 @@ mod tests {
         assert_eq!(ev.content.from_device, "123");
         assert_eq!(ev.content.transaction_id, "456");
 
-        assert_matches!(ev.content.method, StartMethod::ReciprocateV1(reciprocate));
+        assert_let!(StartMethod::ReciprocateV1(reciprocate) = ev.content.method);
         assert_eq!(reciprocate.secret.encode(), "c2VjcmV0Cg");
     }
 
@@ -488,7 +487,7 @@ mod tests {
         assert_eq!(content.from_device, "123");
         assert_eq!(content.relates_to.event_id, "$1598361704261elfgc:localhost");
 
-        assert_matches!(content.method, StartMethod::SasV1(sas));
+        assert_let!(StartMethod::SasV1(sas) = content.method);
         assert_eq!(sas.hashes, vec![HashAlgorithm::Sha256]);
         assert_eq!(sas.key_agreement_protocols, vec![KeyAgreementProtocol::Curve25519]);
         assert_eq!(
@@ -511,7 +510,7 @@ mod tests {
         assert_eq!(content.from_device, "123");
         assert_eq!(content.relates_to.event_id, "$1598361704261elfgc:localhost");
 
-        assert_matches!(content.method, StartMethod::ReciprocateV1(reciprocate));
+        assert_let!(StartMethod::ReciprocateV1(reciprocate) = content.method);
         assert_eq!(reciprocate.secret.encode(), "c2VjcmV0Cg");
     }
 
