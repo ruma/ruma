@@ -50,6 +50,16 @@ Breaking changes:
     `owned_user_id!` macro was removed and the `user_id_ref!` macro behind the
     `unstable-identifier-ref-macros` cargo feature allows to construct a `&'static UserId`.
   - `OwnedVoipId` was renamed to `VoipId`.
+- The `IdDst` derive macro was removed. The `ruma_id` attribute macro is available instead.
+  The difference between both macros is that `ruma_id` does not support different borrowed and
+  owned types, but implements a single owned type. The same attributes are supported for both
+  macros.
+
+  To transition from `IdDst` to `ruma_id` one only needs to:
+  - Remove the derive macros on the identifier struct.
+  - Remove `#[repr(transparent)]`.
+  - Leave or add the `ruma_id` attribute.
+  - Remove the struct fields declaration (e.g. `(str)`) after the struct name.
 
 Improvements:
 
