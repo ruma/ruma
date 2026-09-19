@@ -7,6 +7,12 @@ Breaking changes:
 - The `DeserializeOwned` bound on the `StaticStateEventContent::Unsigned` associated type is only
   required when using the `Deserialize` implementation of `Original(Sync)StateEvent`.
 
+Bug fixes:
+
+- The `shared_history` field of `ToDeviceRoomKeyEventContent` and
+  `ToDeviceForwardedRoomKeyEventContent` is serialized as `shared_history` rather
+  than `m.shared_history`, to match the Matrix spec.
+
 ## 0.35.0
 
 Bug fixes:
