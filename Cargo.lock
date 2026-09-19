@@ -1963,6 +1963,7 @@ dependencies = [
  "ruma-macros",
  "serde",
  "serde_json",
+ "strass",
  "thiserror",
  "tracing",
  "trybuild",

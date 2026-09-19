@@ -287,10 +287,9 @@ impl From<MegolmV1AesSha2ContentInit> for MegolmV1AesSha2Content {
 mod tests {
     use assert_matches2::assert_matches;
     use js_int::uint;
-    use ruma_common::{
-        canonical_json::assert_to_canonical_json_eq, device_id, owned_event_id, serde::Raw,
-    };
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_event_id, serde::Raw};
     use serde_json::{from_value as from_json_value, json};
+    use strass::assert_variant_eq;
 
     use super::{
         EncryptedEventScheme, MegolmV1AesSha2ContentInit, Relation, Reply,
@@ -352,7 +351,7 @@ mod tests {
         assert_matches!(content.scheme, EncryptedEventScheme::MegolmV1AesSha2(scheme));
         assert_eq!(scheme.ciphertext, "ciphertext");
         assert_eq!(scheme.sender_key.as_deref(), Some("sender_key"));
-        assert_eq!(scheme.device_id.as_deref(), Some(device_id!("device_id")));
+        assert_variant_eq!(scheme.device_id, Some("device_id"));
         assert_eq!(scheme.session_id, "session_id");
 
         assert_matches!(content.relates_to, Some(Relation::Reply(reply)));
