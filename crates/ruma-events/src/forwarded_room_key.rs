@@ -47,11 +47,7 @@ pub struct ToDeviceForwardedRoomKeyEventContent {
     /// Used to mark key if allowed for shared history.
     ///
     /// Defaults to `false`.
-    #[serde(
-        default,
-        rename = "m.shared_history",
-        skip_serializing_if = "ruma_common::serde::is_default"
-    )]
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
     pub shared_history: bool,
 }
 
