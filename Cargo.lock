@@ -2005,6 +2005,7 @@ dependencies = [
  "assert_matches2",
  "html5ever",
  "ruma-common",
+ "strass",
  "tracing",
  "wildmatch",
 ]
