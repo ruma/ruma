@@ -32,6 +32,7 @@ thiserror = { workspace = true }
 [dev-dependencies]
 assert_matches2 = { workspace = true }
 insta = { workspace = true }
+strass = { workspace = true }
 
 [lints]
 workspace = true

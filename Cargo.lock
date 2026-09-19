@@ -2069,6 +2069,7 @@ dependencies = [
  "ruma-events",
  "serde_json",
  "sha2",
+ "strass",
  "thiserror",
 ]
 
