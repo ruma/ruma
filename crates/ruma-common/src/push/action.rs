@@ -269,8 +269,9 @@ pub struct CustomTweak {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::{assert_let, assert_matches};
+    use assert_matches2::assert_matches;
     use serde_json::{Value as JsonValue, from_value as from_json_value, json};
+    use strass::assert_let;
 
     use super::{Action, HighlightTweakValue, SoundTweakValue, Tweak};
     use crate::{assert_to_canonical_json_eq, push::action::CustomActionData};

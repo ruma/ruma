@@ -109,6 +109,7 @@ assign = { workspace = true }
 macro_rules_attribute = "0.2.2"
 maplit = { workspace = true }
 smol-macros = "0.1.1"
+strass = { workspace = true }
 trybuild = "1.0.71"
 
 [lints]

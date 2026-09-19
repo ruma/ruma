@@ -655,10 +655,11 @@ impl From<Restricted> for RestrictedSummary {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::{assert_let, assert_matches};
+    use assert_matches2::assert_matches;
     use js_int::uint;
     use ruma_common::{OwnedRoomId, owned_room_id};
     use serde_json::{Value as JsonValue, from_value as from_json_value, json};
+    use strass::assert_let;
 
     use super::{
         AllowRule, CustomAllowRule, JoinRule, JoinRuleSummary, Restricted, RestrictedSummary,
