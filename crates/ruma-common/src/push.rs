@@ -1036,13 +1036,14 @@ pub enum RemovePushRuleError {
 mod tests {
     use std::{collections::BTreeMap, sync::LazyLock};
 
-    use assert_matches2::{assert_let, assert_matches};
+    use assert_matches2::assert_matches;
     use js_int::{int, uint};
     use macro_rules_attribute::apply;
     use serde_json::{
         Value as JsonValue, from_value as from_json_value, json, value::RawValue as RawJsonValue,
     };
     use smol_macros::test;
+    use strass::assert_let;
 
     use super::{
         AnyPushRule, ConditionalPushRule, PatternedPushRule, Ruleset, SimplePushRule,

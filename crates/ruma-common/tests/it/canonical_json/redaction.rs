@@ -1,4 +1,3 @@
-use assert_matches2::assert_let;
 use ruma_common::{
     canonical_json::{
         CanonicalJsonValue, RedactingSerializer, assert_to_canonical_json_eq, redact,
@@ -6,6 +5,7 @@ use ruma_common::{
     room_version_rules::RedactionRules,
 };
 use serde_json::{json, to_string as to_json_string};
+use strass::assert_let;
 
 #[test]
 fn redact_power_levels() {
