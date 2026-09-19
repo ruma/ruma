@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+Bug fixes:
+
+- The `shared_history` field of `ToDeviceRoomKeyEventContent` is serialized as `shared_history`
+  rather than `m.shared_history`, to match the Matrix spec.
+
 Improvements:
 
 - Add unstable support for [MSC4546] (Circles) behind the `unstable-msc4546` feature flag.
