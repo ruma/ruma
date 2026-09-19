@@ -157,9 +157,9 @@ pub mod v3 {
 
     #[cfg(all(test, feature = "client"))]
     mod tests_client {
-        use assert_matches2::assert_let;
         use http::header::{CONTENT_TYPE, LOCATION};
         use ruma_common::api::IncomingResponseExt as _;
+        use strass::assert_let;
 
         use super::Response;
 

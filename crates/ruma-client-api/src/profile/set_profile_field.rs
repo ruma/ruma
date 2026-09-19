@@ -313,9 +313,9 @@ mod tests_client {
 
 #[cfg(all(test, feature = "server"))]
 mod tests_server {
-    use assert_matches2::assert_let;
     use ruma_common::{api::IncomingRequestExt as _, profile::ProfileFieldValue};
     use serde_json::{json, to_vec as to_json_vec};
+    use strass::assert_let;
 
     use super::v3::Request;
 

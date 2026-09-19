@@ -236,12 +236,13 @@ impl From<EncryptedSessionDataInit> for EncryptedSessionData {
 mod tests {
     use std::borrow::Cow;
 
-    use assert_matches2::{assert_let, assert_matches};
+    use assert_matches2::assert_matches;
     use ruma_common::{
         SigningKeyAlgorithm, SigningKeyId, canonical_json::assert_to_canonical_json_eq,
         owned_user_id, serde::Base64,
     };
     use serde_json::{Value as JsonValue, from_value as from_json_value, json};
+    use strass::assert_let;
 
     use super::{BackupAlgorithm, MegolmBackupV1Curve25519AesSha2AuthData};
 
