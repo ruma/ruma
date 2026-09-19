@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.19/client-server-api/#post_matrixclientv3roomsroomidupgrade
 
     use ruma_common::{
-        OwnedUserId, RoomId, RoomVersionId,
+        RoomId, RoomVersionId, UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -29,7 +29,7 @@ pub mod v3 {
         /// A list of user IDs to consider as additional creators, and hence grant an "infinite"
         /// immutable power level, from room version 12 onwards.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-        pub additional_creators: Vec<OwnedUserId>,
+        pub additional_creators: Vec<UserId>,
 
         /// ID of the room to be upgraded.
         #[ruma_api(path)]

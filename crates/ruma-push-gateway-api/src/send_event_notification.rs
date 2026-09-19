@@ -9,7 +9,7 @@ pub mod v1 {
 
     use js_int::{UInt, uint};
     use ruma_common::{
-        EventId, OwnedUserId, RoomAliasId, RoomId, SecondsSinceUnixEpoch,
+        EventId, RoomAliasId, RoomId, SecondsSinceUnixEpoch, UserId,
         api::{auth_scheme::NoAuthentication, request, response},
         metadata,
         push::{PushFormat, Tweak},
@@ -87,7 +87,7 @@ pub mod v1 {
 
         /// The sender of the event as in the corresponding event field.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub sender: Option<OwnedUserId>,
+        pub sender: Option<UserId>,
 
         /// The current display name of the sender in the room in which the event occurred.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -352,7 +352,7 @@ pub mod v1 {
         use js_int::uint;
         use ruma_common::{
             SecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, event_id,
-            owned_user_id, push::HighlightTweakValue, room_alias_id, room_id,
+            push::HighlightTweakValue, room_alias_id, room_id, user_id,
         };
         use ruma_events::TimelineEventType;
         use serde_json::{Value as JsonValue, from_value as from_json_value, json};
@@ -363,7 +363,7 @@ pub mod v1 {
         fn serialize_request() {
             let eid = event_id!("$3957tyerfgewrf384");
             let rid = room_id!("!slw48wfj34rtnrf:example.com");
-            let uid = owned_user_id!("@exampleuser:matrix.org");
+            let uid = user_id!("@exampleuser:matrix.org");
             let alias = room_alias_id!("#exampleroom:matrix.org");
 
             let count = NotificationCounts { unread: uint!(2), ..NotificationCounts::default() };

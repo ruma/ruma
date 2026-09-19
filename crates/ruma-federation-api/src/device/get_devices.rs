@@ -9,7 +9,7 @@ pub mod v1 {
 
     use js_int::UInt;
     use ruma_common::{
-        DeviceId, OwnedUserId,
+        DeviceId, UserId,
         api::{request, response},
         encryption::{CrossSigningKey, DeviceKeys},
         metadata,
@@ -33,14 +33,14 @@ pub mod v1 {
         ///
         /// Must be a user local to the receiving homeserver.
         #[ruma_api(path)]
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
     }
 
     /// Response type for the `get_devices` endpoint.
     #[response]
     pub struct Response {
         /// The user ID devices were requested for.
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// A unique ID for a given user_id which describes the version of the returned device
         /// list.
@@ -63,7 +63,7 @@ pub mod v1 {
 
     impl Request {
         /// Creates a new `Request` with the given user id.
-        pub fn new(user_id: OwnedUserId) -> Self {
+        pub fn new(user_id: UserId) -> Self {
             Self { user_id }
         }
     }
@@ -72,7 +72,7 @@ pub mod v1 {
         /// Creates a new `Response` with the given user id and stream id.
         ///
         /// The device list will be empty.
-        pub fn new(user_id: OwnedUserId, stream_id: UInt) -> Self {
+        pub fn new(user_id: UserId, stream_id: UInt) -> Self {
             Self {
                 user_id,
                 stream_id,

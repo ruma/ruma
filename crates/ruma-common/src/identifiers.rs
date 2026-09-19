@@ -46,7 +46,7 @@ pub use self::{
     },
     space_child_order::SpaceChildOrder,
     transaction_id::TransactionId,
-    user_id::{OwnedUserId, UserId},
+    user_id::UserId,
     voip_id::{OwnedVoipId, VoipId},
     voip_version_id::VoipVersionId,
 };
@@ -230,6 +230,9 @@ pub mod __private_macros {
         > = LazyLock::new(IdInterner::new);
 
         pub static SESSION_ID_INTERNER: LazyLock<IdInterner<crate::SessionId>> =
+            LazyLock::new(IdInterner::new);
+
+        pub static USER_ID_INTERNER: LazyLock<IdInterner<crate::UserId>> =
             LazyLock::new(IdInterner::new);
     }
 }
@@ -425,11 +428,20 @@ macro_rules! user_id {
     };
 }
 
-/// Compile-time checked [`OwnedUserId`] construction.
+/// Compile-time checked `&'static UserId` construction.
+///
+/// This macro is a helper to ease the transition after the change of [`UserId`] from a
+/// dynamically sized type to an owned type. It has the side effect of interning and leaking the
+/// identifier so it SHOULD NOT be used in code that runs in production.
+///
+/// This is behind the `unstable-identifier-ref-macros` cargo feature to allow us to remove this
+/// macro at any time without it being a breaking change.
 #[macro_export]
-macro_rules! owned_user_id {
+#[cfg(feature = "unstable-identifier-ref-macros")]
+macro_rules! user_id_ref {
     ($s:literal) => {
-        $crate::user_id!($s).to_owned()
+        $crate::__private_macros::id_interner::USER_ID_INTERNER
+            .get_or_insert_with($s, || $crate::user_id!($s))
     };
 }
 

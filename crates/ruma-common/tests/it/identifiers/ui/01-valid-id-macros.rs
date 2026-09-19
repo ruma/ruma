@@ -13,8 +13,6 @@ fn main() {
     _ = ruma_common::session_id!("valid");
     _ = ruma_common::user_id!("@user:ruma.io");
 
-    _ = ruma_common::owned_user_id!("@user:ruma.io");
-
     #[cfg(feature = "unstable-identifier-ref-macros")]
     {
         _ = ruma_common::base64_public_key_ref!("self+signing+master+public+key");
@@ -27,5 +25,6 @@ fn main() {
         _ = ruma_common::server_name_ref!("myserver.fish");
         _ = ruma_common::server_signing_key_version_ref!("Abc_1");
         _ = ruma_common::session_id_ref!("valid");
+        _ = ruma_common::user_id_ref!("@user:ruma.io");
     }
 }

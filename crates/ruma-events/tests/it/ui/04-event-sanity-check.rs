@@ -1,4 +1,4 @@
-use ruma_common::{EventId, MilliSecondsSinceUnixEpoch, OwnedUserId, RoomId};
+use ruma_common::{EventId, MilliSecondsSinceUnixEpoch, RoomId, UserId};
 use ruma_events::StaticStateEventContent;
 use ruma_macros::Event;
 
@@ -7,7 +7,7 @@ use ruma_macros::Event;
 pub struct OriginalStateEvent<C: StaticStateEventContent> {
     pub content: C,
     pub event_id: EventId,
-    pub sender: OwnedUserId,
+    pub sender: UserId,
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
     pub room_id: RoomId,
     pub state_key: C::StateKey,

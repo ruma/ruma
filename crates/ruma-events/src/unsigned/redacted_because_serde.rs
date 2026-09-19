@@ -1,4 +1,4 @@
-use ruma_common::{EventId, MilliSecondsSinceUnixEpoch, OwnedUserId, serde::from_raw_json_value};
+use ruma_common::{EventId, MilliSecondsSinceUnixEpoch, UserId, serde::from_raw_json_value};
 use serde::{Deserialize, de};
 use serde_json::value::RawValue as RawJsonValue;
 
@@ -41,7 +41,7 @@ struct CustomRedactionEventDeHelper {
     event_id: EventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    sender: OwnedUserId,
+    sender: UserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     origin_server_ts: MilliSecondsSinceUnixEpoch,

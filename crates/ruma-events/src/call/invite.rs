@@ -5,7 +5,7 @@
 use std::collections::BTreeMap;
 
 use js_int::UInt;
-use ruma_common::{OwnedUserId, OwnedVoipId, VoipVersionId};
+use ruma_common::{OwnedVoipId, UserId, VoipVersionId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -50,7 +50,7 @@ pub struct CallInviteEventContent {
     ///
     /// The invite should be ignored if the invitee is set and doesn't match the user's ID.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub invitee: Option<OwnedUserId>,
+    pub invitee: Option<UserId>,
 
     /// **Added in VoIP version 1.** Metadata describing the streams that will be sent.
     ///

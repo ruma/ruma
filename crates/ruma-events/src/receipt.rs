@@ -9,7 +9,7 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-use ruma_common::{EventId, IdParseError, MilliSecondsSinceUnixEpoch, OwnedUserId, UserId};
+use ruma_common::{EventId, IdParseError, MilliSecondsSinceUnixEpoch, UserId};
 use ruma_macros::{EventContent, StringEnum};
 use serde::{Deserialize, Serialize};
 
@@ -114,7 +114,7 @@ pub enum ReceiptType {
 /// A mapping of user ID to receipt.
 ///
 /// The user ID is the entity who sent this receipt.
-pub type UserReceipts = BTreeMap<OwnedUserId, Receipt>;
+pub type UserReceipts = BTreeMap<UserId, Receipt>;
 
 /// An acknowledgement of an event.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]

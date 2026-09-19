@@ -12,7 +12,7 @@ use std::{collections::BTreeMap, time::Duration};
 use js_int::UInt;
 use js_option::JsOption;
 use ruma_common::{
-    MxcUri, OwnedUserId, RoomId,
+    MxcUri, RoomId, UserId,
     api::{auth_scheme::AccessToken, request, response},
     metadata,
     presence::PresenceState,
@@ -603,7 +603,7 @@ pub mod response {
 
     use super::{
         super::DeviceLists, AnySyncStateEvent, AnySyncTimelineEvent, BTreeMap, Deserialize,
-        JsOption, MxcUri, OwnedUserId, Raw, RoomId, Serialize, UInt, UnreadNotificationsCount,
+        JsOption, MxcUri, Raw, RoomId, Serialize, UInt, UnreadNotificationsCount, UserId,
     };
     #[cfg(feature = "unstable-msc4308")]
     use crate::threads::get_thread_subscriptions_changes::unstable::{
@@ -720,7 +720,7 @@ pub mod response {
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Hero {
         /// The user ID.
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// The name.
         ///
@@ -747,7 +747,7 @@ pub mod response {
 
     impl Hero {
         /// Creates a new `Hero` with the given user ID.
-        pub fn new(user_id: OwnedUserId) -> Self {
+        pub fn new(user_id: UserId) -> Self {
             Self { user_id, name: None, avatar: None }
         }
     }
@@ -1017,7 +1017,7 @@ pub mod response {
     pub struct Profiles {
         /// Profile updates keyed by user ID.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub users: BTreeMap<OwnedUserId, UserProfileUpdate>,
+        pub users: BTreeMap<UserId, UserProfileUpdate>,
     }
 
     #[cfg(feature = "unstable-msc4262")]

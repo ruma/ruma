@@ -9,9 +9,9 @@ use ruma_common::{
 };
 use web_time::{Duration, SystemTime};
 
-#[cfg(feature = "unstable-msc4406")]
-use crate::OwnedUserId;
 use crate::PrivOwnedStr;
+#[cfg(feature = "unstable-msc4406")]
+use crate::UserId;
 
 /// An enum for the error kind.
 ///
@@ -612,7 +612,7 @@ impl ResourceLimitExceededErrorData {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct SenderIgnoredErrorData {
     /// The user who sent the ignored event.
-    pub sender: Option<OwnedUserId>,
+    pub sender: Option<UserId>,
 }
 
 #[cfg(feature = "unstable-msc4406")]
@@ -623,7 +623,7 @@ impl SenderIgnoredErrorData {
     }
 
     /// Construct a new `SenderIgnoredErrorData` with the given sender user.
-    pub fn with_sender(sender: OwnedUserId) -> Self {
+    pub fn with_sender(sender: UserId) -> Self {
         Self { sender: Some(sender) }
     }
 }

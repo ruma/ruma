@@ -10,7 +10,7 @@ pub mod v3 {
     use std::time::Duration;
 
     use ruma_common::{
-        OwnedUserId, RoomId,
+        RoomId, UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -35,7 +35,7 @@ pub mod v3 {
 
         /// The user who has started to type.
         #[ruma_api(path)]
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// Whether the user is typing within a length of time or not.
         #[ruma_api(body)]
@@ -49,7 +49,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given user ID, room ID and typing state.
-        pub fn new(user_id: OwnedUserId, room_id: RoomId, state: Typing) -> Self {
+        pub fn new(user_id: UserId, room_id: RoomId, state: Typing) -> Self {
             Self { user_id, room_id, state }
         }
     }

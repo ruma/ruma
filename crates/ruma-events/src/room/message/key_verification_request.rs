@@ -1,4 +1,4 @@
-use ruma_common::{DeviceId, OwnedUserId};
+use ruma_common::{DeviceId, UserId};
 use serde::{Deserialize, Serialize};
 
 use super::FormattedBody;
@@ -34,7 +34,7 @@ pub struct KeyVerificationRequestEventContent {
     /// Users should only respond to verification requests if they are named in this field. Users
     /// who are not named in this field and who did not send this event should ignore all other
     /// events that have a `m.reference` relationship with this event.
-    pub to: OwnedUserId,
+    pub to: UserId,
 }
 
 impl KeyVerificationRequestEventContent {
@@ -44,7 +44,7 @@ impl KeyVerificationRequestEventContent {
         body: String,
         methods: Vec<VerificationMethod>,
         from_device: DeviceId,
-        to: OwnedUserId,
+        to: UserId,
     ) -> Self {
         Self { body, formatted: None, methods, from_device, to }
     }

@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.19/client-server-api/#post_matrixclientv3roomsroomidkick
 
     use ruma_common::{
-        OwnedUserId, RoomId,
+        RoomId, UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -31,7 +31,7 @@ pub mod v3 {
         pub room_id: RoomId,
 
         /// The user to kick.
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// The reason for kicking the user.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -58,7 +58,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given room id and room id.
-        pub fn new(room_id: RoomId, user_id: OwnedUserId) -> Self {
+        pub fn new(room_id: RoomId, user_id: UserId) -> Self {
             Self {
                 room_id,
                 user_id,
