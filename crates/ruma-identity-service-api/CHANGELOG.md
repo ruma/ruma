@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+Bug fixes:
+
+- The `authentication::get_account_information::v2` endpoint uses the `GET`
+  method instead of `POST`, as defined in the specification.
+
 ## 0.16.0
 
 Breaking changes:
