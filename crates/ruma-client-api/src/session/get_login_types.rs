@@ -323,9 +323,10 @@ pub mod v3 {
     #[cfg(test)]
     mod tests {
         use assert_matches2::{assert_let, assert_matches};
-        use ruma_common::{canonical_json::assert_to_canonical_json_eq, mxc_uri};
+        use ruma_common::canonical_json::assert_to_canonical_json_eq;
         use serde::{Deserialize, Serialize};
         use serde_json::{Value as JsonValue, from_value as from_json_value, json};
+        use strass::assert_variant_eq;
 
         use super::{
             IdentityProvider, IdentityProviderBrand, LoginType, SsoLoginType, TokenLoginType,
@@ -403,7 +404,7 @@ pub mod v3 {
             let provider = &identity_providers[0];
             assert_eq!(provider.id, "oidc-gitlab");
             assert_eq!(provider.name, "GitLab");
-            assert_eq!(provider.icon.as_deref(), Some(mxc_uri!("mxc://localhost/gitlab-icon")));
+            assert_variant_eq!(provider.icon, Some("mxc://localhost/gitlab-icon"));
             assert_eq!(provider.brand, Some(IdentityProviderBrand::GitLab));
 
             let provider = &identity_providers[1];

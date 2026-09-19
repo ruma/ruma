@@ -1898,6 +1898,7 @@ dependencies = [
  "serde",
  "serde_html_form",
  "serde_json",
+ "strass",
  "thiserror",
  "url",
  "web-time",
@@ -2453,6 +2454,12 @@ name = "static_assertions"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
+
+[[package]]
+name = "strass"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fdb8c79b3947f2fa62d8bffc17c52beb6ffe40ac5a31b5716825774f8f667708"
 
 [[package]]
 name = "string_cache"

@@ -125,8 +125,6 @@ pub mod v3 {
         #[cfg(feature = "compat-upload-signatures")]
         #[test]
         fn deserialize_synapse_response() {
-            use ruma_common::user_id;
-
             use super::FailureErrorCode;
 
             const JSON: &str = r#"{
@@ -142,7 +140,7 @@ pub mod v3 {
             }"#;
 
             let parsed: ResponseBody = serde_json::from_str(JSON).unwrap();
-            let failure = &parsed.failures[user_id!("@richvdh:sw1v.org")]["EOZDSWJVGZ"];
+            let failure = &parsed.failures["@richvdh:sw1v.org"]["EOZDSWJVGZ"];
             assert_eq!(failure.errcode, FailureErrorCode::InvalidSignature);
             assert_eq!(failure.error, "400: Invalid signature");
         }
