@@ -224,12 +224,10 @@ mod tests {
         assert_eq!(content.name.unwrap(), "my_key");
         assert_matches!(content.passphrase, None);
 
-        assert_matches!(
-            content.algorithm,
-            SecretStorageEncryptionAlgorithm::V1AesHmacSha2(SecretStorageV1AesHmacSha2Properties {
-                iv: Some(iv),
-                mac: Some(mac)
-            })
+        assert_let!(
+            SecretStorageEncryptionAlgorithm::V1AesHmacSha2(
+                SecretStorageV1AesHmacSha2Properties { iv: Some(iv), mac: Some(mac) }
+            ) = content.algorithm
         );
 
         assert_eq!(iv.encode(), "YWJjZGVmZ2hpamtsbW5vcA");
@@ -250,12 +248,10 @@ mod tests {
         assert!(content.name.is_none());
         assert_matches!(content.passphrase, None);
 
-        assert_matches!(
-            content.algorithm,
-            SecretStorageEncryptionAlgorithm::V1AesHmacSha2(SecretStorageV1AesHmacSha2Properties {
-                iv: Some(iv),
-                mac: Some(mac)
-            })
+        assert_let!(
+            SecretStorageEncryptionAlgorithm::V1AesHmacSha2(
+                SecretStorageV1AesHmacSha2Properties { iv: Some(iv), mac: Some(mac) }
+            ) = content.algorithm
         );
         assert_eq!(iv.encode(), "YWJjZGVmZ2hpamtsbW5vcA");
         assert_eq!(mac.encode(), "aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U");
@@ -319,12 +315,10 @@ mod tests {
         assert_eq!(passphrase.iterations, uint!(8));
         assert_eq!(passphrase.bits, uint!(256));
 
-        assert_matches!(
-            content.algorithm,
-            SecretStorageEncryptionAlgorithm::V1AesHmacSha2(SecretStorageV1AesHmacSha2Properties {
-                iv: Some(iv),
-                mac: Some(mac)
-            })
+        assert_let!(
+            SecretStorageEncryptionAlgorithm::V1AesHmacSha2(
+                SecretStorageV1AesHmacSha2Properties { iv: Some(iv), mac: Some(mac) }
+            ) = content.algorithm
         );
         assert_eq!(iv.encode(), "YWJjZGVmZ2hpamtsbW5vcA");
         assert_eq!(mac.encode(), "aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U");
@@ -391,17 +385,15 @@ mod tests {
         });
 
         let any_ev = from_json_value::<AnyGlobalAccountDataEvent>(json).unwrap();
-        assert_matches!(any_ev, AnyGlobalAccountDataEvent::SecretStorageKey(ev));
+        assert_let!(AnyGlobalAccountDataEvent::SecretStorageKey(ev) = any_ev);
         assert_eq!(ev.content.key_id, "my_key_id");
         assert_eq!(ev.content.name.unwrap(), "my_key");
         assert_matches!(ev.content.passphrase, None);
 
-        assert_matches!(
-            ev.content.algorithm,
-            SecretStorageEncryptionAlgorithm::V1AesHmacSha2(SecretStorageV1AesHmacSha2Properties {
-                iv: Some(iv),
-                mac: Some(mac)
-            })
+        assert_let!(
+            SecretStorageEncryptionAlgorithm::V1AesHmacSha2(
+                SecretStorageV1AesHmacSha2Properties { iv: Some(iv), mac: Some(mac) }
+            ) = ev.content.algorithm
         );
         assert_eq!(iv.encode(), "YWJjZGVmZ2hpamtsbW5vcA");
         assert_eq!(mac.encode(), "aWRvbnRrbm93d2hhdGFtYWNsb29rc2xpa2U");

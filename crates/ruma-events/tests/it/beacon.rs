@@ -1,6 +1,5 @@
 #![cfg(feature = "unstable-msc3489")]
 
-use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{
     MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, owned_event_id,
@@ -10,6 +9,7 @@ use ruma_events::{
     AnyMessageLikeEvent, MessageLikeEvent, beacon::BeaconEventContent, relation::Reference,
 };
 use serde_json::{Value as JsonValue, from_value as from_json_value, json};
+use strass::assert_let;
 
 fn get_beacon_event_content() -> BeaconEventContent {
     BeaconEventContent::new(
@@ -64,10 +64,10 @@ fn message_event_deserialization() {
 
     let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
 
-    assert_matches!(event, AnyMessageLikeEvent::Beacon(MessageLikeEvent::Original(ev)));
+    assert_let!(AnyMessageLikeEvent::Beacon(MessageLikeEvent::Original(ev)) = event);
     assert_eq!(ev.content.location.uri, "geo:51.5008,0.1247;u=35");
     assert_eq!(ev.content.ts, MilliSecondsSinceUnixEpoch(uint!(1_636_829_458)));
-    assert_matches!(ev.content.relates_to, Reference { event_id, .. });
+    assert_let!(Reference { event_id, .. } = ev.content.relates_to);
     assert_eq!(event_id, "$beacon_info_event_id:example.com");
 
     assert_eq!(ev.sender, user_id!("@example:example.com"));

@@ -20,6 +20,7 @@ use ruma_events::{
     video::{VideoDetailsContentBlock, VideoEventContent},
 };
 use serde_json::{from_value as from_json_value, json};
+use strass::assert_let;
 
 #[test]
 fn plain_content_serialization() {
@@ -283,9 +284,9 @@ fn message_event_deserialization() {
         "type": "org.matrix.msc1767.video",
     });
 
-    assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data),
-        Ok(AnyMessageLikeEvent::Video(MessageLikeEvent::Original(ev)))
+    assert_let!(
+        Ok(AnyMessageLikeEvent::Video(MessageLikeEvent::Original(ev))) =
+            from_json_value::<AnyMessageLikeEvent>(json_data)
     );
     assert_eq!(ev.event_id, "$event:notareal.hs");
     assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(134_829_848)));

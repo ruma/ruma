@@ -123,12 +123,12 @@ impl UrlPreview {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::assert_matches;
     use assign::assign;
     use js_int::uint;
     use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_mxc_uri};
     use ruma_events::room::message::{MessageType, RoomMessageEventContent};
     use serde_json::{from_value as from_json_value, json};
+    use strass::assert_let;
 
     use super::{super::text::TextMessageEventContent, *};
     use crate::room::{EncryptedFile, EncryptedFileHashes, V2EncryptedFileInfo};
@@ -322,7 +322,7 @@ mod tests {
         // Check the preview image parsed:
         let PreviewImage { size, height, width, mimetype, source } = image.clone().unwrap();
         assert_eq!(size.unwrap(), uint!(16588));
-        assert_matches!(source, PreviewImageSource::Url(url));
+        assert_let!(PreviewImageSource::Url(url) = source);
         assert_eq!(url, "mxc://maunium.net/zeHhTqqUtUSUTUDxQisPdwZO");
         assert_eq!(height.unwrap(), uint!(400));
         assert_eq!(width.unwrap(), uint!(800));
@@ -367,7 +367,7 @@ mod tests {
         // Check the preview image parsed:
         let PreviewImage { size, height, width, mimetype, source } = image.clone().unwrap();
         assert_eq!(size.unwrap(), uint!(16588));
-        assert_matches!(source, PreviewImageSource::Url(url));
+        assert_let!(PreviewImageSource::Url(url) = source);
         assert_eq!(url, "mxc://maunium.net/zeHhTqqUtUSUTUDxQisPdwZO");
         assert_eq!(height.unwrap(), uint!(400));
         assert_eq!(width.unwrap(), uint!(800));
@@ -466,7 +466,7 @@ mod tests {
 
         assert_eq!(size.unwrap(), uint!(16588));
 
-        assert_matches!(source, PreviewImageSource::EncryptedImage(encrypted_image));
+        assert_let!(PreviewImageSource::EncryptedImage(encrypted_image) = source);
         assert_eq!(
             encrypted_image.url,
             "mxc://beeper.com/53207ac52ce3e2c722bb638987064bfdc0cc257b"
@@ -518,7 +518,7 @@ mod tests {
         // Check the preview image parsed:
         let PreviewImage { size, height, width, mimetype, source } = image.clone().unwrap();
         assert_eq!(size.unwrap(), uint!(16588));
-        assert_matches!(source, PreviewImageSource::Url(url));
+        assert_let!(PreviewImageSource::Url(url) = source);
         assert_eq!(url, "mxc://maunium.net/zeHhTqqUtUSUTUDxQisPdwZO");
         assert_eq!(height.unwrap(), uint!(400));
         assert_eq!(width.unwrap(), uint!(800));

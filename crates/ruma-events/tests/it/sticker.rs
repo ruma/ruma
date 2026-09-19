@@ -1,4 +1,3 @@
-use assert_matches2::assert_matches;
 use assign::assign;
 use js_int::{UInt, uint};
 use ruma_common::{
@@ -12,6 +11,7 @@ use ruma_events::{
     sticker::{StickerEventContent, StickerEventContentWithoutRelation, StickerMediaSource},
 };
 use serde_json::{from_value as from_json_value, json};
+use strass::assert_let;
 
 #[test]
 fn content_serialization() {
@@ -120,7 +120,7 @@ fn content_deserialization() {
 
     let content = from_json_value::<StickerEventContent>(json_data).unwrap();
     assert_eq!(content.body, "Upload: my_image.jpg");
-    assert_matches!(content.source, StickerMediaSource::Plain(sticker_url));
+    assert_let!(StickerMediaSource::Plain(sticker_url) = content.source);
     assert_eq!(sticker_url, "mxc://notareal.hs/file");
 
     let encrypted_json_data = json!({
@@ -152,9 +152,8 @@ fn content_deserialization() {
         let encrypted_content =
             from_json_value::<StickerEventContent>(encrypted_json_data).unwrap();
         assert_eq!(encrypted_content.body, "Upload: my_image.jpg");
-        assert_matches!(
-            encrypted_content.source,
-            StickerMediaSource::Encrypted(encrypted_sticker_url)
+        assert_let!(
+            StickerMediaSource::Encrypted(encrypted_sticker_url) = encrypted_content.source
         );
         assert_eq!(encrypted_sticker_url.url, "mxc://notareal.hs/file");
     }
@@ -180,12 +179,12 @@ fn replace_content_deserialization() {
 
     let content = from_json_value::<StickerEventContent>(json_data).unwrap();
     assert_eq!(content.body, "* Upload: my_image.jpg");
-    assert_matches!(content.source, StickerMediaSource::Plain(sticker_url));
+    assert_let!(StickerMediaSource::Plain(sticker_url) = content.source);
     assert_eq!(sticker_url, "mxc://notareal.hs/file");
 
-    assert_matches!(content.relates_to, Some(Relation::Replacement(replacement)));
+    assert_let!(Some(Relation::Replacement(replacement)) = content.relates_to);
     assert_eq!(replacement.new_content.body, "Upload: my_image.jpg");
-    assert_matches!(replacement.new_content.source, StickerMediaSource::Plain(sticker_url));
+    assert_let!(StickerMediaSource::Plain(sticker_url) = replacement.new_content.source);
     assert_eq!(sticker_url, "mxc://notareal.hs/file");
 
     let encrypted_json_data = json!({
@@ -226,20 +225,18 @@ fn replace_content_deserialization() {
         let encrypted_content =
             from_json_value::<StickerEventContent>(encrypted_json_data).unwrap();
         assert_eq!(encrypted_content.body, "* Upload: my_image.jpg");
-        assert_matches!(
-            encrypted_content.source,
-            StickerMediaSource::Encrypted(encrypted_sticker_url)
+        assert_let!(
+            StickerMediaSource::Encrypted(encrypted_sticker_url) = encrypted_content.source
         );
         assert_eq!(encrypted_sticker_url.url, "mxc://notareal.hs/file");
 
-        assert_matches!(
-            encrypted_content.relates_to,
-            Some(Relation::Replacement(encrypted_replacement))
+        assert_let!(
+            Some(Relation::Replacement(encrypted_replacement)) = encrypted_content.relates_to
         );
         assert_eq!(encrypted_replacement.new_content.body, "Upload: my_image.jpg");
-        assert_matches!(
-            encrypted_replacement.new_content.source,
-            StickerMediaSource::Plain(encrypted_sticker_url)
+        assert_let!(
+            StickerMediaSource::Plain(encrypted_sticker_url) =
+                encrypted_replacement.new_content.source
         );
         assert_eq!(encrypted_sticker_url, "mxc://notareal.hs/file");
     }
@@ -272,9 +269,9 @@ fn event_deserialization() {
         "type": "m.sticker"
     });
 
-    assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data),
-        Ok(AnyMessageLikeEvent::Sticker(MessageLikeEvent::Original(message_event)))
+    assert_let!(
+        Ok(AnyMessageLikeEvent::Sticker(MessageLikeEvent::Original(message_event))) =
+            from_json_value::<AnyMessageLikeEvent>(json_data)
     );
 
     assert_eq!(message_event.event_id, "$h29iv0s8:example.com");
@@ -289,10 +286,10 @@ fn event_deserialization() {
     assert_eq!(content.info.width, Some(uint!(1011)));
     assert_eq!(content.info.mimetype.as_deref(), Some("image/png"));
     assert_eq!(content.info.size, Some(uint!(84242)));
-    assert_matches!(content.source, StickerMediaSource::Plain(sticker_url));
+    assert_let!(StickerMediaSource::Plain(sticker_url) = content.source);
     assert_eq!(sticker_url, "mxc://matrix.org/jxPXTKpyydzdHJkdFNZjTZrD");
 
-    assert_matches!(content.info.thumbnail_source, Some(MediaSource::Plain(thumbnail_url)));
+    assert_let!(Some(MediaSource::Plain(thumbnail_url)) = content.info.thumbnail_source);
     assert_eq!(thumbnail_url, "mxc://matrix.org/irnsNRS2879");
     let thumbnail_info = content.info.thumbnail_info.unwrap();
     assert_eq!(thumbnail_info.width, Some(uint!(800)));
