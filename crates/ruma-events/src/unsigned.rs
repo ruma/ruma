@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use js_int::Int;
 use ruma_common::{
-    EventId, MilliSecondsSinceUnixEpoch, OwnedTransactionId, OwnedUserId, UserId,
+    EventId, MilliSecondsSinceUnixEpoch, OwnedUserId, TransactionId, UserId,
     serde::{CanBeEmpty, Raw},
 };
 use serde::{Deserialize, de::DeserializeOwned};
@@ -31,7 +31,7 @@ pub struct MessageLikeUnsigned<C: MessageLikeEventContent> {
 
     /// The client-supplied transaction ID, if the client being given the event is the same one
     /// which sent it.
-    pub transaction_id: Option<OwnedTransactionId>,
+    pub transaction_id: Option<TransactionId>,
 
     /// [Bundled aggregations] of related child events.
     ///
@@ -97,7 +97,7 @@ pub struct StateUnsigned<C: PossiblyRedactedStateEventContent> {
 
     /// The client-supplied transaction ID, if the client being given the event is the same one
     /// which sent it.
-    pub transaction_id: Option<OwnedTransactionId>,
+    pub transaction_id: Option<TransactionId>,
 
     /// The event ID of the state event replaced by this event.
     pub replaces_state: Option<EventId>,

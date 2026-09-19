@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.19/client-server-api/#put_matrixclientv3roomsroomidsendeventtypetxnid
 
     use ruma_common::{
-        EventId, MilliSecondsSinceUnixEpoch, OwnedTransactionId, RoomId,
+        EventId, MilliSecondsSinceUnixEpoch, RoomId, TransactionId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::Raw,
@@ -49,7 +49,7 @@ pub mod v3 {
         ///
         /// [access token is refreshed]: https://spec.matrix.org/v1.19/client-server-api/#refreshing-access-tokens
         #[ruma_api(path)]
-        pub txn_id: OwnedTransactionId,
+        pub txn_id: TransactionId,
 
         /// The event content to send.
         #[ruma_api(body)]
@@ -102,7 +102,7 @@ pub mod v3 {
         /// `T`s [`Serialize`][serde::Serialize] implementation can fail.
         pub fn new<T>(
             room_id: RoomId,
-            txn_id: OwnedTransactionId,
+            txn_id: TransactionId,
             content: &T,
         ) -> serde_json::Result<Self>
         where
@@ -123,7 +123,7 @@ pub mod v3 {
         /// content.
         pub fn new_raw(
             room_id: RoomId,
-            txn_id: OwnedTransactionId,
+            txn_id: TransactionId,
             event_type: MessageLikeEventType,
             body: Raw<AnyMessageLikeEventContent>,
         ) -> Self {

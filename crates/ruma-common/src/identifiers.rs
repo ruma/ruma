@@ -45,7 +45,7 @@ pub use self::{
         Signatures,
     },
     space_child_order::SpaceChildOrder,
-    transaction_id::{OwnedTransactionId, TransactionId},
+    transaction_id::TransactionId,
     user_id::{OwnedUserId, UserId},
     voip_id::{OwnedVoipId, VoipId},
     voip_version_id::VoipVersionId,

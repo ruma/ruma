@@ -10,7 +10,7 @@ pub mod unstable {
     use std::time::Duration;
 
     use ruma_common::{
-        OwnedTransactionId, RoomId,
+        RoomId, TransactionId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::Raw,
@@ -49,7 +49,7 @@ pub mod unstable {
         ///
         /// [access token is refreshed]: https://spec.matrix.org/v1.19/client-server-api/#refreshing-access-tokens
         #[ruma_api(path)]
-        pub txn_id: OwnedTransactionId,
+        pub txn_id: TransactionId,
 
         /// The duration that the server should wait before sending this event
         #[serde(with = "ruma_common::serde::duration::ms")]
@@ -95,7 +95,7 @@ pub mod unstable {
         /// `T`s [`::serde::Serialize`] implementation can fail.
         pub fn new(
             room_id: RoomId,
-            txn_id: OwnedTransactionId,
+            txn_id: TransactionId,
             delay: Duration,
             state_key: Option<String>,
             content: &AnyTimelineEventContent,
@@ -117,7 +117,7 @@ pub mod unstable {
         pub fn new_raw(
             event_type: TimelineEventType,
             room_id: RoomId,
-            txn_id: OwnedTransactionId,
+            txn_id: TransactionId,
             delay: Duration,
             state_key: Option<String>,
             content: Raw<AnyTimelineEventContent>,

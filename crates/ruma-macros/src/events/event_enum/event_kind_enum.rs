@@ -480,11 +480,11 @@ impl<'a> EventEnumVariation<'a> {
                     #(
                         #( #variant_attrs )*
                         Self::#variants(event) => {
-                            event.as_original().and_then(|ev| ev.unsigned.transaction_id.as_deref())
+                            event.as_original().and_then(|ev| ev.unsigned.transaction_id.as_ref())
                         }
                     )*
                     Self::_Custom(event) => {
-                        event.as_original().and_then(|ev| ev.unsigned.transaction_id.as_deref())
+                        event.as_original().and_then(|ev| ev.unsigned.transaction_id.as_ref())
                     }
                 }
             }
