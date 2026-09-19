@@ -1,9 +1,9 @@
-use assert_matches2::{assert_let, assert_matches};
+use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{MilliSecondsSinceUnixEpoch, serde::CanBeEmpty};
 use ruma_events::{AnyStateEvent, AnySyncStateEvent, AnyTimelineEvent, StateEvent, SyncStateEvent};
 use serde_json::{from_value as from_json_value, json};
-use strass::assert_variant_eq;
+use strass::{assert_let, assert_variant_eq};
 
 #[test]
 fn deserialize_room_name_with_prev_content() {

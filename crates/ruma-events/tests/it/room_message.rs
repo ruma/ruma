@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use assert_matches2::{assert_let, assert_matches};
+use assert_matches2::assert_matches;
 use ruma_common::{
     OwnedDeviceId,
     canonical_json::assert_to_canonical_json_eq,
@@ -25,6 +25,7 @@ use ruma_events::{
     },
 };
 use serde_json::{Value as JsonValue, from_value as from_json_value, json};
+use strass::assert_let;
 
 #[test]
 fn custom_msgtype_serialization_roundtrip() {
@@ -721,7 +722,7 @@ fn gallery_msgtype_deserialization_with_image() {
 #[test]
 #[cfg(feature = "unstable-msc4274")]
 fn gallery_msgtype_custom_itemtype_serialization_roundtrip() {
-    use assert_matches2::assert_let;
+    use strass::assert_let;
 
     let json = json!({
         "body": "My photos from [FOSDEM 2025](https://fosdem.org/2025/)",

@@ -276,9 +276,10 @@ impl From<SasV1ContentInit> for SasV1Content {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::{assert_let, assert_matches};
+    use assert_matches2::assert_matches;
     use ruma_common::{canonical_json::assert_to_canonical_json_eq, event_id, serde::Base64};
     use serde_json::{Value as JsonValue, from_value as from_json_value, json};
+    use strass::assert_let;
 
     use super::{
         HashAlgorithm, KeyAgreementProtocol, KeyVerificationStartEventContent,

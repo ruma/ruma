@@ -171,7 +171,7 @@ pub struct CustomSecretEncryptionAlgorithm {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::{assert_let, assert_matches};
+    use assert_matches2::assert_matches;
     use js_int::uint;
     use ruma_common::{
         KeyDerivationAlgorithm, canonical_json::assert_to_canonical_json_eq, serde::Base64,
@@ -179,6 +179,7 @@ mod tests {
     use serde_json::{
         from_value as from_json_value, json, value::to_raw_value as to_raw_json_value,
     };
+    use strass::assert_let;
 
     use super::{
         PassPhrase, SecretStorageEncryptionAlgorithm, SecretStorageKeyEventContent,
