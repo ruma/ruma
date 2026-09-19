@@ -2084,6 +2084,7 @@ dependencies = [
  "serde",
  "serde_json",
  "similar",
+ "strass",
  "test-log",
  "thiserror",
  "tracing",

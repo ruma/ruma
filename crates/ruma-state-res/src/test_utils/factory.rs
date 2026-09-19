@@ -871,9 +871,9 @@ mod tests {
     use js_int::int;
     use ruma_common::{
         RoomVersionId, owned_event_id, room::JoinRuleKind, room_version_rules::AuthorizationRules,
-        user_id,
     };
     use ruma_events::{StateEventType, room::member::MembershipState};
+    use strass::assert_variant_eq;
 
     use super::RoomTimelineFactory;
     use crate::events::{
@@ -904,9 +904,9 @@ mod tests {
         assert_eq!(pdu.room_id.as_ref().unwrap(), "!room:matrix.local");
         assert_eq!(pdu.room_version(), Ok(RoomVersionId::V10));
         // For room version 10, the creator field should be set in the content.
-        assert_eq!(
+        assert_variant_eq!(
             pdu.creator(&AuthorizationRules::V10).as_deref(),
-            Ok(user_id!("@alice:matrix.local"))
+            Ok("@alice:matrix.local")
         );
         assert!(pdu.prev_events.is_empty());
         assert!(pdu.auth_events.is_empty());
@@ -938,7 +938,7 @@ mod tests {
         assert_eq!(pdu.event_id, room_power_levels_event_id);
         // For room version 10, Alice should appear in the users.
         let users = pdu.users(&AuthorizationRules::V10).unwrap().unwrap();
-        assert_eq!(users.get(user_id!("@alice:matrix.local")), Some(&int!(100)));
+        assert_eq!(users["@alice:matrix.local"], int!(100));
         assert_eq!(pdu.prev_events, [room_member_alice_join_event_id.clone()].into());
         assert_eq!(
             pdu.auth_events,
@@ -1046,7 +1046,7 @@ mod tests {
         assert_eq!(pdu.event_id, room_power_levels_event_id);
         // For room version 11, Alice should appear in the users.
         let users = pdu.users(&AuthorizationRules::V11).unwrap().unwrap();
-        assert_eq!(users.get(user_id!("@alice:matrix.local")), Some(&int!(100)));
+        assert_eq!(users["@alice:matrix.local"], int!(100));
         assert_eq!(pdu.prev_events, [room_member_alice_join_event_id.clone()].into());
         assert_eq!(
             pdu.auth_events,
