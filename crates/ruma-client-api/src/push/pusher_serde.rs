@@ -79,11 +79,11 @@ impl<'de> Deserialize<'de> for PusherKind {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::assert_let;
     use ruma_common::{
         canonical_json::assert_to_canonical_json_eq, push::HttpPusherData, serde::JsonObject,
     };
     use serde_json::{Value as JsonValue, from_value as from_json_value, json};
+    use strass::assert_let;
 
     use crate::push::{CustomPusherData, EmailPusherData, PusherKind};
 

@@ -107,9 +107,9 @@ pub mod v3 {
 
     #[cfg(test)]
     mod tests {
-        use assert_matches2::assert_let;
         use ruma_common::thirdparty::Medium;
         use serde_json::{from_value as from_json_value, json};
+        use strass::assert_let;
 
         use super::{InvitationRecipient, InviteUserId};
 

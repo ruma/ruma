@@ -774,9 +774,9 @@ mod tests {
     #[cfg(feature = "unstable-msc4354")]
     #[test]
     fn joined_room_sticky_section_serde() {
-        use assert_matches2::assert_let;
         use ruma_events::{AnySyncMessageLikeEvent, AnySyncTimelineEvent, SyncMessageLikeEvent};
         use serde_json::to_value as to_json_value;
+        use strass::assert_let;
 
         use super::JoinedRoom;
 
