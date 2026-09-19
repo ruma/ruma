@@ -272,8 +272,7 @@ mod tests {
             Ok(BackupAlgorithm::MegolmBackupV1Curve25519AesSha2(auth_data)) = from_json_value(json)
         );
         assert_eq!(auth_data.public_key.as_bytes(), b"abcdef");
-        let user_signatures =
-            auth_data.signatures.get(&owned_user_id!("@alice:example.org")).unwrap();
+        let user_signatures = auth_data.signatures.get("@alice:example.org").unwrap();
 
         let mut user_signatures_iter = user_signatures.iter();
         let (key_id, signature) = user_signatures_iter.next().unwrap();

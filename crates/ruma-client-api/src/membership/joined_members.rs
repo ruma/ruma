@@ -86,8 +86,8 @@ pub mod v3 {
 
     #[cfg(test)]
     mod tests {
-        use ruma_common::mxc_uri;
         use serde_json::{from_value as from_json_value, json};
+        use strass::assert_variant_eq;
 
         use super::RoomMember;
 
@@ -99,10 +99,7 @@ pub mod v3 {
             }))
             .unwrap();
             assert_eq!(member.display_name.as_deref(), Some("alice"));
-            assert_eq!(
-                member.avatar_url.as_deref(),
-                Some(mxc_uri!("mxc://localhost/wefuiwegh8742w"))
-            );
+            assert_variant_eq!(member.avatar_url, Some("mxc://localhost/wefuiwegh8742w"));
 
             #[cfg(feature = "compat-empty-string-null")]
             {

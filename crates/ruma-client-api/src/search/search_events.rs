@@ -608,7 +608,7 @@ mod tests {
             IncomingRequestExt as _, IncomingResponseExt as _, OutgoingRequestExt as _,
             OutgoingResponseExt as _, SupportedVersions, auth_scheme::SendAccessToken,
         },
-        event_id, room_id,
+        event_id,
     };
     use serde_json::{
         Value as JsonValue, from_slice as from_json_slice, json, to_vec as to_json_vec,
@@ -719,8 +719,7 @@ mod tests {
             Some(ResultGroupMap::RoomId(room_id_group_map))
         );
         assert_eq!(room_id_group_map.len(), 1);
-        let room_id_group =
-            room_id_group_map.get(room_id!("!qPewotXpIctQySfjSy:localhost")).unwrap();
+        let room_id_group = room_id_group_map.get("!qPewotXpIctQySfjSy:localhost").unwrap();
         assert_eq!(room_id_group.results, &[result_event_id]);
         assert_eq!(results.highlights, &["martians", "men"]);
         assert_eq!(results.next_batch.as_deref(), Some("5FdgFsd234dfgsdfFD"));
