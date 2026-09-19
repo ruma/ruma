@@ -64,8 +64,17 @@ error: proc macro panicked
 error: proc macro panicked
  --> tests/it/identifiers/ui/02-invalid-id-macros.rs:9:13
   |
-9 |     let _ = ruma_common::user_id!("user:ruma.io");
-  |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+9 |     let _ = ruma_common::session_id!("invalid~");
+  |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   |
-  = help: message: Invalid UserId
-  = note: this error originates in the macro `ruma_common::user_id` (in Nightly builds, run with -Z macro-backtrace for more info)
+  = help: message: Invalid SessionId
+  = note: this error originates in the macro `ruma_common::session_id` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: proc macro panicked
+  --> tests/it/identifiers/ui/02-invalid-id-macros.rs:10:13
+   |
+10 |     let _ = ruma_common::user_id!("user:ruma.io");
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: message: Invalid UserId
+   = note: this error originates in the macro `ruma_common::user_id` (in Nightly builds, run with -Z macro-backtrace for more info)

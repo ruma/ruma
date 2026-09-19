@@ -39,7 +39,7 @@ pub use self::{
     room_version_id::RoomVersionId,
     server_name::ServerName,
     server_signing_key_version::ServerSigningKeyVersion,
-    session_id::{OwnedSessionId, SessionId},
+    session_id::SessionId,
     signatures::{
         CrossSigningOrDeviceSignatures, DeviceSignatures, EntitySignatures, ServerSignatures,
         Signatures,
@@ -135,7 +135,7 @@ where
 pub mod __private_macros {
     pub use ruma_macros::{
         base64_public_key, event_id, mxc_uri, room_alias_id, room_id, room_version_id, server_name,
-        server_signing_key_version, user_id,
+        server_signing_key_version, session_id, user_id,
     };
 
     #[cfg(feature = "unstable-identifier-ref-macros")]
@@ -204,6 +204,9 @@ pub mod __private_macros {
         pub static SERVER_SIGNING_KEY_VERSION_INTERNER: LazyLock<
             IdInterner<crate::ServerSigningKeyVersion>,
         > = LazyLock::new(IdInterner::new);
+
+        pub static SESSION_ID_INTERNER: LazyLock<IdInterner<crate::SessionId>> =
+            LazyLock::new(IdInterner::new);
     }
 }
 
@@ -542,41 +545,44 @@ macro_rules! owned_server_signing_key_version {
     };
 }
 
-/// Compile-time checked [`&'static SessionId`][SessionId] construction.
+/// Compile-time checked [`SessionId`] construction.
 #[macro_export]
 macro_rules! session_id {
-    ($s:literal) => {{
-        const SESSION_ID: &$crate::SessionId = match $crate::SessionId::_priv_const_new($s) {
-            Ok(id) => id,
-            Err(e) => panic!("{}", e),
-        };
-
-        SESSION_ID
-    }};
+    ($s:literal) => {
+        $crate::__private_macros::session_id!($crate, $s)
+    };
 }
 
 /// Compile-time checked [`&'static SessionId`][SessionId] construction.
 ///
-/// This is currently equivalent to [`session_id!`]. However there is a plan to remove identifier
-/// DST types, so that other macro's return type will change while this macro is guaranteed to keep
-/// its return type. This macro allows to ease the transition for the expected change by allowing to
-/// migrate tests in advance.
+/// This macro is a helper to ease the transition after the change of [`SessionId`] from a
+/// dynamically sized type to an owned type. It has the side effect of interning and leaking
+/// the identifier.
 ///
-/// This is behind an unstable cargo feature because it is likely to be removed soon after the DST
-/// identifier type removal.
+/// This is behind an unstable cargo feature because it is likely to be removed in a future
+/// non-breaking release.
 #[cfg(feature = "unstable-identifier-ref-macros")]
 #[macro_export]
 macro_rules! session_id_ref {
     ($s:literal) => {
-        $crate::session_id!($s)
+        $crate::__private_macros::id_interner::SESSION_ID_INTERNER
+            .get_or_insert_with($s, || $crate::session_id!($s))
     };
 }
 
-/// Compile-time checked [`OwnedSessionId`] construction.
+/// Compile-time checked [`SessionId`] construction.
+///
+/// This is currently equivalent to [`session_id!`]. This is kept for backwards compatibility to
+/// ease the transition after the change of [`SessionId`] from a dynamically sized type to an owned
+/// type.
+///
+/// This is behind an unstable cargo feature because it is likely to be removed in a future
+/// non-breaking release.
+#[cfg(feature = "unstable-identifier-owned-macros")]
 #[macro_export]
 macro_rules! owned_session_id {
     ($s:literal) => {
-        $crate::session_id!($s).to_owned()
+        $crate::session_id!($s)
     };
 }
 
