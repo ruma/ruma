@@ -14,7 +14,7 @@ use proc_macro::TokenStream;
 use quote::quote;
 use ruma_identifiers_validation::{
     base64_public_key, event_id, mxc_uri, room_alias_id, room_id, room_version_id, server_name,
-    server_signing_key_version, user_id,
+    server_signing_key_version, session_id, user_id,
 };
 use syn::{DeriveInput, ItemEnum, ItemStruct, parse_macro_input};
 
@@ -568,6 +568,13 @@ pub fn server_signing_key_version(input: TokenStream) -> TokenStream {
             server_signing_key_version::validate,
         )
         .into()
+}
+
+/// Compile-time checked `SessionId` construction.
+#[proc_macro]
+pub fn session_id(input: TokenStream) -> TokenStream {
+    let id_ctor = parse_macro_input!(input as IdentifierConstructor);
+    id_ctor.validate_and_expand_str_conversion("SessionId", session_id::validate).into()
 }
 
 /// Compile-time checked `ServerName` construction.
