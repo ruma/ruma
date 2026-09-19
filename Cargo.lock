@@ -1871,7 +1871,6 @@ dependencies = [
 name = "ruma-appservice-api"
 version = "0.17.0"
 dependencies = [
- "assert_matches2",
  "http",
  "js_int",
  "ruma-common",
