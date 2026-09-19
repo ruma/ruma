@@ -142,11 +142,28 @@ pub mod __private_macros {
     };
 }
 
-/// Compile-time checked [`Base64PublicKey`] construction.
+/// Compile-time checked [`&'static Base64PublicKey`][Base64PublicKey] construction.
 #[macro_export]
 macro_rules! base64_public_key {
     ($s:literal) => {
         $crate::__private_macros::base64_public_key!($crate, $s)
+    };
+}
+
+/// Compile-time checked [`&'static Base64PublicKey`][Base64PublicKey] construction.
+///
+/// This is currently equivalent to [`base64_public_key!`]. However there is a plan to remove
+/// identifier DST types, so that other macro's return type will change while this macro is
+/// guaranteed to keep its return type. This macro allows to ease the transition for the expected
+/// change by allowing to migrate tests in advance.
+///
+/// This is behind an unstable cargo feature because it is likely to be removed soon after the DST
+/// identifier type removal.
+#[cfg(feature = "unstable-identifier-ref-macros")]
+#[macro_export]
+macro_rules! base64_public_key_ref {
+    ($s:literal) => {
+        $crate::base64_public_key!($s)
     };
 }
 
@@ -158,7 +175,7 @@ macro_rules! owned_base64_public_key {
     };
 }
 
-/// Shorthand for `<&DeviceId>::from`.
+/// [`&'static DeviceId`][DeviceId] construction.
 #[macro_export]
 macro_rules! device_id {
     ($s:expr) => {
@@ -166,7 +183,24 @@ macro_rules! device_id {
     };
 }
 
-/// Shorthand for `OwnedDeviceId::from`.
+/// [`&'static DeviceId`][DeviceId] construction.
+///
+/// This is currently equivalent to [`device_id!`]. However there is a plan to remove identifier DST
+/// types, so that other macro's return type will change while this macro is guaranteed to keep its
+/// return type. This macro allows to ease the transition for the expected change by allowing to
+/// migrate tests in advance.
+///
+/// This is behind an unstable cargo feature because it is likely to be removed soon after the DST
+/// identifier type removal.
+#[cfg(feature = "unstable-identifier-ref-macros")]
+#[macro_export]
+macro_rules! device_id_ref {
+    ($s:literal) => {
+        $crate::device_id!($s)
+    };
+}
+
+/// [`OwnedDeviceId`] construction.
 #[macro_export]
 macro_rules! owned_device_id {
     ($s:expr) => {
@@ -174,11 +208,28 @@ macro_rules! owned_device_id {
     };
 }
 
-/// Compile-time checked [`EventId`] construction.
+/// Compile-time checked [`&'static EventId`][EventId] construction.
 #[macro_export]
 macro_rules! event_id {
     ($s:literal) => {
         $crate::__private_macros::event_id!($crate, $s)
+    };
+}
+
+/// Compile-time checked [`&'static EventId`][EventId] construction.
+///
+/// This is currently equivalent to [`event_id!`]. However there is a plan to remove identifier DST
+/// types, so that other macro's return type will change while this macro is guaranteed to keep its
+/// return type. This macro allows to ease the transition for the expected change by allowing to
+/// migrate tests in advance.
+///
+/// This is behind an unstable cargo feature because it is likely to be removed soon after the DST
+/// identifier type removal.
+#[cfg(feature = "unstable-identifier-ref-macros")]
+#[macro_export]
+macro_rules! event_id_ref {
+    ($s:literal) => {
+        $crate::event_id!($s)
     };
 }
 
@@ -190,11 +241,28 @@ macro_rules! owned_event_id {
     };
 }
 
-/// Compile-time checked [`MxcUri`] construction.
+/// Compile-time checked [`&'static MxcUri`][MxcUri] construction.
 #[macro_export]
 macro_rules! mxc_uri {
     ($s:literal) => {
         $crate::__private_macros::mxc_uri!($crate, $s)
+    };
+}
+
+/// Compile-time checked [`&'static MxcUri`][MxcUri] construction.
+///
+/// This is currently equivalent to [`mxc_uri!`]. However there is a plan to remove identifier DST
+/// types, so that other macro's return type will change while this macro is guaranteed to keep its
+/// return type. This macro allows to ease the transition for the expected change by allowing to
+/// migrate tests in advance.
+///
+/// This is behind an unstable cargo feature because it is likely to be removed soon after the DST
+/// identifier type removal.
+#[cfg(feature = "unstable-identifier-ref-macros")]
+#[macro_export]
+macro_rules! mxc_uri_ref {
+    ($s:literal) => {
+        $crate::mxc_uri!($s)
     };
 }
 
@@ -206,11 +274,28 @@ macro_rules! owned_mxc_uri {
     };
 }
 
-/// Compile-time checked [`RoomAliasId`] construction.
+/// Compile-time checked [`&'static RoomAliasId`][RoomAliasId] construction.
 #[macro_export]
 macro_rules! room_alias_id {
     ($s:literal) => {
         $crate::__private_macros::room_alias_id!($crate, $s)
+    };
+}
+
+/// Compile-time checked [`&'static RoomAliasId`][RoomAliasId] construction.
+///
+/// This is currently equivalent to [`room_alias_id!`]. However there is a plan to remove identifier
+/// DST types, so that other macro's return type will change while this macro is guaranteed to keep
+/// its return type. This macro allows to ease the transition for the expected change by allowing to
+/// migrate tests in advance.
+///
+/// This is behind an unstable cargo feature because it is likely to be removed soon after the DST
+/// identifier type removal.
+#[cfg(feature = "unstable-identifier-ref-macros")]
+#[macro_export]
+macro_rules! room_alias_id_ref {
+    ($s:literal) => {
+        $crate::room_alias_id!($s)
     };
 }
 
@@ -222,11 +307,28 @@ macro_rules! owned_room_alias_id {
     };
 }
 
-/// Compile-time checked [`RoomId`] construction.
+/// Compile-time checked [`&'static RoomId`][RoomId] construction.
 #[macro_export]
 macro_rules! room_id {
     ($s:literal) => {
         $crate::__private_macros::room_id!($crate, $s)
+    };
+}
+
+/// Compile-time checked [`&'static RoomId`][RoomId] construction.
+///
+/// This is currently equivalent to [`room_id!`]. However there is a plan to remove identifier
+/// DST types, so that other macro's return type will change while this macro is guaranteed to keep
+/// its return type. This macro allows to ease the transition for the expected change by allowing to
+/// migrate tests in advance.
+///
+/// This is behind an unstable cargo feature because it is likely to be removed soon after the DST
+/// identifier type removal.
+#[cfg(feature = "unstable-identifier-ref-macros")]
+#[macro_export]
+macro_rules! room_id_ref {
+    ($s:literal) => {
+        $crate::room_id!($s)
     };
 }
 
@@ -246,11 +348,28 @@ macro_rules! room_version_id {
     };
 }
 
-/// Compile-time checked [`ServerName`] construction.
+/// Compile-time checked [`&'static ServerName`][ServerName] construction.
 #[macro_export]
 macro_rules! server_name {
     ($s:literal) => {
         $crate::__private_macros::server_name!($crate, $s)
+    };
+}
+
+/// Compile-time checked [`&'static ServerName`][ServerName] construction.
+///
+/// This is currently equivalent to [`server_name!`]. However there is a plan to remove identifier
+/// DST types, so that other macro's return type will change while this macro is guaranteed to keep
+/// its return type. This macro allows to ease the transition for the expected change by allowing to
+/// migrate tests in advance.
+///
+/// This is behind an unstable cargo feature because it is likely to be removed soon after the DST
+/// identifier type removal.
+#[cfg(feature = "unstable-identifier-ref-macros")]
+#[macro_export]
+macro_rules! server_name_ref {
+    ($s:literal) => {
+        $crate::server_name!($s)
     };
 }
 
@@ -262,11 +381,28 @@ macro_rules! owned_server_name {
     };
 }
 
-/// Compile-time checked [`ServerSigningKeyVersion`] construction.
+/// Compile-time checked [`&'static ServerSigningKeyVersion`][ServerSigningKeyVersion] construction.
 #[macro_export]
 macro_rules! server_signing_key_version {
     ($s:literal) => {
         $crate::__private_macros::server_signing_key_version!($crate, $s)
+    };
+}
+
+/// Compile-time checked [`&'static ServerSigningKeyVersion`][ServerSigningKeyVersion] construction.
+///
+/// This is currently equivalent to [`server_signing_key_version!`]. However there is a plan to
+/// remove identifier DST types, so that other macro's return type will change while this macro is
+/// guaranteed to keep its return type. This macro allows to ease the transition for the expected
+/// change by allowing to migrate tests in advance.
+///
+/// This is behind an unstable cargo feature because it is likely to be removed soon after the DST
+/// identifier type removal.
+#[cfg(feature = "unstable-identifier-ref-macros")]
+#[macro_export]
+macro_rules! server_signing_key_version_ref {
+    ($s:literal) => {
+        $crate::server_signing_key_version!($s)
     };
 }
 
@@ -278,7 +414,7 @@ macro_rules! owned_server_signing_key_version {
     };
 }
 
-/// Compile-time checked [`SessionId`] construction.
+/// Compile-time checked [`&'static SessionId`][SessionId] construction.
 #[macro_export]
 macro_rules! session_id {
     ($s:literal) => {{
@@ -291,6 +427,23 @@ macro_rules! session_id {
     }};
 }
 
+/// Compile-time checked [`&'static SessionId`][SessionId] construction.
+///
+/// This is currently equivalent to [`session_id!`]. However there is a plan to remove identifier
+/// DST types, so that other macro's return type will change while this macro is guaranteed to keep
+/// its return type. This macro allows to ease the transition for the expected change by allowing to
+/// migrate tests in advance.
+///
+/// This is behind an unstable cargo feature because it is likely to be removed soon after the DST
+/// identifier type removal.
+#[cfg(feature = "unstable-identifier-ref-macros")]
+#[macro_export]
+macro_rules! session_id_ref {
+    ($s:literal) => {
+        $crate::session_id!($s)
+    };
+}
+
 /// Compile-time checked [`OwnedSessionId`] construction.
 #[macro_export]
 macro_rules! owned_session_id {
@@ -299,11 +452,28 @@ macro_rules! owned_session_id {
     };
 }
 
-/// Compile-time checked [`UserId`] construction.
+/// Compile-time checked [`&'static UserId`][UserId] construction.
 #[macro_export]
 macro_rules! user_id {
     ($s:literal) => {
         $crate::__private_macros::user_id!($crate, $s)
+    };
+}
+
+/// Compile-time checked [`&'static UserId`][UserId] construction.
+///
+/// This is currently equivalent to [`user_id!`]. However there is a plan to remove identifier
+/// DST types, so that other macro's return type will change while this macro is guaranteed to keep
+/// its return type. This macro allows to ease the transition for the expected change by allowing to
+/// migrate tests in advance.
+///
+/// This is behind an unstable cargo feature because it is likely to be removed soon after the DST
+/// identifier type removal.
+#[cfg(feature = "unstable-identifier-ref-macros")]
+#[macro_export]
+macro_rules! user_id_ref {
+    ($s:literal) => {
+        $crate::user_id!($s)
     };
 }
 
