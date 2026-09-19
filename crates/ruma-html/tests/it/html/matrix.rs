@@ -3,6 +3,7 @@ use ruma_html::{
     Html,
     matrix::{AnchorUri, MatrixElement},
 };
+use strass::assert_let;
 
 #[test]
 fn elements() {
@@ -19,14 +20,14 @@ fn elements() {
     // `<h1>` element.
     let h1_node = html_children.next().unwrap();
     let h1_element = h1_node.as_element().unwrap().to_matrix();
-    assert_matches!(h1_element.element, MatrixElement::H(heading));
+    assert_let!(MatrixElement::H(heading) = h1_element.element);
     assert_eq!(heading.level, 1);
     assert!(h1_element.attrs.is_empty());
 
     // `<div>` element.
     let div_node = html_children.next().unwrap();
     let div_element = div_node.as_element().unwrap().to_matrix();
-    assert_matches!(div_element.element, MatrixElement::Div(div));
+    assert_let!(MatrixElement::Div(div) = div_element.element);
     assert_eq!(div.maths, None);
     // The `class` attribute is not supported.
     assert_eq!(div_element.attrs.len(), 1);
@@ -72,7 +73,7 @@ fn span_attributes() {
     let span_node = html_children.next().unwrap();
     let span_element = span_node.as_element().unwrap().to_matrix();
 
-    assert_matches!(span_element.element, MatrixElement::Span(span));
+    assert_let!(MatrixElement::Span(span) = span_element.element);
 
     assert_eq!(span.color.unwrap().as_ref(), "#00ff00");
     assert_eq!(span.bg_color.unwrap().as_ref(), "#ff0000");
@@ -109,9 +110,9 @@ fn a_attributes() {
     let node = html_children.next().unwrap();
     let element = node.as_element().unwrap().to_matrix();
 
-    assert_matches!(element.element, MatrixElement::A(anchor));
+    assert_let!(MatrixElement::A(anchor) = element.element);
     assert_eq!(anchor.target.unwrap().as_ref(), "_blank");
-    assert_matches!(anchor.href.unwrap(), AnchorUri::Other(uri));
+    assert_let!(AnchorUri::Other(uri) = anchor.href.unwrap());
     assert_eq!(uri.as_ref(), "https://localhost/");
     assert!(element.attrs.is_empty());
 
@@ -119,9 +120,9 @@ fn a_attributes() {
     let node = html_children.next().unwrap();
     let element = node.as_element().unwrap().to_matrix();
 
-    assert_matches!(element.element, MatrixElement::A(anchor));
+    assert_let!(MatrixElement::A(anchor) = element.element);
     assert!(anchor.target.is_none());
-    assert_matches!(anchor.href.unwrap(), AnchorUri::Matrix(uri));
+    assert_let!(AnchorUri::Matrix(uri) = anchor.href.unwrap());
     assert_eq!(uri.to_string(), "matrix:r/somewhere:localhost");
     assert!(element.attrs.is_empty());
 
@@ -129,7 +130,7 @@ fn a_attributes() {
     let node = html_children.next().unwrap();
     let element = node.as_element().unwrap().to_matrix();
 
-    assert_matches!(element.element, MatrixElement::A(anchor));
+    assert_let!(MatrixElement::A(anchor) = element.element);
     assert!(anchor.target.is_none());
     assert!(anchor.href.is_none());
     // The `href` attribute is in the unsupported attributes.
@@ -139,9 +140,9 @@ fn a_attributes() {
     let node = html_children.next().unwrap();
     let element = node.as_element().unwrap().to_matrix();
 
-    assert_matches!(element.element, MatrixElement::A(anchor));
+    assert_let!(MatrixElement::A(anchor) = element.element);
     assert!(anchor.target.is_none());
-    assert_matches!(anchor.href.unwrap(), AnchorUri::MatrixTo(uri));
+    assert_let!(AnchorUri::MatrixTo(uri) = anchor.href.unwrap());
     assert_eq!(uri.to_string(), "https://matrix.to/#/%23somewhere:example.org");
     assert!(element.attrs.is_empty());
 
@@ -149,7 +150,7 @@ fn a_attributes() {
     let node = html_children.next().unwrap();
     let element = node.as_element().unwrap().to_matrix();
 
-    assert_matches!(element.element, MatrixElement::A(anchor));
+    assert_let!(MatrixElement::A(anchor) = element.element);
     assert!(anchor.target.is_none());
     assert!(anchor.href.is_none());
     // The `href` attribute is in the unsupported attributes.
@@ -159,7 +160,7 @@ fn a_attributes() {
     let node = html_children.next().unwrap();
     let element = node.as_element().unwrap().to_matrix();
 
-    assert_matches!(element.element, MatrixElement::A(anchor));
+    assert_let!(MatrixElement::A(anchor) = element.element);
     assert!(anchor.target.is_none());
     assert!(anchor.href.is_none());
     // The `href` attribute is in the unsupported attributes.
@@ -191,7 +192,7 @@ fn img_attributes() {
     let node = html_children.next().unwrap();
     let element = node.as_element().unwrap().to_matrix();
 
-    assert_matches!(element.element, MatrixElement::Img(image));
+    assert_let!(MatrixElement::Img(image) = element.element);
     assert_eq!(image.width.unwrap(), 200);
     assert_eq!(image.height.unwrap(), 200);
     assert_eq!(image.alt.unwrap().as_ref(), "Image with valid attributes");
@@ -203,7 +204,7 @@ fn img_attributes() {
     let node = html_children.next().unwrap();
     let element = node.as_element().unwrap().to_matrix();
 
-    assert_matches!(element.element, MatrixElement::Img(image));
+    assert_let!(MatrixElement::Img(image) = element.element);
     assert!(image.width.is_none());
     assert!(image.height.is_none());
     assert_eq!(image.alt.unwrap().as_ref(), "Image with invalid attributes");
@@ -230,7 +231,7 @@ fn ol_attributes() {
     let node = html_children.next().unwrap();
     let element = node.as_element().unwrap().to_matrix();
 
-    assert_matches!(element.element, MatrixElement::Ol(ol));
+    assert_let!(MatrixElement::Ol(ol) = element.element);
     assert_eq!(ol.start.unwrap(), 2);
     assert!(element.attrs.is_empty());
 
@@ -238,7 +239,7 @@ fn ol_attributes() {
     let node = html_children.next().unwrap();
     let element = node.as_element().unwrap().to_matrix();
 
-    assert_matches!(element.element, MatrixElement::Ol(ol));
+    assert_let!(MatrixElement::Ol(ol) = element.element);
     assert!(ol.start.is_none());
     assert_eq!(element.attrs.len(), 1);
 }
@@ -272,7 +273,7 @@ fn code_attributes() {
     let node = html_children.next().unwrap();
     let element = node.as_element().unwrap().to_matrix();
 
-    assert_matches!(element.element, MatrixElement::Code(code));
+    assert_let!(MatrixElement::Code(code) = element.element);
     assert_eq!(code.language.unwrap().as_ref(), "rust");
     assert!(element.attrs.is_empty());
 
@@ -280,7 +281,7 @@ fn code_attributes() {
     let node = html_children.next().unwrap();
     let element = node.as_element().unwrap().to_matrix();
 
-    assert_matches!(element.element, MatrixElement::Code(code));
+    assert_let!(MatrixElement::Code(code) = element.element);
     assert!(code.language.is_none());
     // `class` is in unsupported attributes.
     assert_eq!(element.attrs.len(), 1);
@@ -289,7 +290,7 @@ fn code_attributes() {
     let node = html_children.next().unwrap();
     let element = node.as_element().unwrap().to_matrix();
 
-    assert_matches!(element.element, MatrixElement::Code(code));
+    assert_let!(MatrixElement::Code(code) = element.element);
     assert_eq!(code.language.unwrap().as_ref(), "rust");
     // Because it contains other classes, `class` is also in unsupported attributes.
     assert_eq!(element.attrs.len(), 1);
@@ -298,7 +299,7 @@ fn code_attributes() {
     let node = html_children.next().unwrap();
     let element = node.as_element().unwrap().to_matrix();
 
-    assert_matches!(element.element, MatrixElement::Code(code));
+    assert_let!(MatrixElement::Code(code) = element.element);
     assert_eq!(code.language.unwrap().as_ref(), "rust");
     // Because it contains other classes, `class` is also in unsupported attributes.
     assert_eq!(element.attrs.len(), 1);
@@ -307,7 +308,7 @@ fn code_attributes() {
     let node = html_children.next().unwrap();
     let element = node.as_element().unwrap().to_matrix();
 
-    assert_matches!(element.element, MatrixElement::Code(code));
+    assert_let!(MatrixElement::Code(code) = element.element);
     assert!(code.language.is_none());
     // `class` is in unsupported attributes.
     assert_eq!(element.attrs.len(), 1);
@@ -316,7 +317,7 @@ fn code_attributes() {
     let node = html_children.next().unwrap();
     let element = node.as_element().unwrap().to_matrix();
 
-    assert_matches!(element.element, MatrixElement::Code(code));
+    assert_let!(MatrixElement::Code(code) = element.element);
     assert!(code.language.is_none());
     // `class` is in unsupported attributes.
     assert_eq!(element.attrs.len(), 1);
