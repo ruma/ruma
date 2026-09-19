@@ -1,4 +1,4 @@
-use assert_matches2::{assert_let, assert_matches};
+use assert_matches2::assert_matches;
 use js_int::int;
 use ruma_common::serde::test::serde_json_eq;
 use ruma_events::{
@@ -15,6 +15,7 @@ use ruma_events::{
     },
 };
 use serde_json::{Value as JsonValue, from_value as from_json_value, json};
+use strass::assert_let;
 
 fn message_event() -> JsonValue {
     json!({
