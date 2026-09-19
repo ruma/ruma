@@ -3,7 +3,7 @@
 //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/2946
 
 use ruma_common::{
-    OwnedRoomId,
+    RoomId,
     api::{Metadata, path_builder::SinglePath, request, response},
     room::RoomSummary,
 };
@@ -15,7 +15,7 @@ use crate::space::SpaceHierarchyParentSummary;
 pub struct Request {
     /// The room ID of the space to get a hierarchy for.
     #[ruma_api(path)]
-    pub room_id: OwnedRoomId,
+    pub room_id: RoomId,
 
     /// Whether or not the server should only consider suggested rooms.
     ///
@@ -27,7 +27,7 @@ pub struct Request {
 
 impl Request {
     /// Creates a `Request` with the given room ID.
-    pub fn new(room_id: OwnedRoomId) -> Self {
+    pub fn new(room_id: RoomId) -> Self {
         Self { room_id, suggested_only: false }
     }
 }
@@ -67,7 +67,7 @@ pub struct Response {
     ///
     /// Rooms which the responding server cannot provide details on will be outright
     /// excluded from the response instead.
-    pub inaccessible_children: Vec<OwnedRoomId>,
+    pub inaccessible_children: Vec<RoomId>,
 
     /// A summary of the requested room.
     pub room: SpaceHierarchyParentSummary,

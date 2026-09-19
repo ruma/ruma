@@ -4,7 +4,7 @@
 
 use std::collections::BTreeMap;
 
-use ruma_common::OwnedRoomId;
+use ruma_common::RoomId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -21,13 +21,13 @@ pub struct ImagePackRoomsEventContent {
     /// enabled globally.
     ///
     /// [`m.room.image_pack`]: https://spec.matrix.org/v1.19/client-server-api/#mroomimage_pack
-    pub rooms: BTreeMap<OwnedRoomId, BTreeMap<String, RoomImagePackMeta>>,
+    pub rooms: BTreeMap<RoomId, BTreeMap<String, RoomImagePackMeta>>,
 }
 
 impl ImagePackRoomsEventContent {
     /// Creates a new `ImagePackRoomsEventContent` with the given map of enabled image packs in each
     /// room.
-    pub fn new(rooms: BTreeMap<OwnedRoomId, BTreeMap<String, RoomImagePackMeta>>) -> Self {
+    pub fn new(rooms: BTreeMap<RoomId, BTreeMap<String, RoomImagePackMeta>>) -> Self {
         Self { rooms }
     }
 }

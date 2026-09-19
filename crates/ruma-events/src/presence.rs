@@ -8,7 +8,7 @@ pub mod prompted;
 pub mod sharing;
 
 use js_int::UInt;
-use ruma_common::{OwnedMxcUri, OwnedUserId, presence::PresenceState};
+use ruma_common::{MxcUri, UserId, presence::PresenceState};
 use serde::{Deserialize, Serialize};
 
 /// Presence event.
@@ -20,7 +20,7 @@ pub struct PresenceEvent {
     pub content: PresenceEventContent,
 
     /// Contains the fully-qualified ID of the user who sent this event.
-    pub sender: OwnedUserId,
+    pub sender: UserId,
 }
 
 /// Informs the room of members presence.
@@ -38,7 +38,7 @@ pub struct PresenceEventContent {
         feature = "compat-empty-string-null",
         serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
     )]
-    pub avatar_url: Option<OwnedMxcUri>,
+    pub avatar_url: Option<MxcUri>,
 
     /// Whether or not the user is currently active.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -78,7 +78,7 @@ impl PresenceEventContent {
 mod tests {
     use js_int::uint;
     use ruma_common::{
-        canonical_json::assert_to_canonical_json_eq, owned_mxc_uri, presence::PresenceState,
+        canonical_json::assert_to_canonical_json_eq, mxc_uri, presence::PresenceState,
     };
     use serde_json::{from_value as from_json_value, json};
     use strass::assert_variant_eq;
@@ -88,7 +88,7 @@ mod tests {
     #[test]
     fn serialization() {
         let content = PresenceEventContent {
-            avatar_url: Some(owned_mxc_uri!("mxc://localhost/wefuiwegh8742w")),
+            avatar_url: Some(mxc_uri!("mxc://localhost/wefuiwegh8742w")),
             currently_active: Some(false),
             displayname: None,
             last_active_ago: Some(uint!(2_478_593)),

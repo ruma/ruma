@@ -6,5 +6,6 @@ fn main() {
     let _ = ruma_common::room_id!("1234567890:matrix.org");
     let _ = ruma_common::room_version_id!("");
     let _ = ruma_common::server_name!("");
+    let _ = ruma_common::session_id!("invalid~");
     let _ = ruma_common::user_id!("user:ruma.io");
 }

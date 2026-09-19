@@ -2,9 +2,7 @@
 
 use std::{borrow::Cow, fmt};
 
-use ruma_common::{
-    OwnedClientSecret, OwnedSessionId, OwnedUserId, serde::JsonObject, thirdparty::Medium,
-};
+use ruma_common::{ClientSecret, SessionId, UserId, serde::JsonObject, thirdparty::Medium};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use serde_json::Value as JsonValue;
 
@@ -520,14 +518,14 @@ impl UserIdentifier {
     }
 }
 
-impl From<OwnedUserId> for UserIdentifier {
-    fn from(id: OwnedUserId) -> Self {
+impl From<UserId> for UserIdentifier {
+    fn from(id: UserId) -> Self {
         Self::Matrix(id.into())
     }
 }
 
-impl From<&OwnedUserId> for UserIdentifier {
-    fn from(id: &OwnedUserId) -> Self {
+impl From<&UserId> for UserIdentifier {
+    fn from(id: &UserId) -> Self {
         Self::Matrix(id.into())
     }
 }
@@ -572,14 +570,14 @@ impl MatrixUserIdentifier {
     }
 }
 
-impl From<OwnedUserId> for MatrixUserIdentifier {
-    fn from(id: OwnedUserId) -> Self {
+impl From<UserId> for MatrixUserIdentifier {
+    fn from(id: UserId) -> Self {
         Self::new(id.into())
     }
 }
 
-impl From<&OwnedUserId> for MatrixUserIdentifier {
-    fn from(id: &OwnedUserId) -> Self {
+impl From<&UserId> for MatrixUserIdentifier {
+    fn from(id: &UserId) -> Self {
         Self::new(id.as_str().to_owned())
     }
 }
@@ -671,10 +669,10 @@ pub struct CustomUserIdentifier {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct ThirdpartyIdCredentials {
     /// Identity server (or homeserver) session ID.
-    pub sid: OwnedSessionId,
+    pub sid: SessionId,
 
     /// Identity server (or homeserver) client secret.
-    pub client_secret: OwnedClientSecret,
+    pub client_secret: ClientSecret,
 
     /// Identity server URL.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -687,7 +685,7 @@ pub struct ThirdpartyIdCredentials {
 
 impl ThirdpartyIdCredentials {
     /// Creates a new `ThirdpartyIdCredentials` with the given session ID and client secret.
-    pub fn new(sid: OwnedSessionId, client_secret: OwnedClientSecret) -> Self {
+    pub fn new(sid: SessionId, client_secret: ClientSecret) -> Self {
         Self { sid, client_secret, id_server: None, id_access_token: None }
     }
 }

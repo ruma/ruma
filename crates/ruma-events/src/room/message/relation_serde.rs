@@ -1,4 +1,4 @@
-use ruma_common::{OwnedEventId, serde::JsonObject};
+use ruma_common::{EventId, serde::JsonObject};
 use serde::{Deserialize, Deserializer, Serialize, de};
 use serde_json::Value as JsonValue;
 
@@ -118,13 +118,13 @@ pub(crate) enum KnownRelationDeHelper {
 /// A replacement relation without `m.new_content`.
 #[derive(Deserialize, Serialize)]
 pub(crate) struct ReplacementJsonRepr {
-    event_id: OwnedEventId,
+    event_id: EventId,
 }
 
 /// A thread relation without the reply fallback, with stable names.
 #[derive(Deserialize)]
 pub(crate) struct ThreadDeHelper {
-    event_id: OwnedEventId,
+    event_id: EventId,
 
     #[serde(default)]
     is_falling_back: bool,
@@ -133,7 +133,7 @@ pub(crate) struct ThreadDeHelper {
 /// A thread relation without the reply fallback, with unstable names.
 #[derive(Deserialize)]
 pub(crate) struct ThreadUnstableDeHelper {
-    event_id: OwnedEventId,
+    event_id: EventId,
 
     #[serde(rename = "io.element.show_reply", default)]
     is_falling_back: bool,

@@ -16,41 +16,38 @@ use serde::de::{self, Deserializer, Unexpected};
 
 #[doc(inline)]
 pub use self::{
-    base64_public_key::{Base64PublicKey, OwnedBase64PublicKey},
-    base64_public_key_or_device_id::{Base64PublicKeyOrDeviceId, OwnedBase64PublicKeyOrDeviceId},
-    client_secret::{ClientSecret, OwnedClientSecret},
+    base64_public_key::Base64PublicKey,
+    base64_public_key_or_device_id::Base64PublicKeyOrDeviceId,
+    client_secret::ClientSecret,
     crypto_algorithms::{
         DeviceKeyAlgorithm, EventEncryptionAlgorithm, KeyDerivationAlgorithm, OneTimeKeyAlgorithm,
         SigningKeyAlgorithm,
     },
-    device_id::{DeviceId, OwnedDeviceId},
-    direct_user_identifier::{DirectUserIdentifier, OwnedDirectUserIdentifier},
-    event_id::{EventId, OwnedEventId},
+    device_id::DeviceId,
+    direct_user_identifier::DirectUserIdentifier,
+    event_id::EventId,
     key_id::{
         AnyKeyName, CrossSigningKeyId, CrossSigningOrDeviceSigningKeyId, DeviceKeyId,
-        DeviceSigningKeyId, KeyAlgorithm, KeyId, OneTimeKeyId, OwnedCrossSigningKeyId,
-        OwnedCrossSigningOrDeviceSigningKeyId, OwnedDeviceKeyId, OwnedDeviceSigningKeyId,
-        OwnedKeyId, OwnedOneTimeKeyId, OwnedServerSigningKeyId, OwnedSigningKeyId,
-        ServerSigningKeyId, SigningKeyId,
+        DeviceSigningKeyId, KeyAlgorithm, KeyId, OneTimeKeyId, ServerSigningKeyId, SigningKeyId,
     },
     matrix_uri::{MatrixToUri, MatrixUri},
-    mxc_uri::{MxcUri, OwnedMxcUri},
-    one_time_key_name::{OneTimeKeyName, OwnedOneTimeKeyName},
-    room_alias_id::{OwnedRoomAliasId, RoomAliasId},
-    room_id::{OwnedRoomId, RoomId},
-    room_or_alias_id::{OwnedRoomOrAliasId, RoomOrAliasId},
+    mxc_uri::MxcUri,
+    one_time_key_name::OneTimeKeyName,
+    room_alias_id::RoomAliasId,
+    room_id::RoomId,
+    room_or_alias_id::RoomOrAliasId,
     room_version_id::RoomVersionId,
-    server_name::{OwnedServerName, ServerName},
-    server_signing_key_version::{OwnedServerSigningKeyVersion, ServerSigningKeyVersion},
-    session_id::{OwnedSessionId, SessionId},
+    server_name::ServerName,
+    server_signing_key_version::ServerSigningKeyVersion,
+    session_id::SessionId,
     signatures::{
         CrossSigningOrDeviceSignatures, DeviceSignatures, EntitySignatures, ServerSignatures,
         Signatures,
     },
-    space_child_order::{OwnedSpaceChildOrder, SpaceChildOrder},
-    transaction_id::{OwnedTransactionId, TransactionId},
-    user_id::{OwnedUserId, UserId},
-    voip_id::{OwnedVoipId, VoipId},
+    space_child_order::SpaceChildOrder,
+    transaction_id::TransactionId,
+    user_id::UserId,
+    voip_id::VoipId,
     voip_version_id::VoipVersionId,
 };
 
@@ -117,8 +114,8 @@ fn find_server_name_str(s: &str) -> Option<&str> {
 /// that it was already validated.
 ///
 /// Returns `None` if there is no colon in the string.
-fn find_server_name_unchecked(s: &str) -> Option<&ServerName> {
-    find_server_name_str(s).map(ServerName::from_borrowed_unchecked)
+fn find_server_name_unchecked(s: &str) -> Option<ServerName> {
+    find_server_name_str(s).map(ServerName::from_str_unchecked)
 }
 
 /// Deserializes any type of id using the provided `TryFrom` implementation.
@@ -138,15 +135,24 @@ where
 #[macro_export]
 macro_rules! device_id {
     ($s:expr) => {
-        <&$crate::DeviceId as ::std::convert::From<_>>::from($s)
+        <$crate::DeviceId as ::std::convert::From<_>>::from($s)
     };
 }
 
-/// Shorthand for `OwnedDeviceId::from`.
+/// `&'static DeviceId` construction.
+///
+/// This macro is a helper to ease the transition after the change of [`DeviceId`] from a
+/// dynamically sized type to an owned type. It has the side effect of interning and leaking the
+/// identifier so it SHOULD NOT be used in code that runs in production.
+///
+/// This is behind the `unstable-identifier-ref-macros` cargo feature to allow us to remove this
+/// macro at any time without it being a breaking change.
 #[macro_export]
-macro_rules! owned_device_id {
-    ($s:expr) => {
-        <$crate::OwnedDeviceId as ::std::convert::From<_>>::from($s)
+#[cfg(feature = "unstable-identifier-ref-macros")]
+macro_rules! device_id_ref {
+    ($s:literal) => {
+        $crate::__private_macros::id_interner::DEVICE_ID_INTERNER
+            .get_or_insert_with($s, || $crate::device_id!($s))
     };
 }
 
@@ -154,8 +160,81 @@ macro_rules! owned_device_id {
 pub mod __private_macros {
     pub use ruma_macros::{
         base64_public_key, event_id, mxc_uri, room_alias_id, room_id, room_version_id, server_name,
-        server_signing_key_version, user_id,
+        server_signing_key_version, session_id, user_id,
     };
+
+    #[cfg(feature = "unstable-identifier-ref-macros")]
+    pub mod id_interner {
+        use std::sync::LazyLock;
+
+        /// Type used to intern identifiers, used in macros to return a static reference.
+        #[doc(hidden)]
+        pub struct IdInterner<T: 'static> {
+            // Map of static string for the identifier to identifier.
+            #[allow(clippy::disallowed_types)]
+            inner: std::sync::RwLock<std::collections::HashMap<&'static str, &'static T>>,
+        }
+
+        impl<T: 'static> IdInterner<T> {
+            /// Construct an empty `IdInterner`.
+            fn new() -> Self {
+                Self { inner: Default::default() }
+            }
+
+            /// Get the identifier matching the given key or create it with the given function.
+            pub fn get_or_insert_with<F>(&self, key: &'static str, f: F) -> &'static T
+            where
+                F: FnOnce() -> T,
+            {
+                // First, acquire a read lock to check if the identifier exists in the map.
+                if let Some(id) = self.inner.read().expect("lock should never be poisoned").get(key)
+                {
+                    return id;
+                }
+
+                // It is not in the map, acquire a write lock to add it.
+                self.inner
+                    .write()
+                    .expect("lock should never be poisoned")
+                    .entry(key)
+                    .or_insert_with(|| {
+                        let id = f();
+                        Box::leak(Box::new(id))
+                    })
+            }
+        }
+
+        pub static BASE64_PUBLIC_KEY_INTERNER: LazyLock<IdInterner<crate::Base64PublicKey>> =
+            LazyLock::new(IdInterner::new);
+
+        pub static DEVICE_ID_INTERNER: LazyLock<IdInterner<crate::DeviceId>> =
+            LazyLock::new(IdInterner::new);
+
+        pub static EVENT_ID_INTERNER: LazyLock<IdInterner<crate::EventId>> =
+            LazyLock::new(IdInterner::new);
+
+        pub static MXC_URI_INTERNER: LazyLock<IdInterner<crate::MxcUri>> =
+            LazyLock::new(IdInterner::new);
+
+        pub static ROOM_ALIAS_ID_INTERNER: LazyLock<IdInterner<crate::RoomAliasId>> =
+            LazyLock::new(IdInterner::new);
+
+        pub static ROOM_ID_INTERNER: LazyLock<IdInterner<crate::RoomId>> =
+            LazyLock::new(IdInterner::new);
+
+        pub static SERVER_NAME_INTERNER: LazyLock<IdInterner<crate::ServerName>> =
+            LazyLock::new(IdInterner::new);
+
+        pub static SERVER_SIGNING_KEY_VERSION_INTERNER: LazyLock<
+            IdInterner<crate::ServerSigningKeyVersion>,
+        > = LazyLock::new(IdInterner::new);
+
+        pub static SESSION_ID_INTERNER: LazyLock<IdInterner<crate::SessionId>> =
+            LazyLock::new(IdInterner::new);
+
+        pub static USER_ID_INTERNER: LazyLock<IdInterner<crate::UserId>> =
+            LazyLock::new(IdInterner::new);
+    }
 }
 
 /// Compile-time checked [`EventId`] construction.
@@ -166,11 +245,20 @@ macro_rules! event_id {
     };
 }
 
-/// Compile-time checked [`OwnedEventId`] construction.
+/// `&'static EventId` construction.
+///
+/// This macro is a helper to ease the transition after the change of [`EventId`] from a
+/// dynamically sized type to an owned type. It has the side effect of interning and leaking the
+/// identifier so it SHOULD NOT be used in code that runs in production.
+///
+/// This is behind the `unstable-identifier-ref-macros` cargo feature to allow us to remove this
+/// macro at any time without it being a breaking change.
 #[macro_export]
-macro_rules! owned_event_id {
+#[cfg(feature = "unstable-identifier-ref-macros")]
+macro_rules! event_id_ref {
     ($s:literal) => {
-        $crate::event_id!($s).to_owned()
+        $crate::__private_macros::id_interner::EVENT_ID_INTERNER
+            .get_or_insert_with($s, || $crate::event_id!($s))
     };
 }
 
@@ -182,11 +270,20 @@ macro_rules! room_alias_id {
     };
 }
 
-/// Compile-time checked [`OwnedRoomAliasId`] construction.
+/// `&'static RoomAliasId` construction.
+///
+/// This macro is a helper to ease the transition after the change of [`RoomAliasId`] from a
+/// dynamically sized type to an owned type. It has the side effect of interning and leaking the
+/// identifier so it SHOULD NOT be used in code that runs in production.
+///
+/// This is behind the `unstable-identifier-ref-macros` cargo feature to allow us to remove this
+/// macro at any time without it being a breaking change.
 #[macro_export]
-macro_rules! owned_room_alias_id {
+#[cfg(feature = "unstable-identifier-ref-macros")]
+macro_rules! room_alias_id_ref {
     ($s:literal) => {
-        $crate::room_alias_id!($s).to_owned()
+        $crate::__private_macros::id_interner::ROOM_ALIAS_ID_INTERNER
+            .get_or_insert_with($s, || $crate::room_alias_id!($s))
     };
 }
 
@@ -198,11 +295,20 @@ macro_rules! room_id {
     };
 }
 
-/// Compile-time checked [`OwnedRoomId`] construction.
+/// `&'static RoomId` construction.
+///
+/// This macro is a helper to ease the transition after the change of [`RoomId`] from a
+/// dynamically sized type to an owned type. It has the side effect of interning and leaking the
+/// identifier so it SHOULD NOT be used in code that runs in production.
+///
+/// This is behind the `unstable-identifier-ref-macros` cargo feature to allow us to remove this
+/// macro at any time without it being a breaking change.
 #[macro_export]
-macro_rules! owned_room_id {
+#[cfg(feature = "unstable-identifier-ref-macros")]
+macro_rules! room_id_ref {
     ($s:literal) => {
-        $crate::room_id!($s).to_owned()
+        $crate::__private_macros::id_interner::ROOM_ID_INTERNER
+            .get_or_insert_with($s, || $crate::room_id!($s))
     };
 }
 
@@ -222,11 +328,20 @@ macro_rules! server_signing_key_version {
     };
 }
 
-/// Compile-time checked [`OwnedServerSigningKeyVersion`] construction.
+/// `&'static ServerSigningKeyVersion` construction.
+///
+/// This macro is a helper to ease the transition after the change of [`ServerSigningKeyVersion`]
+/// from a dynamically sized type to an owned type. It has the side effect of interning and leaking
+/// the identifier so it SHOULD NOT be used in code that runs in production.
+///
+/// This is behind the `unstable-identifier-ref-macros` cargo feature to allow us to remove this
+/// macro at any time without it being a breaking change.
 #[macro_export]
-macro_rules! owned_server_signing_key_version {
+#[cfg(feature = "unstable-identifier-ref-macros")]
+macro_rules! server_signing_key_version_ref {
     ($s:literal) => {
-        $crate::server_signing_key_version!($s).to_owned()
+        $crate::__private_macros::id_interner::SERVER_SIGNING_KEY_VERSION_INTERNER
+            .get_or_insert_with($s, || $crate::server_signing_key_version!($s))
     };
 }
 
@@ -238,32 +353,45 @@ macro_rules! server_name {
     };
 }
 
-/// Compile-time checked [`OwnedServerName`] construction.
+/// `&'static ServerName` construction.
+///
+/// This macro is a helper to ease the transition after the change of [`ServerName`] from a
+/// dynamically sized type to an owned type. It has the side effect of interning and leaking the
+/// identifier so it SHOULD NOT be used in code that runs in production.
+///
+/// This is behind the `unstable-identifier-ref-macros` cargo feature to allow us to remove this
+/// macro at any time without it being a breaking change.
 #[macro_export]
-macro_rules! owned_server_name {
+#[cfg(feature = "unstable-identifier-ref-macros")]
+macro_rules! server_name_ref {
     ($s:literal) => {
-        $crate::server_name!($s).to_owned()
+        $crate::__private_macros::id_interner::SERVER_NAME_INTERNER
+            .get_or_insert_with($s, || $crate::server_name!($s))
     };
 }
 
 /// Compile-time checked [`SessionId`] construction.
 #[macro_export]
 macro_rules! session_id {
-    ($s:literal) => {{
-        const SESSION_ID: &$crate::SessionId = match $crate::SessionId::_priv_const_new($s) {
-            Ok(id) => id,
-            Err(e) => panic!("{}", e),
-        };
-
-        SESSION_ID
-    }};
+    ($s:literal) => {
+        $crate::__private_macros::session_id!($crate, $s)
+    };
 }
 
-/// Compile-time checked [`OwnedSessionId`] construction.
+/// `&'static SessionId` construction.
+///
+/// This macro is a helper to ease the transition after the change of [`SessionId`] from a
+/// dynamically sized type to an owned type. It has the side effect of interning and leaking the
+/// identifier so it SHOULD NOT be used in code that runs in production.
+///
+/// This is behind the `unstable-identifier-ref-macros` cargo feature to allow us to remove this
+/// macro at any time without it being a breaking change.
 #[macro_export]
-macro_rules! owned_session_id {
+#[cfg(feature = "unstable-identifier-ref-macros")]
+macro_rules! session_id_ref {
     ($s:literal) => {
-        $crate::session_id!($s).to_owned()
+        $crate::__private_macros::id_interner::SESSION_ID_INTERNER
+            .get_or_insert_with($s, || $crate::session_id!($s))
     };
 }
 
@@ -275,11 +403,20 @@ macro_rules! mxc_uri {
     };
 }
 
-/// Compile-time checked [`OwnedMxcUri`] construction.
+/// Compile-time checked `&'static MxcUri` construction.
+///
+/// This macro is a helper to ease the transition after the change of [`MxcUri`] from a
+/// dynamically sized type to an owned type. It has the side effect of interning and leaking the
+/// identifier so it SHOULD NOT be used in code that runs in production.
+///
+/// This is behind the `unstable-identifier-ref-macros` cargo feature to allow us to remove this
+/// macro at any time without it being a breaking change.
 #[macro_export]
-macro_rules! owned_mxc_uri {
+#[cfg(feature = "unstable-identifier-ref-macros")]
+macro_rules! mxc_uri_ref {
     ($s:literal) => {
-        $crate::mxc_uri!($s).to_owned()
+        $crate::__private_macros::id_interner::MXC_URI_INTERNER
+            .get_or_insert_with($s, || $crate::mxc_uri!($s))
     };
 }
 
@@ -291,11 +428,20 @@ macro_rules! user_id {
     };
 }
 
-/// Compile-time checked [`OwnedUserId`] construction.
+/// Compile-time checked `&'static UserId` construction.
+///
+/// This macro is a helper to ease the transition after the change of [`UserId`] from a
+/// dynamically sized type to an owned type. It has the side effect of interning and leaking the
+/// identifier so it SHOULD NOT be used in code that runs in production.
+///
+/// This is behind the `unstable-identifier-ref-macros` cargo feature to allow us to remove this
+/// macro at any time without it being a breaking change.
 #[macro_export]
-macro_rules! owned_user_id {
+#[cfg(feature = "unstable-identifier-ref-macros")]
+macro_rules! user_id_ref {
     ($s:literal) => {
-        $crate::user_id!($s).to_owned()
+        $crate::__private_macros::id_interner::USER_ID_INTERNER
+            .get_or_insert_with($s, || $crate::user_id!($s))
     };
 }
 
@@ -307,10 +453,19 @@ macro_rules! base64_public_key {
     };
 }
 
-/// Compile-time checked [`OwnedBase64PublicKey`] construction.
+/// Compile-time checked `&'static Base64PublicKey` construction.
+///
+/// This macro is a helper to ease the transition after the change of [`Base64PublicKey`] from a
+/// dynamically sized type to an owned type. It has the side effect of interning and leaking the
+/// identifier so it SHOULD NOT be used in code that runs in production.
+///
+/// This is behind the `unstable-identifier-ref-macros` cargo feature to allow us to remove this
+/// macro at any time without it being a breaking change.
 #[macro_export]
-macro_rules! owned_base64_public_key {
+#[cfg(feature = "unstable-identifier-ref-macros")]
+macro_rules! base64_public_key_ref {
     ($s:literal) => {
-        $crate::base64_public_key!($s).to_owned()
+        $crate::__private_macros::id_interner::BASE64_PUBLIC_KEY_INTERNER
+            .get_or_insert_with($s, || $crate::base64_public_key!($s))
     };
 }

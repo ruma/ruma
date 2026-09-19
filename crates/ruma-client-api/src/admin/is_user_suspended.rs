@@ -13,7 +13,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/v1.19/client-server-api/#get_matrixclientv1adminsuspenduserid
 
     use ruma_common::{
-        OwnedUserId,
+        UserId,
         api::{OAuthClientScope, auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -39,7 +39,7 @@ pub mod v1 {
     pub struct Request {
         /// The user to look up.
         #[ruma_api(path)]
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
     }
 
     /// Response type for the `is_user_suspended` endpoint.
@@ -51,7 +51,7 @@ pub mod v1 {
 
     impl Request {
         /// Creates a new `Request` with the given user ID.
-        pub fn new(user_id: OwnedUserId) -> Self {
+        pub fn new(user_id: UserId) -> Self {
             Self { user_id }
         }
     }

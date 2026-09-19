@@ -3,8 +3,7 @@
 use std::{borrow::Cow, collections::HashSet, ops::Deref};
 
 use ruma_common::{
-    OwnedUserId, RoomVersionId, UserId, room_version_rules::AuthorizationRules,
-    serde::from_raw_json_value,
+    RoomVersionId, UserId, room_version_rules::AuthorizationRules, serde::from_raw_json_value,
 };
 use serde::{Deserialize, de::IgnoredAny};
 
@@ -62,7 +61,7 @@ impl<E: Event> RoomCreateEvent<E> {
     pub(crate) fn creator(&self, rules: &AuthorizationRules) -> Result<Cow<'_, UserId>, String> {
         #[derive(Deserialize)]
         struct RoomCreateContentCreator {
-            creator: OwnedUserId,
+            creator: UserId,
         }
 
         if rules.use_room_create_sender {
@@ -88,11 +87,11 @@ impl<E: Event> RoomCreateEvent<E> {
     pub(crate) fn additional_creators(
         &self,
         rules: &AuthorizationRules,
-    ) -> Result<HashSet<OwnedUserId>, String> {
+    ) -> Result<HashSet<UserId>, String> {
         #[derive(Deserialize)]
         struct RoomCreateContentAdditionalCreators {
             #[serde(default)]
-            additional_creators: HashSet<OwnedUserId>,
+            additional_creators: HashSet<UserId>,
         }
 
         Ok(if rules.additional_room_creators {
@@ -114,7 +113,7 @@ impl<E: Event> RoomCreateEvent<E> {
     /// field of this event's content. Additionally if the `explicitly_privilege_room_creators`
     /// field of `AuthorizationRules` is set, any additional user IDs in `additional_creators`, if
     /// present, will also be considered creators.
-    pub fn creators(&self, rules: &AuthorizationRules) -> Result<HashSet<OwnedUserId>, String> {
+    pub fn creators(&self, rules: &AuthorizationRules) -> Result<HashSet<UserId>, String> {
         let mut creators = self.additional_creators(rules)?;
 
         creators.insert(self.creator(rules)?.into_owned());

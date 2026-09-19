@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use ruma_common::OwnedEventId;
+use ruma_common::EventId;
 #[cfg(feature = "client")]
 use serde::de::{Deserializer, MapAccess, Visitor};
 #[cfg(feature = "server")]
@@ -15,7 +15,7 @@ struct WrappedError {
 
 #[cfg(feature = "server")]
 pub(crate) fn serialize<S>(
-    response: &BTreeMap<OwnedEventId, Result<(), String>>,
+    response: &BTreeMap<EventId, Result<(), String>>,
     serializer: S,
 ) -> Result<S::Ok, S::Error>
 where
@@ -33,7 +33,7 @@ where
 #[allow(clippy::type_complexity)]
 pub(crate) fn deserialize<'de, D>(
     deserializer: D,
-) -> Result<BTreeMap<OwnedEventId, Result<(), String>>, D::Error>
+) -> Result<BTreeMap<EventId, Result<(), String>>, D::Error>
 where
     D: Deserializer<'de>,
 {
@@ -42,7 +42,7 @@ where
     struct PduProcessResponseVisitor;
 
     impl<'de> Visitor<'de> for PduProcessResponseVisitor {
-        type Value = BTreeMap<OwnedEventId, Result<(), String>>;
+        type Value = BTreeMap<EventId, Result<(), String>>;
 
         fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
             formatter.write_str("A map of EventIds to a map of optional errors")
@@ -54,7 +54,7 @@ where
         {
             let mut map = BTreeMap::new();
 
-            while let Some((key, value)) = access.next_entry::<OwnedEventId, WrappedError>()? {
+            while let Some((key, value)) = access.next_entry::<EventId, WrappedError>()? {
                 let v = match value.error {
                     None => Ok(()),
                     Some(error) => Err(error),
@@ -123,16 +123,15 @@ mod tests_client {
 mod tests_server {
     use std::collections::BTreeMap;
 
-    use ruma_common::{OwnedEventId, owned_event_id};
+    use ruma_common::{EventId, event_id};
     use serde_json::{json, value::Serializer as JsonSerializer};
 
     use super::serialize;
 
     #[test]
     fn serialize_error() {
-        let mut response: BTreeMap<OwnedEventId, Result<(), String>> = BTreeMap::new();
-        response
-            .insert(owned_event_id!("$someevent:matrix.org"), Err("Some processing error.".into()));
+        let mut response: BTreeMap<EventId, Result<(), String>> = BTreeMap::new();
+        response.insert(event_id!("$someevent:matrix.org"), Err("Some processing error.".into()));
 
         let serialized = serialize(&response, JsonSerializer).unwrap();
         let json = json!({
@@ -143,8 +142,8 @@ mod tests_server {
 
     #[test]
     fn serialize_ok() {
-        let mut response: BTreeMap<OwnedEventId, Result<(), String>> = BTreeMap::new();
-        response.insert(owned_event_id!("$someevent:matrix.org"), Ok(()));
+        let mut response: BTreeMap<EventId, Result<(), String>> = BTreeMap::new();
+        response.insert(event_id!("$someevent:matrix.org"), Ok(()));
 
         let serialized = serialize(&response, serde_json::value::Serializer).unwrap();
         let json = json!({

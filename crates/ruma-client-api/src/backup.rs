@@ -239,7 +239,7 @@ mod tests {
     use assert_matches2::{assert_let, assert_matches};
     use ruma_common::{
         SigningKeyAlgorithm, SigningKeyId, canonical_json::assert_to_canonical_json_eq,
-        owned_user_id, serde::Base64,
+        serde::Base64, user_id,
     };
     use serde_json::{Value as JsonValue, from_value as from_json_value, json};
 
@@ -262,8 +262,8 @@ mod tests {
         let mut backup_algorithm =
             MegolmBackupV1Curve25519AesSha2AuthData::new(Base64::new(b"abcdef".to_vec()));
         backup_algorithm.signatures.insert_signature(
-            owned_user_id!("@alice:example.org"),
-            SigningKeyId::from_parts(SigningKeyAlgorithm::Ed25519, "DEVICEID".into()),
+            user_id!("@alice:example.org"),
+            SigningKeyId::from_parts(SigningKeyAlgorithm::Ed25519, &"DEVICEID".into()),
             "signature".to_owned(),
         );
         assert_to_canonical_json_eq!(BackupAlgorithm::from(backup_algorithm), json.clone());

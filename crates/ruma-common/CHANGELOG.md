@@ -2,16 +2,78 @@
 
 ## Unreleased
 
+Breaking changes:
+
+- The dynamically sized identifier types were removed and replaced by their `Owned*` variant:
+  - `OwnedBase64PublicKey` was renamed to `Base64PublicKey`. The `base64_public_key!` macro now
+    returns a `Base64PublicKey`, the `owned_base64_public_key!` macro was removed and the
+    `base64_public_key_ref!` macro behind the `unstable-identifier-ref-macros` cargo feature allows
+    to construct a `&'static Base64PublicKey`.
+  - `OwnedBase64PublicKeyOrDeviceId` was renamed to `Base64PublicKeyOrDeviceId`.
+  - `OwnedClientSecret` was renamed to `ClientSecret`.
+  - `OwnedDeviceId` was renamed to `DeviceId`. The `device_id!` macro now returns a `DeviceId`, the
+    `owned_device_id!` macro was removed and the `device_id_ref!` macro behind the
+    `unstable-identifier-ref-macros` cargo feature allows to construct a `&'static DeviceId`.
+  - The `OwnedDirectUserIdentifier` type was renamed to `DirectUserIdentifier`.
+  - `OwnedEventId` was renamed to `EventId`. The `event_id!` macro now returns a `EventId`, the
+    `owned_event_id!` macro was removed and the `event_id_ref!` macro behind the
+    `unstable-identifier-ref-macros` cargo feature allows to construct a `&'static EventId`.
+  - `OwnedKeyId` was renamed to `KeyId`, and all its type aliases lost the `Owned` prefix too.
+  - `OwnedAnyKeyName` was renamed to `AnyKeyName`.
+  - `OwnedMxcUri` was renamed to `MxcUri`. The `mxc_uri!` macro now returns an `MxcUri`, the
+    `owned_mxc_uri!` macro was removed and the `mxc_uri_ref!` macro behind the
+    `unstable-identifier-ref-macros` cargo feature allows to construct a `&'static MxcUri`.
+  - `OwnedOneTimeKeyName` was renamed to `OneTimeKeyName`.
+  - `OwnedRoomAliasId` was renamed to `RoomAliasId`. The `room_alias_id!` macro now returns a
+    `RoomAliasId`, the `owned_room_alias_id!` macro was removed and the `room_alias_id_ref!` macro
+    behind the `unstable-identifier-ref-macros` cargo feature allows to construct a
+    `&'static RoomAliasId`.
+  - `OwnedRoomId` was renamed to `RoomId`. The `room_id!` macro now returns a `RoomId`, the
+    `owned_room_id!` macro was removed and the `room_id_ref!` macro behind the
+    `unstable-identifier-ref-macros` cargo feature allows to construct a `&'static RoomId`.
+  - `OwnedRoomOrAliasId` was renamed to `RoomOrAliasId`.
+  - `OwnedServerName` was renamed to `ServerName`. The `server_name!` macro now returns a
+    `ServerName`, the `owned_server_name!` macro was removed and the `server_name_ref!` macro
+    behind the `unstable-identifier-ref-macros` cargo feature allows to construct a
+    `&'static ServerName`.
+  - `OwnedServerSigningKeyVersion` was renamed to `ServerSigningKeyVersion`. The
+    `server_signing_key_version!` macro now returns a `ServerSigningKeyVersion`, the
+    `owned_server_signing_key_version!` macro was removed and the `server_signing_key_version_ref!`
+    macro behind the `unstable-identifier-ref-macros` cargo feature allows to construct a
+    `&'static ServerSigningKeyVersion`.
+  - `OwnedSessionId` was renamed to `SessionId`. The `session_id!` macro now returns a `SessionId`,
+    the `owned_session_id!` macro was removed and the `session_id_ref!` macro behind the
+    `unstable-identifier-ref-macros` cargo feature allows to construct a `&'static SessionId`.
+  - `OwnedSpaceChildOrder` was renamed to `SpaceChildOrder`.
+  - `OwnedTransactionId` was renamed to `TransactionId`.
+  - `OwnedUserId` was renamed to `UserId`. The `user_id!` macro now returns a `UserId`, the
+    `owned_user_id!` macro was removed and the `user_id_ref!` macro behind the
+    `unstable-identifier-ref-macros` cargo feature allows to construct a `&'static UserId`.
+  - `OwnedVoipId` was renamed to `VoipId`.
+- The `IdDst` derive macro was removed. The `ruma_id` attribute macro is available instead.
+  The difference between both macros is that `ruma_id` does not support different borrowed and
+  owned types, but implements a single owned type. The same attributes are supported for both
+  macros.
+
+  To transition from `IdDst` to `ruma_id` one only needs to:
+  - Remove the derive macros on the identifier struct.
+  - Remove `#[repr(transparent)]`.
+  - Leave or add the `ruma_id` attribute.
+  - Remove the struct fields declaration (e.g. `(str)`) after the struct name.
+- `KeyId::key_name()` returns an owned type. `KeyId::key_name_str()` can be used to access the key
+  name as a `&str` to avoid an allocation.
+
 Improvements:
 
-- The `(Owned)DirectUserIdentifier` types were imported from ruma-events. Converting between an
-  `OwnedDirectUserIdentifier` and an `OwnedUserId` does not perform an allocation anymore.
+- The owned `DirectUserIdentifier` type was imported from ruma-events. Converting between a
+  `DirectUserIdentifier` and an `OwnedUserId` does not perform an allocation anymore.
 - Implement `From<&OwnedId> for OwnedId` and `From<&OwnedId> for String` for owned identifier types
   generated with the `IdDst` derive macro.
 - Add the `KeyTooLarge`, `ProfileTooLarge` and `UnknownDevice` variants to `ErrorKind` and
   `ErrorCode`, for the `M_KEY_TOO_LARGE` and `M_PROFILE_TOO_LARGE` error codes of the profile
   endpoints (added in Matrix 1.16) and the `M_UNKNOWN_DEVICE` error code of identity assertion
   (added in Matrix 1.17).
+- Add `KeyId::key_name_str()` to access the key name of a key ID as a `&str`.
 
 ## 0.20.0
 
@@ -542,12 +604,12 @@ Breaking changes:
   `Signatures::insert` is now dereferenced to `BTreeMap::insert`.
 - Move the `DeviceKeyAlgorithm::SignedCurve25519` into the new
   `OneTimeKeyAlgorithm` type.
-- Add `(Owned)CrossSigningKeyId` and use it instead of `OwnedDeviceKeyId` to
+- Add `(Owned)CrossSigningKeyId` and use it instead of `CrossDeviceKeyId` to
   identify `CrossSigningKey`'s `keys`.
 - Add `(Owned)CrossSigningOrDeviceSigningKeyId` and use it instead of
-  `OwnedDeviceKeyId` to identify signing keys in `DeviceKeys`'s and
+  `CrossDeviceKeyId` to identify signing keys in `DeviceKeys`'s and
   `CrossSigningKey`'s `signatures`.
-- Use `OwnedDeviceSigningKeyId` instead of `OwnedDeviceKeyId` to identify
+- Use `OwnedDeviceSigningKeyId` instead of `CrossDeviceKeyId` to identify
   signing keys in `SignedKey`'s `signatures`.
 - `(Owned)DeviceKeyId` is now a type alias of `(Owned)KeyId`.
   - Remove the `(owned_)device_key_id` macro, instead use

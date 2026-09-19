@@ -6,7 +6,7 @@ pub mod msc4495 {
 
     use js_int::Int;
     use ruma_common::{
-        OwnedUserId,
+        UserId,
         api::{request, response},
         metadata,
     };
@@ -25,12 +25,12 @@ pub mod msc4495 {
     pub struct Request {
         /// The user ID to query. Must be local to the queried server.
         #[ruma_api(query)]
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
     }
 
     impl Request {
         /// Creates a new `Request` with the given user ID.
-        pub fn new(user_id: OwnedUserId) -> Self {
+        pub fn new(user_id: UserId) -> Self {
             Self { user_id }
         }
     }
@@ -42,12 +42,12 @@ pub mod msc4495 {
         pub stream_id: Int,
 
         /// An array of local recipients the user intends to push presence to.
-        pub recipients: Vec<OwnedUserId>,
+        pub recipients: Vec<UserId>,
     }
 
     impl Response {
         /// Creates a new `Response` with the given stream ID and recipients.
-        pub fn new(stream_id: Int, recipients: Vec<OwnedUserId>) -> Self {
+        pub fn new(stream_id: Int, recipients: Vec<UserId>) -> Self {
             Self { stream_id, recipients }
         }
     }

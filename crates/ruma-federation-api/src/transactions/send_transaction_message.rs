@@ -10,7 +10,7 @@ pub mod v1 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedServerName, OwnedTransactionId,
+        EventId, MilliSecondsSinceUnixEpoch, ServerName, TransactionId,
         api::{request, response},
         metadata,
         serde::Raw,
@@ -31,10 +31,10 @@ pub mod v1 {
     pub struct Request {
         /// A transaction ID unique between sending and receiving homeservers.
         #[ruma_api(path)]
-        pub transaction_id: OwnedTransactionId,
+        pub transaction_id: TransactionId,
 
         /// The server_name of the homeserver sending this transaction.
-        pub origin: OwnedServerName,
+        pub origin: ServerName,
 
         /// POSIX timestamp in milliseconds on the originating homeserver when this transaction
         /// started.
@@ -66,7 +66,7 @@ pub mod v1 {
         /// See [MSC3618](https://github.com/matrix-org/matrix-spec-proposals/pull/3618).
         #[cfg_attr(feature = "unstable-msc3618", serde(default))]
         #[serde(with = "crate::serde::pdu_process_response")]
-        pub pdus: BTreeMap<OwnedEventId, Result<(), String>>,
+        pub pdus: BTreeMap<EventId, Result<(), String>>,
     }
 
     impl Request {
@@ -74,8 +74,8 @@ pub mod v1 {
         ///
         /// The PDU and EDU lists will start off empty.
         pub fn new(
-            transaction_id: OwnedTransactionId,
-            origin: OwnedServerName,
+            transaction_id: TransactionId,
+            origin: ServerName,
             origin_server_ts: MilliSecondsSinceUnixEpoch,
         ) -> Self {
             Self { transaction_id, origin, origin_server_ts, pdus: vec![], edus: vec![] }
@@ -84,7 +84,7 @@ pub mod v1 {
 
     impl Response {
         /// Creates a new `Response` with the given PDUs.
-        pub fn new(pdus: BTreeMap<OwnedEventId, Result<(), String>>) -> Self {
+        pub fn new(pdus: BTreeMap<EventId, Result<(), String>>) -> Self {
             Self { pdus }
         }
     }

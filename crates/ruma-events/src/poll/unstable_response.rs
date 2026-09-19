@@ -1,7 +1,7 @@
 //! Types for the `org.matrix.msc3381.poll.response` event, the unstable version of
 //! `m.poll.response`.
 
-use ruma_common::OwnedEventId;
+use ruma_common::EventId;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -34,7 +34,7 @@ pub struct UnstablePollResponseEventContent {
 impl UnstablePollResponseEventContent {
     /// Creates a new `UnstablePollResponseEventContent` that responds to the given poll start event
     /// ID, with the given answers.
-    pub fn new(answers: Vec<String>, poll_start_id: OwnedEventId) -> Self {
+    pub fn new(answers: Vec<String>, poll_start_id: EventId) -> Self {
         Self {
             poll_response: UnstablePollResponseContentBlock::new(answers),
             relates_to: Reference::new(poll_start_id),

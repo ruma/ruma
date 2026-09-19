@@ -63,8 +63,8 @@ pub mod unstable {
 
         use js_int::UInt;
         use ruma_common::{
-            MilliSecondsSinceUnixEpoch, api::OutgoingResponseExt as _, owned_event_id,
-            owned_room_id, serde::Raw,
+            MilliSecondsSinceUnixEpoch, api::OutgoingResponseExt as _, event_id, room_id,
+            serde::Raw,
         };
         use ruma_events::TimelineEventType;
         use serde_json::{Value as JsonValue, json};
@@ -81,7 +81,7 @@ pub mod unstable {
 
             let mut event0 = DelayedEventData::new(
                 "a_delay_id".to_owned(),
-                owned_room_id!("!roomid:example.org"),
+                room_id!("!roomid:example.org"),
                 TimelineEventType::RoomTopic,
                 Some("a_state_key".to_owned()),
                 Raw::from_json_string(content).unwrap(),
@@ -89,7 +89,7 @@ pub mod unstable {
                 MilliSecondsSinceUnixEpoch(UInt::new(70000).unwrap()),
             );
 
-            event0.event_id = Some(owned_event_id!("$event:imaginary.hs"));
+            event0.event_id = Some(event_id!("$event:imaginary.hs"));
             event0.finalized_ts = Some(MilliSecondsSinceUnixEpoch(UInt::new(70103).unwrap()));
 
             let response = Response::new(vec![event0]);

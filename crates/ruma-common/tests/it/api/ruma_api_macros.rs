@@ -4,7 +4,7 @@
 pub mod some_endpoint {
     use http::header::CONTENT_TYPE;
     use ruma_common::{
-        OwnedUserId,
+        UserId,
         api::{auth_scheme::NoAuthentication, request, response},
         metadata,
         serde::Raw,
@@ -36,7 +36,7 @@ pub mod some_endpoint {
         // This value will be inserted into the request's URL in place of the
         // ":user" path component.
         #[ruma_api(path)]
-        pub user: OwnedUserId,
+        pub user: UserId,
     }
 
     /// Response type for the `some_endpoint` endpoint.

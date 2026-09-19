@@ -11,7 +11,7 @@ pub mod v3 {
 
     use as_variant::as_variant;
     use ruma_common::{
-        OwnedDeviceId, OwnedServerName, OwnedUserId,
+        DeviceId, ServerName, UserId,
         api::{auth_scheme::AppserviceTokenOptional, request, response},
         metadata,
         serde::JsonObject,
@@ -43,7 +43,7 @@ pub mod v3 {
 
         /// ID of the client device
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub device_id: Option<OwnedDeviceId>,
+        pub device_id: Option<DeviceId>,
 
         /// A display name to assign to the newly-created device.
         ///
@@ -62,7 +62,7 @@ pub mod v3 {
     #[response]
     pub struct Response {
         /// The fully-qualified Matrix ID that has been registered.
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// An access token for the account.
         pub access_token: String,
@@ -73,13 +73,13 @@ pub mod v3 {
             Since Matrix Client-Server API r0.4.0. Clients should instead use the \
             `user_id.server_name()` method if they require it.\
         "]
-        pub home_server: Option<OwnedServerName>,
+        pub home_server: Option<ServerName>,
 
         /// ID of the logged-in device.
         ///
         /// Will be the same as the corresponding parameter in the request, if one was
         /// specified.
-        pub device_id: OwnedDeviceId,
+        pub device_id: DeviceId,
 
         /// Client configuration provided by the server.
         ///
@@ -127,7 +127,7 @@ pub mod v3 {
     impl Response {
         /// Creates a new `Response` with the given user ID, access token and device ID.
         #[allow(deprecated)]
-        pub fn new(user_id: OwnedUserId, access_token: String, device_id: OwnedDeviceId) -> Self {
+        pub fn new(user_id: UserId, access_token: String, device_id: DeviceId) -> Self {
             Self {
                 user_id,
                 access_token,

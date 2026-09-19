@@ -5,7 +5,7 @@
 use std::ops::Deref;
 
 use js_int::UInt;
-use ruma_common::OwnedMxcUri;
+use ruma_common::MxcUri;
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -201,7 +201,7 @@ impl Thumbnail {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct ThumbnailFileContentBlock {
     /// The URL to the thumbnail.
-    pub url: OwnedMxcUri,
+    pub url: MxcUri,
 
     /// The mimetype of the file, e.g. "image/png".
     pub mimetype: String,
@@ -223,17 +223,13 @@ pub struct ThumbnailFileContentBlock {
 
 impl ThumbnailFileContentBlock {
     /// Creates a new non-encrypted `ThumbnailFileContentBlock` with the given url and mimetype.
-    pub fn plain(url: OwnedMxcUri, mimetype: String) -> Self {
+    pub fn plain(url: MxcUri, mimetype: String) -> Self {
         Self { url, mimetype, name: None, size: None, encryption_info: None }
     }
 
     /// Creates a new encrypted `ThumbnailFileContentBlock` with the given url, mimetype and
     /// encryption info.
-    pub fn encrypted(
-        url: OwnedMxcUri,
-        mimetype: String,
-        encryption_info: EncryptedContent,
-    ) -> Self {
+    pub fn encrypted(url: MxcUri, mimetype: String, encryption_info: EncryptedContent) -> Self {
         Self {
             url,
             mimetype,

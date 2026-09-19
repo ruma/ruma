@@ -18,8 +18,7 @@ pub mod v1 {
     //! [spec]: https://spec.matrix.org/v1.19/server-server-api/#post_matrixpolicyv1sign
 
     use ruma_common::{
-        OwnedServerName, ServerName, ServerSignatures as ServerSignaturesMap,
-        ServerSigningKeyVersion, SigningKeyId,
+        ServerName, ServerSignatures as ServerSignaturesMap, ServerSigningKeyVersion, SigningKeyId,
         api::{request, response},
         metadata,
     };
@@ -65,7 +64,7 @@ pub mod v1 {
 
     impl Response {
         /// Creates a new `Response` with the given Policy Server name and event signature.
-        pub fn new(server_name: OwnedServerName, ed25519_signature: String) -> Self {
+        pub fn new(server_name: ServerName, ed25519_signature: String) -> Self {
             Self {
                 signatures: ServerSignaturesMap::from_iter(std::iter::once((
                     server_name,
@@ -81,7 +80,7 @@ pub mod v1 {
             self.signatures
                 .get(server_name)?
                 .get(
-                    <&SigningKeyId<ServerSigningKeyVersion>>::try_from(
+                    &<SigningKeyId<ServerSigningKeyVersion>>::try_from(
                         POLICY_SERVER_ED25519_SIGNING_KEY_ID,
                     )
                     .expect("Policy Server default ed25519 signing key ID should be valid"),
@@ -98,10 +97,10 @@ mod tests {
     #[cfg(feature = "server")]
     #[test]
     fn construct_and_serialize_response() {
-        use ruma_common::{api::OutgoingResponseExt as _, owned_server_name};
+        use ruma_common::{api::OutgoingResponseExt as _, server_name};
         use serde_json::{Value as JsonValue, from_slice as from_json_slice, json};
 
-        let response = Response::new(owned_server_name!("policy.example.org"), "zLFxllD0pbBuBpfHh8NuHNaICpReF/PAOpUQTsw+bFGKiGfDNAsnhcP7pbrmhhpfbOAxIdLraQLeeiXBryLmBw".to_owned());
+        let response = Response::new(server_name!("policy.example.org"), "zLFxllD0pbBuBpfHh8NuHNaICpReF/PAOpUQTsw+bFGKiGfDNAsnhcP7pbrmhhpfbOAxIdLraQLeeiXBryLmBw".to_owned());
 
         let http_response = response.try_into_http_response::<Vec<u8>>().unwrap();
 
@@ -132,7 +131,7 @@ mod tests {
         let response = Response::try_from_http_response(http_response).unwrap();
 
         assert_eq!(
-            response.ed25519_signature(server_name!("policy.example.org")),
+            response.ed25519_signature(&server_name!("policy.example.org")),
             Some(
                 "zLFxllD0pbBuBpfHh8NuHNaICpReF/PAOpUQTsw+bFGKiGfDNAsnhcP7pbrmhhpfbOAxIdLraQLeeiXBryLmBw"
             )

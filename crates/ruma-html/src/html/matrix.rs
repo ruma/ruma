@@ -5,9 +5,7 @@
 use std::collections::BTreeSet;
 
 use html5ever::{Attribute, QualName, ns, tendril::StrTendril};
-use ruma_common::{
-    IdParseError, MatrixToError, MatrixToUri, MatrixUri, MatrixUriError, MxcUri, OwnedMxcUri,
-};
+use ruma_common::{IdParseError, MatrixToError, MatrixToUri, MatrixUri, MatrixUriError, MxcUri};
 
 use crate::sanitizer_config::clean::{compat, spec};
 
@@ -695,7 +693,7 @@ pub struct ImageData {
     ///
     /// It this is not a valid `mxc:` URI, the attribute will be in the `attrs` list of
     /// [`MatrixElementData`].
-    pub src: Option<OwnedMxcUri>,
+    pub src: Option<MxcUri>,
 }
 
 impl ImageData {
@@ -736,9 +734,9 @@ impl ImageData {
                 b"alt" => data.alt = Some(attr.value.clone()),
                 b"title" => data.title = Some(attr.value.clone()),
                 b"src" => {
-                    let uri = <&MxcUri>::from(attr.value.as_ref());
+                    let uri = MxcUri::from(attr.value.as_ref());
                     if uri.validate().is_ok() {
-                        data.src = Some(uri.to_owned());
+                        data.src = Some(uri);
                     } else {
                         remaining_attrs.insert(attr.clone());
                     }

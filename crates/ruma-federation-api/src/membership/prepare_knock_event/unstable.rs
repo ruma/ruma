@@ -3,7 +3,7 @@
 //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/2403
 
 use ruma_common::{
-    OwnedRoomId, OwnedUserId, RoomVersionId,
+    RoomId, RoomVersionId, UserId,
     api::{Metadata, path_builder::SinglePath, request, response},
 };
 use serde_json::value::RawValue as RawJsonValue;
@@ -13,11 +13,11 @@ use serde_json::value::RawValue as RawJsonValue;
 pub struct Request {
     /// The room ID that should receive the knock.
     #[ruma_api(path)]
-    pub room_id: OwnedRoomId,
+    pub room_id: RoomId,
 
     /// The user ID the knock event will be for.
     #[ruma_api(path)]
-    pub user_id: OwnedUserId,
+    pub user_id: UserId,
 
     /// The room versions the sending has support for.
     ///
@@ -28,7 +28,7 @@ pub struct Request {
 
 impl Request {
     /// Creates a `Request` with the given room ID and user ID.
-    pub fn new(room_id: OwnedRoomId, user_id: OwnedUserId) -> Self {
+    pub fn new(room_id: RoomId, user_id: UserId) -> Self {
         Self { room_id, user_id, ver: vec![RoomVersionId::V1] }
     }
 }
