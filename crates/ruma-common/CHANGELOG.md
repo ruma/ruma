@@ -37,6 +37,11 @@ Breaking changes:
     `ServerName`, the `owned_server_name!` macro was removed and the `server_name_ref!` macro
     behind the `unstable-identifier-ref-macros` cargo feature allows to construct a
     `&'static ServerName`.
+  - `OwnedServerSigningKeyVersion` was renamed to `ServerSigningKeyVersion`. The
+    `server_signing_key_version!` macro now returns a `ServerSigningKeyVersion`, the
+    `owned_server_signing_key_version!` macro was removed and the `server_signing_key_version_ref!`
+    macro behind the `unstable-identifier-ref-macros` cargo feature allows to construct a
+    `&'static ServerSigningKeyVersion`.
 
 Improvements:
 
