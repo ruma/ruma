@@ -1067,7 +1067,7 @@ mod tests {
             btreemap! {
                 ServerSigningKeyId::from_parts(
                     SigningKeyAlgorithm::Ed25519,
-                    server_signing_key_version!("3")
+                    &server_signing_key_version!("3")
                 ) => "foobar".to_owned()
             }
         );
@@ -1138,7 +1138,7 @@ mod tests {
             btreemap! {
                 ServerSigningKeyId::from_parts(
                     SigningKeyAlgorithm::Ed25519,
-                    server_signing_key_version!("3")
+                    &server_signing_key_version!("3")
                 ) => "foobar".to_owned()
             }
         );

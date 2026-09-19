@@ -1,4 +1,4 @@
-use ruma_macros::IdDst;
+use ruma_macros::ruma_id;
 
 use super::{IdParseError, KeyName};
 
@@ -11,21 +11,13 @@ use super::{IdParseError, KeyName};
 /// relaxed to accept any string.
 ///
 /// [homeserver signing key]: https://spec.matrix.org/v1.19/server-server-api/#retrieving-server-keys
-#[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
 #[ruma_id(
     validate = ruma_identifiers_validation::server_signing_key_version::validate,
     smallvec_inline_bytes = 16,
 )]
-pub struct ServerSigningKeyVersion(str);
+pub struct ServerSigningKeyVersion;
 
 impl KeyName for ServerSigningKeyVersion {
-    fn validate(s: &str) -> Result<(), IdParseError> {
-        ruma_identifiers_validation::server_signing_key_version::validate(s)
-    }
-}
-
-impl KeyName for OwnedServerSigningKeyVersion {
     fn validate(s: &str) -> Result<(), IdParseError> {
         ruma_identifiers_validation::server_signing_key_version::validate(s)
     }

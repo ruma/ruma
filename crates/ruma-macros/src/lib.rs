@@ -564,7 +564,7 @@ pub fn server_signing_key_version(input: TokenStream) -> TokenStream {
     let id_ctor = parse_macro_input!(input as IdentifierConstructor);
     id_ctor
         .validate_and_expand_str_conversion(
-            "&ServerSigningKeyVersion",
+            "ServerSigningKeyVersion",
             server_signing_key_version::validate,
         )
         .into()

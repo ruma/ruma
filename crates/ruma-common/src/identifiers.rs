@@ -38,7 +38,7 @@ pub use self::{
     room_or_alias_id::RoomOrAliasId,
     room_version_id::RoomVersionId,
     server_name::ServerName,
-    server_signing_key_version::{OwnedServerSigningKeyVersion, ServerSigningKeyVersion},
+    server_signing_key_version::ServerSigningKeyVersion,
     session_id::{OwnedSessionId, SessionId},
     signatures::{
         CrossSigningOrDeviceSignatures, DeviceSignatures, EntitySignatures, ServerSignatures,
@@ -200,6 +200,10 @@ pub mod __private_macros {
 
         pub static SERVER_NAME_INTERNER: LazyLock<IdInterner<crate::ServerName>> =
             LazyLock::new(IdInterner::new);
+
+        pub static SERVER_SIGNING_KEY_VERSION_INTERNER: LazyLock<
+            IdInterner<crate::ServerSigningKeyVersion>,
+        > = LazyLock::new(IdInterner::new);
     }
 }
 
@@ -497,7 +501,7 @@ macro_rules! owned_server_name {
     };
 }
 
-/// Compile-time checked [`&'static ServerSigningKeyVersion`][ServerSigningKeyVersion] construction.
+/// Compile-time checked [`ServerSigningKeyVersion`] construction.
 #[macro_export]
 macro_rules! server_signing_key_version {
     ($s:literal) => {
@@ -507,26 +511,34 @@ macro_rules! server_signing_key_version {
 
 /// Compile-time checked [`&'static ServerSigningKeyVersion`][ServerSigningKeyVersion] construction.
 ///
-/// This is currently equivalent to [`server_signing_key_version!`]. However there is a plan to
-/// remove identifier DST types, so that other macro's return type will change while this macro is
-/// guaranteed to keep its return type. This macro allows to ease the transition for the expected
-/// change by allowing to migrate tests in advance.
+/// This macro is a helper to ease the transition after the change of [`ServerSigningKeyVersion`]
+/// from a dynamically sized type to an owned type. It has the side effect of interning and leaking
+/// the identifier.
 ///
-/// This is behind an unstable cargo feature because it is likely to be removed soon after the DST
-/// identifier type removal.
+/// This is behind an unstable cargo feature because it is likely to be removed in a future
+/// non-breaking release.
 #[cfg(feature = "unstable-identifier-ref-macros")]
 #[macro_export]
 macro_rules! server_signing_key_version_ref {
     ($s:literal) => {
-        $crate::server_signing_key_version!($s)
+        $crate::__private_macros::id_interner::SERVER_SIGNING_KEY_VERSION_INTERNER
+            .get_or_insert_with($s, || $crate::server_signing_key_version!($s))
     };
 }
 
-/// Compile-time checked [`OwnedServerSigningKeyVersion`] construction.
+/// Compile-time checked [`ServerSigningKeyVersion`] construction.
+///
+/// This is currently equivalent to [`server_signing_key_version!`]. This is kept for backwards
+/// compatibility to ease the transition after the change of [`ServerSigningKeyVersion`] from a
+/// dynamically sized type to an owned type.
+///
+/// This is behind an unstable cargo feature because it is likely to be removed in a future
+/// non-breaking release.
+#[cfg(feature = "unstable-identifier-owned-macros")]
 #[macro_export]
 macro_rules! owned_server_signing_key_version {
     ($s:literal) => {
-        $crate::server_signing_key_version!($s).to_owned()
+        $crate::server_signing_key_version!($s)
     };
 }
 
