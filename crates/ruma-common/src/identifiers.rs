@@ -134,6 +134,30 @@ where
     })
 }
 
+#[doc(hidden)]
+pub mod __private_macros {
+    pub use ruma_macros::{
+        base64_public_key, event_id, mxc_uri, room_alias_id, room_id, room_version_id, server_name,
+        server_signing_key_version, user_id,
+    };
+}
+
+/// Compile-time checked [`Base64PublicKey`] construction.
+#[macro_export]
+macro_rules! base64_public_key {
+    ($s:literal) => {
+        $crate::__private_macros::base64_public_key!($crate, $s)
+    };
+}
+
+/// Compile-time checked [`OwnedBase64PublicKey`] construction.
+#[macro_export]
+macro_rules! owned_base64_public_key {
+    ($s:literal) => {
+        $crate::base64_public_key!($s).to_owned()
+    };
+}
+
 /// Shorthand for `<&DeviceId>::from`.
 #[macro_export]
 macro_rules! device_id {
@@ -150,14 +174,6 @@ macro_rules! owned_device_id {
     };
 }
 
-#[doc(hidden)]
-pub mod __private_macros {
-    pub use ruma_macros::{
-        base64_public_key, event_id, mxc_uri, room_alias_id, room_id, room_version_id, server_name,
-        server_signing_key_version, user_id,
-    };
-}
-
 /// Compile-time checked [`EventId`] construction.
 #[macro_export]
 macro_rules! event_id {
@@ -171,6 +187,22 @@ macro_rules! event_id {
 macro_rules! owned_event_id {
     ($s:literal) => {
         $crate::event_id!($s).to_owned()
+    };
+}
+
+/// Compile-time checked [`MxcUri`] construction.
+#[macro_export]
+macro_rules! mxc_uri {
+    ($s:literal) => {
+        $crate::__private_macros::mxc_uri!($crate, $s)
+    };
+}
+
+/// Compile-time checked [`OwnedMxcUri`] construction.
+#[macro_export]
+macro_rules! owned_mxc_uri {
+    ($s:literal) => {
+        $crate::mxc_uri!($s).to_owned()
     };
 }
 
@@ -214,22 +246,6 @@ macro_rules! room_version_id {
     };
 }
 
-/// Compile-time checked [`ServerSigningKeyVersion`] construction.
-#[macro_export]
-macro_rules! server_signing_key_version {
-    ($s:literal) => {
-        $crate::__private_macros::server_signing_key_version!($crate, $s)
-    };
-}
-
-/// Compile-time checked [`OwnedServerSigningKeyVersion`] construction.
-#[macro_export]
-macro_rules! owned_server_signing_key_version {
-    ($s:literal) => {
-        $crate::server_signing_key_version!($s).to_owned()
-    };
-}
-
 /// Compile-time checked [`ServerName`] construction.
 #[macro_export]
 macro_rules! server_name {
@@ -243,6 +259,22 @@ macro_rules! server_name {
 macro_rules! owned_server_name {
     ($s:literal) => {
         $crate::server_name!($s).to_owned()
+    };
+}
+
+/// Compile-time checked [`ServerSigningKeyVersion`] construction.
+#[macro_export]
+macro_rules! server_signing_key_version {
+    ($s:literal) => {
+        $crate::__private_macros::server_signing_key_version!($crate, $s)
+    };
+}
+
+/// Compile-time checked [`OwnedServerSigningKeyVersion`] construction.
+#[macro_export]
+macro_rules! owned_server_signing_key_version {
+    ($s:literal) => {
+        $crate::server_signing_key_version!($s).to_owned()
     };
 }
 
@@ -267,22 +299,6 @@ macro_rules! owned_session_id {
     };
 }
 
-/// Compile-time checked [`MxcUri`] construction.
-#[macro_export]
-macro_rules! mxc_uri {
-    ($s:literal) => {
-        $crate::__private_macros::mxc_uri!($crate, $s)
-    };
-}
-
-/// Compile-time checked [`OwnedMxcUri`] construction.
-#[macro_export]
-macro_rules! owned_mxc_uri {
-    ($s:literal) => {
-        $crate::mxc_uri!($s).to_owned()
-    };
-}
-
 /// Compile-time checked [`UserId`] construction.
 #[macro_export]
 macro_rules! user_id {
@@ -296,21 +312,5 @@ macro_rules! user_id {
 macro_rules! owned_user_id {
     ($s:literal) => {
         $crate::user_id!($s).to_owned()
-    };
-}
-
-/// Compile-time checked [`Base64PublicKey`] construction.
-#[macro_export]
-macro_rules! base64_public_key {
-    ($s:literal) => {
-        $crate::__private_macros::base64_public_key!($crate, $s)
-    };
-}
-
-/// Compile-time checked [`OwnedBase64PublicKey`] construction.
-#[macro_export]
-macro_rules! owned_base64_public_key {
-    ($s:literal) => {
-        $crate::base64_public_key!($s).to_owned()
     };
 }
