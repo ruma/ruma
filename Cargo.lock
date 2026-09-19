@@ -1992,6 +1992,7 @@ dependencies = [
  "ruma-signatures",
  "serde",
  "serde_json",
+ "strass",
  "thiserror",
  "tracing",
 ]

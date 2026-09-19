@@ -71,6 +71,7 @@ mod tests {
     use ruma_common::{serde::Raw, user_id};
     use ruma_events::{AnyStrippedStateEvent, room::member::MembershipState};
     use serde_json::{from_value as from_json_value, json};
+    use strass::assert_let;
 
     use super::RawStrippedState;
 
@@ -89,13 +90,13 @@ mod tests {
             "state_key": user_id,
             "type": "m.room.member",
         });
-        assert_matches!(
-            from_json_value::<RawStrippedState>(stripped_event_json).unwrap(),
-            RawStrippedState::Stripped(raw_stripped_event)
+        assert_let!(
+            RawStrippedState::Stripped(raw_stripped_event) =
+                from_json_value::<RawStrippedState>(stripped_event_json).unwrap()
         );
-        assert_matches!(
-            raw_stripped_event.deserialize().unwrap(),
-            AnyStrippedStateEvent::RoomMember(stripped_member_event)
+        assert_let!(
+            AnyStrippedStateEvent::RoomMember(stripped_member_event) =
+                raw_stripped_event.deserialize().unwrap()
         );
         assert_eq!(stripped_member_event.sender, user_id);
         assert_eq!(stripped_member_event.state_key, user_id);
@@ -131,7 +132,7 @@ mod tests {
         });
         assert_matches!(
             from_json_value::<RawStrippedState>(pdu_event_json).unwrap(),
-            RawStrippedState::Pdu(_pdu_member_event)
+            RawStrippedState::Pdu(_)
         );
     }
 
