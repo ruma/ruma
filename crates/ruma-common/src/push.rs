@@ -1687,9 +1687,9 @@ mod tests {
         set.content.insert(content);
 
         let test_set = set.clone();
-        assert_matches!(
-            test_set.get_actions(&message, &CONTEXT_ONE_TO_ONE).await,
-            [Action::SetTweak(Tweak::Sound(sound))]
+        assert_let!(
+            [Action::SetTweak(Tweak::Sound(sound))] =
+                test_set.get_actions(&message, &CONTEXT_ONE_TO_ONE).await
         );
         assert_eq!(sound.as_str(), "content");
 
@@ -1712,9 +1712,9 @@ mod tests {
         };
         set.override_.insert(three_conditions);
 
-        assert_matches!(
-            set.get_actions(&message, &CONTEXT_ONE_TO_ONE).await,
-            [Action::SetTweak(Tweak::Sound(sound))]
+        assert_let!(
+            [Action::SetTweak(Tweak::Sound(sound))] =
+                set.get_actions(&message, &CONTEXT_ONE_TO_ONE).await
         );
         assert_eq!(sound.as_str(), "content");
 
@@ -1730,9 +1730,9 @@ mod tests {
         )
         .unwrap();
 
-        assert_matches!(
-            set.get_actions(&new_message, &CONTEXT_ONE_TO_ONE).await,
-            [Action::SetTweak(Tweak::Sound(sound))]
+        assert_let!(
+            [Action::SetTweak(Tweak::Sound(sound))] =
+                set.get_actions(&new_message, &CONTEXT_ONE_TO_ONE).await
         );
         assert_eq!(sound.as_str(), "three");
     }

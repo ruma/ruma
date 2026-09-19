@@ -887,6 +887,7 @@ mod tests {
     use macro_rules_attribute::apply;
     use serde_json::{Value as JsonValue, from_value as from_json_value, json};
     use smol_macros::test;
+    use strass::assert_let;
 
     use super::{
         EventMatchConditionData, EventPropertyContainsConditionData, EventPropertyIsConditionData,
@@ -957,9 +958,9 @@ mod tests {
             "kind": "event_match",
             "pattern": "m.notice"
         });
-        assert_matches!(
-            from_json_value::<PushCondition>(json_data).unwrap(),
-            PushCondition::EventMatch(condition)
+        assert_let!(
+            PushCondition::EventMatch(condition) =
+                from_json_value::<PushCondition>(json_data).unwrap()
         );
         assert_eq!(condition.key, "content.msgtype");
         assert_eq!(condition.pattern, "m.notice");
@@ -980,9 +981,9 @@ mod tests {
             "is": "2",
             "kind": "room_member_count"
         });
-        assert_matches!(
-            from_json_value::<PushCondition>(json_data).unwrap(),
-            PushCondition::RoomMemberCount(condition)
+        assert_let!(
+            PushCondition::RoomMemberCount(condition) =
+                from_json_value::<PushCondition>(json_data).unwrap()
         );
         assert_eq!(condition.is, RoomMemberCountIs::from(uint!(2)));
     }
@@ -993,9 +994,9 @@ mod tests {
             "key": "room",
             "kind": "sender_notification_permission"
         });
-        assert_matches!(
-            from_json_value::<PushCondition>(json_data).unwrap(),
-            PushCondition::SenderNotificationPermission(condition)
+        assert_let!(
+            PushCondition::SenderNotificationPermission(condition) =
+                from_json_value::<PushCondition>(json_data).unwrap()
         );
         assert_eq!(condition.key, NotificationPowerLevelsKey::Room);
     }
@@ -1482,7 +1483,7 @@ mod tests {
         assert_eq!(condition.kind(), "local_dev_custom");
         let data = condition.data();
         assert_eq!(data.len(), 1);
-        assert_matches!(data.get("foo"), Some(JsonValue::String(foo)));
+        assert_let!(Some(JsonValue::String(foo)) = data.get("foo"));
         assert_eq!(foo, "bar");
 
         assert_to_canonical_json_eq!(condition, json);
