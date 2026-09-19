@@ -4,8 +4,7 @@
 
 Breaking changes:
 
-- The following dynamically sized identifier types were removed and replaced by their `Owned*`
-  variant:
+- The dynamically sized identifier types were removed and replaced by their `Owned*` variant:
   - `OwnedBase64PublicKey` was renamed to `Base64PublicKey`. The `base64_public_key!` macro now
     returns a `Base64PublicKey`, the `owned_base64_public_key!` macro is behind the
     `unstable-identifier-owned-macros` cargo feature and returns the same type. The
@@ -60,6 +59,7 @@ Breaking changes:
     `owned_user_id!` macro is behind the `unstable-identifier-owned-macros` cargo feature and
     returns the same type. The `user_id_ref!` macro behind the `unstable-identifier-ref-macros`
     cargo feature still allows to construct a `&'static UserId`.
+  - `OwnedVoipId` was renamed to `VoipId`.
 
 Improvements:
 
