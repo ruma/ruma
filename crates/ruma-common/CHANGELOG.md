@@ -56,6 +56,10 @@ Breaking changes:
     cargo feature still allows to construct a `&'static SessionId`.
   - `OwnedSpaceChildOrder` was renamed to `SpaceChildOrder`.
   - `OwnedTransactionId` was renamed to `TransactionId`.
+  - `OwnedUserId` was renamed to `UserId`. The `user_id!` macro now returns a `UserId`, the
+    `owned_user_id!` macro is behind the `unstable-identifier-owned-macros` cargo feature and
+    returns the same type. The `user_id_ref!` macro behind the `unstable-identifier-ref-macros`
+    cargo feature still allows to construct a `&'static UserId`.
 
 Improvements:
 

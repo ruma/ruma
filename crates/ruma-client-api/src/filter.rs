@@ -7,7 +7,7 @@ mod lazy_load;
 mod url;
 
 use js_int::UInt;
-use ruma_common::{OwnedUserId, RoomId, serde::StringEnum};
+use ruma_common::{RoomId, UserId, serde::StringEnum};
 use serde::{Deserialize, Serialize};
 
 pub use self::{lazy_load::LazyLoadOptions, url::UrlFilter};
@@ -64,13 +64,13 @@ pub struct RoomEventFilter {
     /// If this list is absent then no senders are excluded. A matching sender will be excluded
     /// even if it is listed in the 'senders' filter.
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-    pub not_senders: Vec<OwnedUserId>,
+    pub not_senders: Vec<UserId>,
 
     /// A list of senders IDs to include.
     ///
     /// If this list is absent then all senders are included.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub senders: Option<Vec<OwnedUserId>>,
+    pub senders: Option<Vec<UserId>>,
 
     /// A list of event types to include.
     ///
@@ -254,7 +254,7 @@ pub struct Filter {
     ///
     /// If this list is absent then all senders are included.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub senders: Option<Vec<OwnedUserId>>,
+    pub senders: Option<Vec<UserId>>,
 
     /// A list of event types to include.
     ///
@@ -268,7 +268,7 @@ pub struct Filter {
     /// If this list is absent then no senders are excluded. A matching sender will be excluded
     /// even if it is listed in the 'senders' filter.
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-    pub not_senders: Vec<OwnedUserId>,
+    pub not_senders: Vec<UserId>,
 }
 
 impl Filter {

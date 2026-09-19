@@ -17,7 +17,7 @@ pub mod v3 {
     use as_variant::as_variant;
     use js_int::{UInt, uint};
     use ruma_common::{
-        EventId, MxcUri, OwnedUserId, RoomId,
+        EventId, MxcUri, RoomId, UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::{Raw, StringEnum},
@@ -211,7 +211,7 @@ pub mod v3 {
 
         /// The historic profile information of the users that sent the events returned.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub profile_info: BTreeMap<OwnedUserId, UserProfile>,
+        pub profile_info: BTreeMap<UserId, UserProfile>,
 
         /// Pagination token for the start of the chunk.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -460,7 +460,7 @@ pub mod v3 {
         RoomId(BTreeMap<RoomId, ResultGroup>),
 
         /// Results grouped by sender.
-        Sender(BTreeMap<OwnedUserId, ResultGroup>),
+        Sender(BTreeMap<UserId, ResultGroup>),
 
         #[doc(hidden)]
         _Custom(CustomResultGroupMap),

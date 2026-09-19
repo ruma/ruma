@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use js_int::Int;
 use ruma_common::{
-    EventId, MilliSecondsSinceUnixEpoch, OwnedUserId, TransactionId, UserId,
+    EventId, MilliSecondsSinceUnixEpoch, TransactionId, UserId,
     serde::{CanBeEmpty, Raw},
 };
 use serde::{Deserialize, de::DeserializeOwned};
@@ -252,7 +252,7 @@ pub struct UnsignedRoomRedactionEvent {
     pub event_id: EventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: OwnedUserId,
+    pub sender: UserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -273,7 +273,7 @@ pub struct CustomRedactionEvent {
     event_id: EventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    sender: OwnedUserId,
+    sender: UserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     origin_server_ts: MilliSecondsSinceUnixEpoch,

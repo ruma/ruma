@@ -1,7 +1,7 @@
 use std::collections::BTreeSet;
 
 use js_int::uint;
-use ruma_common::{EventId, MilliSecondsSinceUnixEpoch, OwnedUserId, RoomId, UserId};
+use ruma_common::{EventId, MilliSecondsSinceUnixEpoch, RoomId, UserId};
 use ruma_events::TimelineEventType;
 use serde::{Deserialize, Serialize};
 use serde_json::value::{RawValue as RawJsonValue, to_raw_value as to_raw_json_value};
@@ -18,7 +18,7 @@ pub struct Pdu {
     pub room_id: Option<RoomId>,
 
     /// The ID of the user who sent the event.
-    pub sender: OwnedUserId,
+    pub sender: UserId,
 
     /// The timestamp on the originating homeserver when this event was created.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -56,7 +56,7 @@ impl Pdu {
     /// Panics if the content fails to serialize.
     pub fn with_minimal_fields<T>(
         event_id: EventId,
-        sender: OwnedUserId,
+        sender: UserId,
         event_type: TimelineEventType,
         content: T,
     ) -> Self
@@ -88,7 +88,7 @@ impl Pdu {
     /// Panics if the content fails to serialize.
     pub fn with_minimal_state_fields<T>(
         event_id: EventId,
-        sender: OwnedUserId,
+        sender: UserId,
         event_type: TimelineEventType,
         state_key: String,
         content: T,

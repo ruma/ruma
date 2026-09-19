@@ -6,7 +6,7 @@
 
 use std::collections::BTreeMap;
 
-use ruma_common::{OwnedUserId, RoomId, ServerName};
+use ruma_common::{RoomId, ServerName, UserId};
 use ruma_macros::{EventContent, StringEnum};
 use serde::{Deserialize, Serialize};
 
@@ -66,7 +66,7 @@ pub struct PresenceSharingEventContent {
 
     /// Configuration for sharing presence with users.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub users: BTreeMap<OwnedUserId, UserPresenceSharingState>,
+    pub users: BTreeMap<UserId, UserPresenceSharingState>,
 
     /// Configuration for sharing presence with rooms.
     ///
@@ -83,7 +83,7 @@ impl PresenceSharingEventContent {
     /// Creates a new `PresenceSharingEventContent` with the given parameters.
     pub fn new(
         share_locally: bool,
-        users: BTreeMap<OwnedUserId, UserPresenceSharingState>,
+        users: BTreeMap<UserId, UserPresenceSharingState>,
         rooms: BTreeMap<RoomId, RoomPresenceSharingState>,
         servers: BTreeMap<ServerName, ServerPresenceSharingState>,
     ) -> Self {
@@ -93,9 +93,7 @@ impl PresenceSharingEventContent {
 
 #[cfg(test)]
 mod tests {
-    use ruma_common::{
-        canonical_json::assert_to_canonical_json_eq, owned_user_id, room_id, server_name,
-    };
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, room_id, server_name, user_id};
     use serde_json::{from_value as from_json_value, json};
 
     use crate::presence::sharing::{
@@ -108,8 +106,8 @@ mod tests {
         let content = PresenceSharingEventContent {
             share_locally: true,
             users: [
-                (owned_user_id!("@alice:example.com"), UserPresenceSharingState::Allow),
-                (owned_user_id!("@mallory:example.com"), UserPresenceSharingState::Deny),
+                (user_id!("@alice:example.com"), UserPresenceSharingState::Allow),
+                (user_id!("@mallory:example.com"), UserPresenceSharingState::Deny),
             ]
             .into(),
             rooms: [(room_id!("!family-group-chat"), RoomPresenceSharingState::Allow)].into(),

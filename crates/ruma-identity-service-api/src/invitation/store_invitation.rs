@@ -8,7 +8,7 @@ pub mod v2 {
     //! [spec]: https://spec.matrix.org/v1.19/identity-service-api/#post_matrixidentityv2store-invite
 
     use ruma_common::{
-        MxcUri, OwnedUserId, RoomAliasId, RoomId,
+        MxcUri, RoomAliasId, RoomId, UserId,
         api::{request, response},
         metadata,
         room::RoomType,
@@ -44,7 +44,7 @@ pub mod v2 {
         pub room_id: RoomId,
 
         /// The Matrix user ID of the inviting user.
-        pub sender: OwnedUserId,
+        pub sender: UserId,
 
         /// The Matrix room alias for the room to which the user is invited.
         ///
@@ -105,7 +105,7 @@ pub mod v2 {
 
     impl Request {
         /// Creates a new `Request with the given medium, email address, room ID and sender.
-        pub fn new(medium: Medium, address: String, room_id: RoomId, sender: OwnedUserId) -> Self {
+        pub fn new(medium: Medium, address: String, room_id: RoomId, sender: UserId) -> Self {
             Self {
                 medium,
                 address,
@@ -122,7 +122,7 @@ pub mod v2 {
         }
 
         /// Creates a new `Request` with the given email address, room ID and sender.
-        pub fn email(address: String, room_id: RoomId, sender: OwnedUserId) -> Self {
+        pub fn email(address: String, room_id: RoomId, sender: UserId) -> Self {
             Self::new(Medium::Email, address, room_id, sender)
         }
     }

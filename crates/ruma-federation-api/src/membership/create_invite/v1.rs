@@ -3,7 +3,7 @@
 //! [spec]: https://spec.matrix.org/v1.19/server-server-api/#put_matrixfederationv1inviteroomideventid
 
 use ruma_common::{
-    EventId, MilliSecondsSinceUnixEpoch, OwnedUserId, RoomId, ServerName,
+    EventId, MilliSecondsSinceUnixEpoch, RoomId, ServerName, UserId,
     api::{request, response},
     metadata,
 };
@@ -32,7 +32,7 @@ pub struct Request {
     pub event_id: EventId,
 
     /// The matrix ID of the user who sent the original `m.room.third_party_invite`.
-    pub sender: OwnedUserId,
+    pub sender: UserId,
 
     /// The name of the inviting homeserver.
     pub origin: ServerName,
@@ -45,7 +45,7 @@ pub struct Request {
     pub kind: StateEventType,
 
     /// The user ID of the invited member.
-    pub state_key: OwnedUserId,
+    pub state_key: UserId,
 
     /// The content of the event.
     pub content: RoomMemberEventContent,
@@ -98,7 +98,7 @@ pub struct RequestInit {
     pub event_id: EventId,
 
     /// The matrix ID of the user who sent the original `m.room.third_party_invite`.
-    pub sender: OwnedUserId,
+    pub sender: UserId,
 
     /// The name of the inviting homeserver.
     pub origin: ServerName,
@@ -107,7 +107,7 @@ pub struct RequestInit {
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
 
     /// The user ID of the invited member.
-    pub state_key: OwnedUserId,
+    pub state_key: UserId,
 
     /// The content of the event.
     pub content: RoomMemberEventContent,

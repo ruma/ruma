@@ -1,8 +1,7 @@
 use js_int::uint;
 use maplit::btreemap;
 use ruma_common::{
-    MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, event_id,
-    owned_user_id, user_id,
+    MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, event_id, user_id,
 };
 use ruma_events::{
     AnySyncEphemeralRoomEvent,
@@ -14,7 +13,7 @@ use strass::assert_let;
 
 #[test]
 fn ephemeral_serialize_typing() {
-    let content = TypingEventContent::new(vec![owned_user_id!("@carl:example.com")]);
+    let content = TypingEventContent::new(vec![user_id!("@carl:example.com")]);
 
     assert_to_canonical_json_eq!(
         content,
@@ -44,7 +43,7 @@ fn deserialize_ephemeral_typing() {
 #[test]
 fn ephemeral_serialize_receipt() {
     let event_id = event_id!("$h29iv0s8:example.com");
-    let user_id = owned_user_id!("@carl:example.com");
+    let user_id = user_id!("@carl:example.com");
 
     let content = ReceiptEventContent(btreemap! {
         event_id => btreemap! {
@@ -90,6 +89,6 @@ fn deserialize_ephemeral_receipt() {
     assert_eq!(receipts.len(), 1);
     let event_receipts = receipts.get(&event_id).unwrap();
     let type_receipts = event_receipts.get(&ReceiptType::Read).unwrap();
-    let user_receipt = type_receipts.get(user_id).unwrap();
+    let user_receipt = type_receipts.get(&user_id).unwrap();
     assert_eq!(user_receipt.ts, Some(MilliSecondsSinceUnixEpoch(uint!(1))));
 }

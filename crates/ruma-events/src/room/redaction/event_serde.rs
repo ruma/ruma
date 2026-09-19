@@ -1,5 +1,5 @@
 use ruma_common::{
-    EventId, MilliSecondsSinceUnixEpoch, OwnedUserId, RoomId, serde::from_raw_json_value,
+    EventId, MilliSecondsSinceUnixEpoch, RoomId, UserId, serde::from_raw_json_value,
 };
 use serde::{Deserialize, Deserializer, de};
 use serde_json::value::RawValue as RawJsonValue;
@@ -47,7 +47,7 @@ struct OriginalRoomRedactionEventDeHelper {
     content: RoomRedactionEventContent,
     redacts: Option<EventId>,
     event_id: EventId,
-    sender: OwnedUserId,
+    sender: UserId,
     origin_server_ts: MilliSecondsSinceUnixEpoch,
     room_id: Option<RoomId>,
     #[serde(default)]

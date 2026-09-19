@@ -5,7 +5,7 @@
 use std::{cmp::Ordering, ops::Deref};
 
 use ruma_common::{
-    MilliSecondsSinceUnixEpoch, OwnedUserId, RoomId, ServerName, SpaceChildOrder,
+    MilliSecondsSinceUnixEpoch, RoomId, ServerName, SpaceChildOrder, UserId,
     serde::{JsonCastable, JsonObject},
 };
 use ruma_macros::{Event, EventContent};
@@ -86,7 +86,7 @@ pub struct HierarchySpaceChildEvent {
     pub content: SpaceChildEventContent,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: OwnedUserId,
+    pub sender: UserId,
 
     /// The room ID of the child.
     pub state_key: RoomId,
@@ -304,7 +304,7 @@ mod tests {
     use js_int::{UInt, uint};
     use ruma_common::{
         MilliSecondsSinceUnixEpoch, RoomId, SpaceChildOrder,
-        canonical_json::assert_to_canonical_json_eq, owned_user_id, room_id, server_name,
+        canonical_json::assert_to_canonical_json_eq, room_id, server_name, user_id,
     };
     use serde_json::{from_value as from_json_value, json};
 
@@ -426,7 +426,7 @@ mod tests {
 
         HierarchySpaceChildEvent {
             content,
-            sender: owned_user_id!("@alice:example.org"),
+            sender: user_id!("@alice:example.org"),
             state_key,
             origin_server_ts: MilliSecondsSinceUnixEpoch(origin_server_ts),
         }

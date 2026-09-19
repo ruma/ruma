@@ -1,10 +1,10 @@
 use js_int::{UInt, uint};
 use ruma_common::{
-    EventId, MilliSecondsSinceUnixEpoch, OwnedUserId, RoomId, RoomVersionId, event_id,
-    owned_user_id,
+    EventId, MilliSecondsSinceUnixEpoch, RoomId, RoomVersionId, UserId, event_id,
     room::JoinRule,
     room_version_rules::{AuthorizationRules, RoomVersionRules},
     serde::JsonObject,
+    user_id,
 };
 use ruma_events::{StateEventType, TimelineEventType};
 use serde_json::{json, to_value as to_json_value};
@@ -239,7 +239,7 @@ impl RoomTimelineFactory {
     pub fn create_room_member(
         &mut self,
         event_id: EventId,
-        target: OwnedUserId,
+        target: UserId,
         content: RoomMemberPduContent,
     ) -> Pdu {
         let (sender, content) = content.into_parts(&target);
@@ -265,7 +265,7 @@ impl RoomTimelineFactory {
     pub fn add_room_member(
         &mut self,
         event_id: EventId,
-        target: OwnedUserId,
+        target: UserId,
         content: RoomMemberPduContent,
     ) -> &mut Pdu {
         let pdu = self.create_room_member(event_id, target, content);
@@ -278,7 +278,7 @@ impl RoomTimelineFactory {
     pub fn create_room_power_levels(
         &mut self,
         event_id: EventId,
-        sender: OwnedUserId,
+        sender: UserId,
         content: RoomPowerLevelsPduContent,
     ) -> Pdu {
         let mut pdu = Pdu::with_minimal_state_fields(
@@ -299,7 +299,7 @@ impl RoomTimelineFactory {
     pub fn add_room_power_levels(
         &mut self,
         event_id: EventId,
-        sender: OwnedUserId,
+        sender: UserId,
         content: RoomPowerLevelsPduContent,
     ) -> &mut Pdu {
         let pdu = self.create_room_power_levels(event_id, sender, content);
@@ -312,7 +312,7 @@ impl RoomTimelineFactory {
     pub fn create_room_join_rules(
         &mut self,
         event_id: EventId,
-        sender: OwnedUserId,
+        sender: UserId,
         join_rule: JoinRule,
     ) -> Pdu {
         let mut pdu = Pdu::with_minimal_state_fields(
@@ -333,7 +333,7 @@ impl RoomTimelineFactory {
     pub fn add_room_join_rules(
         &mut self,
         event_id: EventId,
-        sender: OwnedUserId,
+        sender: UserId,
         join_rule: JoinRule,
     ) -> &mut Pdu {
         let pdu = self.create_room_join_rules(event_id, sender, join_rule);
@@ -346,7 +346,7 @@ impl RoomTimelineFactory {
     pub fn create_room_redaction(
         &mut self,
         event_id: EventId,
-        sender: OwnedUserId,
+        sender: UserId,
         redacts: EventId,
     ) -> Pdu {
         let mut content = JsonObject::new();
@@ -369,7 +369,7 @@ impl RoomTimelineFactory {
     pub fn add_room_redaction(
         &mut self,
         event_id: EventId,
-        sender: OwnedUserId,
+        sender: UserId,
         redacts: EventId,
     ) -> &mut Pdu {
         let pdu = self.create_room_redaction(event_id, sender, redacts);
@@ -382,7 +382,7 @@ impl RoomTimelineFactory {
     pub fn create_text_message(
         &mut self,
         event_id: EventId,
-        sender: OwnedUserId,
+        sender: UserId,
         text: impl Into<String>,
     ) -> Pdu {
         let mut pdu = Pdu::with_minimal_fields(
@@ -604,12 +604,12 @@ pub enum UserFactory {
 
 impl UserFactory {
     /// Get the ID of this user.
-    pub fn user_id(self) -> OwnedUserId {
+    pub fn user_id(self) -> UserId {
         match self {
-            Self::Alice => owned_user_id!("@alice:matrix.local"),
-            Self::Bob => owned_user_id!("@bob:matrix.local"),
-            Self::Charlie => owned_user_id!("@charlie:matrix.local"),
-            Self::Zara => owned_user_id!("@zara:other.local"),
+            Self::Alice => user_id!("@alice:matrix.local"),
+            Self::Bob => user_id!("@bob:matrix.local"),
+            Self::Charlie => user_id!("@charlie:matrix.local"),
+            Self::Zara => user_id!("@zara:other.local"),
         }
     }
 }
@@ -626,7 +626,7 @@ pub struct RoomCreatePduBuilder {
     rules: RoomVersionRules,
 
     /// The value of the `additional_creators` field in the content.
-    additional_creators: Vec<OwnedUserId>,
+    additional_creators: Vec<UserId>,
 }
 
 impl RoomCreatePduBuilder {
@@ -649,7 +649,7 @@ impl RoomCreatePduBuilder {
     /// The field is only set if the list is not empty.
     ///
     /// Defaults to an empty list.
-    pub fn additional_creators(mut self, additional_creators: Vec<OwnedUserId>) -> Self {
+    pub fn additional_creators(mut self, additional_creators: Vec<UserId>) -> Self {
         self.additional_creators = additional_creators;
         self
     }
@@ -723,7 +723,7 @@ pub enum RoomMemberPduContent {
     /// room.
     JoinAuthorized {
         /// A member of the room that can invite the target user.
-        via_users_server: OwnedUserId,
+        via_users_server: UserId,
     },
 
     /// The target user updates their display name.
@@ -735,13 +735,13 @@ pub enum RoomMemberPduContent {
     /// The target user is banned from the room.
     Ban {
         /// The user that banned the target user.
-        sender: OwnedUserId,
+        sender: UserId,
     },
 
     /// The target user is invited to the room.
     Invite {
         /// The user that invited the target user.
-        sender: OwnedUserId,
+        sender: UserId,
     },
 
     /// The target user knocked on the room.
@@ -753,13 +753,13 @@ pub enum RoomMemberPduContent {
     /// The target user was kicked from the room.
     Kick {
         /// The user that kicked the target user.
-        sender: OwnedUserId,
+        sender: UserId,
     },
 }
 
 impl RoomMemberPduContent {
     /// Get the sender and content for this membership.
-    pub fn into_parts(self, target: &OwnedUserId) -> (OwnedUserId, JsonObject) {
+    pub fn into_parts(self, target: &UserId) -> (UserId, JsonObject) {
         let mut content = JsonObject::new();
 
         let (sender, membership) = match self {
@@ -815,7 +815,7 @@ pub enum RoomPowerLevelsPduContent {
     /// The power level of the given user is changed to the given value.
     User {
         /// The user.
-        user_id: OwnedUserId,
+        user_id: UserId,
 
         /// The new power level.
         value: i32,

@@ -5,7 +5,7 @@
 use as_variant::as_variant;
 use js_int::Int;
 use ruma_common::{
-    EventId, MilliSecondsSinceUnixEpoch, OwnedUserId, RoomId, TransactionId, UserId,
+    EventId, MilliSecondsSinceUnixEpoch, RoomId, TransactionId, UserId,
     canonical_json::RedactionEvent,
     room_version_rules::RedactionRules,
     serde::{CanBeEmpty, JsonCastable, JsonObject},
@@ -65,7 +65,7 @@ pub struct OriginalRoomRedactionEvent {
     pub event_id: EventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: OwnedUserId,
+    pub sender: UserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -112,7 +112,7 @@ pub struct RedactedRoomRedactionEvent {
     pub event_id: EventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: OwnedUserId,
+    pub sender: UserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -148,7 +148,7 @@ pub struct OriginalSyncRoomRedactionEvent {
     pub event_id: EventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: OwnedUserId,
+    pub sender: UserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -193,7 +193,7 @@ pub struct RedactedSyncRoomRedactionEvent {
     pub event_id: EventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: OwnedUserId,
+    pub sender: UserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,

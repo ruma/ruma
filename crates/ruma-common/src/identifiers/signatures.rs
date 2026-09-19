@@ -6,8 +6,8 @@ use std::{
 use serde::{Deserialize, Serialize};
 
 use super::{
-    Base64PublicKeyOrDeviceId, DeviceId, KeyName, OwnedUserId, ServerName, ServerSigningKeyVersion,
-    SigningKeyId,
+    Base64PublicKeyOrDeviceId, DeviceId, KeyName, ServerName, ServerSigningKeyVersion,
+    SigningKeyId, UserId,
 };
 
 /// Map of key identifier to signature values.
@@ -61,10 +61,10 @@ impl<E: Ord, K: KeyName + ?Sized> Signatures<E, K> {
 pub type ServerSignatures = Signatures<ServerName, ServerSigningKeyVersion>;
 
 /// Map of device signatures, grouped by user.
-pub type DeviceSignatures = Signatures<OwnedUserId, DeviceId>;
+pub type DeviceSignatures = Signatures<UserId, DeviceId>;
 
 /// Map of cross-signing or device signatures, grouped by user.
-pub type CrossSigningOrDeviceSignatures = Signatures<OwnedUserId, Base64PublicKeyOrDeviceId>;
+pub type CrossSigningOrDeviceSignatures = Signatures<UserId, Base64PublicKeyOrDeviceId>;
 
 impl<E, K> Clone for Signatures<E, K>
 where

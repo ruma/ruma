@@ -6,7 +6,7 @@ use js_int::Int;
 #[cfg(feature = "unstable-msc4293")]
 use ruma_common::canonical_json::RedactionEvent;
 use ruma_common::{
-    MxcUri, OwnedUserId, ServerSignatures, TransactionId, UserId,
+    MxcUri, ServerSignatures, TransactionId, UserId,
     room_version_rules::RedactionRules,
     serde::{CanBeEmpty, Raw, StringEnum},
 };
@@ -48,7 +48,7 @@ pub use self::change::{Change, MembershipChange, MembershipDetails};
 #[ruma_event(
     type = "m.room.member",
     kind = State,
-    state_key_type = OwnedUserId,
+    state_key_type = UserId,
     unsigned_type = RoomMemberUnsigned,
     custom_redacted,
     custom_possibly_redacted,
@@ -108,7 +108,7 @@ pub struct RoomMemberEventContent {
     /// Arbitrarily chosen `UserId` (MxID) of a local user who can send an invite.
     #[serde(rename = "join_authorised_via_users_server")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub join_authorized_via_users_server: Option<OwnedUserId>,
+    pub join_authorized_via_users_server: Option<UserId>,
 
     /// Flag indicating all of this user's events should be redacted.
     #[cfg(feature = "unstable-msc4293")]
@@ -245,7 +245,7 @@ pub struct PossiblyRedactedRoomMemberEventContent {
     /// Arbitrarily chosen `UserId` (MxID) of a local user who can send an invite.
     #[serde(rename = "join_authorised_via_users_server")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub join_authorized_via_users_server: Option<OwnedUserId>,
+    pub join_authorized_via_users_server: Option<UserId>,
 
     /// Flag indicating all of this user's events should be redacted.
     ///
@@ -313,7 +313,7 @@ impl PossiblyRedactedRoomMemberEventContent {
 }
 
 impl PossiblyRedactedStateEventContent for PossiblyRedactedRoomMemberEventContent {
-    type StateKey = OwnedUserId;
+    type StateKey = UserId;
 
     fn event_type(&self) -> StateEventType {
         StateEventType::RoomMember
@@ -420,7 +420,7 @@ pub struct RedactedRoomMemberEventContent {
     /// This is redacted in room versions 8 and below. It is used for validating
     /// joins when the join rule is restricted.
     #[serde(rename = "join_authorised_via_users_server", skip_serializing_if = "Option::is_none")]
-    pub join_authorized_via_users_server: Option<OwnedUserId>,
+    pub join_authorized_via_users_server: Option<UserId>,
 }
 
 impl RedactedRoomMemberEventContent {
@@ -462,7 +462,7 @@ impl RedactedRoomMemberEventContent {
 }
 
 impl RedactedStateEventContent for RedactedRoomMemberEventContent {
-    type StateKey = OwnedUserId;
+    type StateKey = UserId;
 
     fn event_type(&self) -> StateEventType {
         StateEventType::RoomMember
@@ -639,7 +639,7 @@ pub struct SignedContent {
     /// The invited Matrix user ID.
     ///
     /// Must be equal to the user_id property of the event.
-    pub mxid: OwnedUserId,
+    pub mxid: UserId,
 
     /// A single signature from the verifying server, in the format specified by the Signing Events
     /// section of the server-server API.
@@ -651,7 +651,7 @@ pub struct SignedContent {
 
 impl SignedContent {
     /// Creates a new `SignedContent` with the given mxid, signature and token.
-    pub fn new(signatures: ServerSignatures, mxid: OwnedUserId, token: String) -> Self {
+    pub fn new(signatures: ServerSignatures, mxid: UserId, token: String) -> Self {
         Self { mxid, signatures, token }
     }
 }

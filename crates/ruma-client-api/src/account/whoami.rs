@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.19/client-server-api/#get_matrixclientv3accountwhoami
 
     use ruma_common::{
-        DeviceId, OwnedUserId,
+        DeviceId, UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -32,7 +32,7 @@ pub mod v3 {
     #[response]
     pub struct Response {
         /// The id of the user that owns the access token.
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// The device ID associated with the access token, if any.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -52,7 +52,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given user ID.
-        pub fn new(user_id: OwnedUserId, is_guest: bool) -> Self {
+        pub fn new(user_id: UserId, is_guest: bool) -> Self {
             Self { user_id, device_id: None, is_guest }
         }
     }

@@ -15,16 +15,16 @@ pub mod v1 {
     use js_int::UInt;
     #[cfg(feature = "unstable-msc3202")]
     use ruma_common::OneTimeKeyAlgorithm;
+    #[cfg(feature = "unstable-msc4203")]
+    use ruma_common::serde::JsonCastable;
     #[cfg(any(feature = "unstable-msc3202", feature = "unstable-msc4203"))]
-    use ruma_common::{DeviceId, OwnedUserId};
+    use ruma_common::{DeviceId, UserId};
     use ruma_common::{
         TransactionId,
         api::{request, response},
         metadata,
         serde::{JsonObject, Raw, from_raw_json_value},
     };
-    #[cfg(feature = "unstable-msc4203")]
-    use ruma_common::{UserId, serde::JsonCastable};
     use ruma_events::{
         AnyTimelineEvent, presence::PresenceEvent, receipt::ReceiptEvent, typing::TypingEvent,
     };
@@ -72,7 +72,7 @@ pub mod v1 {
             rename = "org.matrix.msc3202.device_one_time_keys_count"
         )]
         pub device_one_time_keys_count:
-            BTreeMap<OwnedUserId, BTreeMap<DeviceId, BTreeMap<OneTimeKeyAlgorithm, UInt>>>,
+            BTreeMap<UserId, BTreeMap<DeviceId, BTreeMap<OneTimeKeyAlgorithm, UInt>>>,
 
         /// A list of key algorithms for which the server has an unused fallback key for the
         /// device.
@@ -83,7 +83,7 @@ pub mod v1 {
             rename = "org.matrix.msc3202.device_unused_fallback_key_types"
         )]
         pub device_unused_fallback_key_types:
-            BTreeMap<OwnedUserId, BTreeMap<DeviceId, Vec<OneTimeKeyAlgorithm>>>,
+            BTreeMap<UserId, BTreeMap<DeviceId, Vec<OneTimeKeyAlgorithm>>>,
 
         /// A list of ephemeral data.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
@@ -138,12 +138,12 @@ pub mod v1 {
         /// List of users who have updated their device identity keys or who now
         /// share an encrypted room with the client since the previous sync.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        pub changed: Vec<OwnedUserId>,
+        pub changed: Vec<UserId>,
 
         /// List of users who no longer share encrypted rooms since the previous sync
         /// response.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        pub left: Vec<OwnedUserId>,
+        pub left: Vec<UserId>,
     }
 
     #[cfg(feature = "unstable-msc3202")]
@@ -266,7 +266,7 @@ pub mod v1 {
         pub event: AnyToDeviceEvent,
 
         /// The fully-qualified user ID of the intended recipient.
-        pub to_user_id: OwnedUserId,
+        pub to_user_id: UserId,
 
         /// The device ID of the intended recipient.
         pub to_device_id: DeviceId,
@@ -276,11 +276,7 @@ pub mod v1 {
     impl AnyAppserviceToDeviceEvent {
         /// Construct a new `AnyAppserviceToDeviceEvent` with the given event and recipient
         /// information.
-        pub fn new(
-            event: AnyToDeviceEvent,
-            to_user_id: OwnedUserId,
-            to_device_id: DeviceId,
-        ) -> Self {
+        pub fn new(event: AnyToDeviceEvent, to_user_id: UserId, to_device_id: DeviceId) -> Self {
             Self { event, to_user_id, to_device_id }
         }
 
@@ -308,7 +304,7 @@ pub mod v1 {
         {
             #[derive(Deserialize)]
             struct AppserviceFields {
-                to_user_id: OwnedUserId,
+                to_user_id: UserId,
                 to_device_id: DeviceId,
             }
 
@@ -392,7 +388,7 @@ pub mod v1 {
             let data = from_json_value::<EphemeralData>(typing_json.clone()).unwrap();
             assert_let!(EphemeralData::Typing(typing) = &data);
             assert_eq!(typing.room_id, room_id);
-            assert_eq!(typing.content.user_ids, &[user_id]);
+            assert_eq!(typing.content.user_ids, &[&user_id]);
 
             assert_to_canonical_json_eq!(data, typing_json);
 
@@ -403,7 +399,7 @@ pub mod v1 {
                 "content": {
                     &event_id: {
                         "m.read": {
-                            user_id: {
+                            &user_id: {
                                 "ts": 453,
                             },
                         },
@@ -416,7 +412,7 @@ pub mod v1 {
             assert_eq!(receipt.room_id, room_id);
             let event_receipts = receipt.content.get(&event_id).unwrap();
             let event_read_receipts = event_receipts.get(&ReceiptType::Read).unwrap();
-            let event_user_read_receipt = event_read_receipts.get(user_id).unwrap();
+            let event_user_read_receipt = event_read_receipts.get(&user_id).unwrap();
             assert_eq!(event_user_read_receipt.ts, Some(MilliSecondsSinceUnixEpoch(uint!(453))));
 
             assert_to_canonical_json_eq!(data, receipt_json);

@@ -8,7 +8,7 @@ pub mod v3 {
     //! [spec]: https://spec.matrix.org/v1.19/client-server-api/#put_matrixclientv3useruseridroomsroomidtagstag
 
     use ruma_common::{
-        OwnedUserId, RoomId,
+        RoomId, UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -28,7 +28,7 @@ pub mod v3 {
     pub struct Request {
         /// The user whose tag will be deleted.
         #[ruma_api(path)]
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// The tagged room.
         #[ruma_api(path)]
@@ -46,7 +46,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given user ID, room ID and tag
-        pub fn new(user_id: OwnedUserId, room_id: RoomId, tag: String) -> Self {
+        pub fn new(user_id: UserId, room_id: RoomId, tag: String) -> Self {
             Self { user_id, room_id, tag }
         }
     }

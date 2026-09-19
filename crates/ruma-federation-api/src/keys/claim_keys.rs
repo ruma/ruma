@@ -10,7 +10,7 @@ pub mod v1 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        DeviceId, OneTimeKeyAlgorithm, OneTimeKeyId, OwnedUserId,
+        DeviceId, OneTimeKeyAlgorithm, OneTimeKeyId, UserId,
         api::{request, response},
         encryption::OneTimeKey,
         metadata,
@@ -55,9 +55,9 @@ pub mod v1 {
     }
 
     /// A claim for one time keys
-    pub type OneTimeKeyClaims = BTreeMap<OwnedUserId, BTreeMap<DeviceId, OneTimeKeyAlgorithm>>;
+    pub type OneTimeKeyClaims = BTreeMap<UserId, BTreeMap<DeviceId, OneTimeKeyAlgorithm>>;
 
     /// One time keys for use in pre-key messages
     pub type OneTimeKeys =
-        BTreeMap<OwnedUserId, BTreeMap<DeviceId, BTreeMap<OneTimeKeyId, Raw<OneTimeKey>>>>;
+        BTreeMap<UserId, BTreeMap<DeviceId, BTreeMap<OneTimeKeyId, Raw<OneTimeKey>>>>;
 }

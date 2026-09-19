@@ -10,7 +10,7 @@ pub mod v3 {
     use std::time::Duration;
 
     use ruma_common::{
-        OwnedUserId, ServerName,
+        ServerName, UserId,
         api::{auth_scheme::AccessToken, request, response},
         authentication::TokenType,
         metadata,
@@ -31,7 +31,7 @@ pub mod v3 {
     pub struct Request {
         /// User ID of authenticated user.
         #[ruma_api(path)]
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
     }
 
     /// Response type for the `request_openid_token` endpoint.
@@ -53,7 +53,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given user ID.
-        pub fn new(user_id: OwnedUserId) -> Self {
+        pub fn new(user_id: UserId) -> Self {
             Self { user_id }
         }
     }

@@ -4,7 +4,7 @@ use super::{
     Action, ConditionalPushRule, FlattenedJson, PatternedPushRule, PushConditionRoomCtx, Ruleset,
     SimplePushRule, condition,
 };
-use crate::{OwnedUserId, RoomId, push::action::SoundTweakValue};
+use crate::{RoomId, UserId, push::action::SoundTweakValue};
 
 /// The kinds of push rules that are available.
 #[derive(Clone, Debug)]
@@ -24,7 +24,7 @@ pub enum AnyPushRule {
     Room(SimplePushRule<RoomId>),
 
     /// Sender-specific rules.
-    Sender(SimplePushRule<OwnedUserId>),
+    Sender(SimplePushRule<UserId>),
 
     /// Lowest priority rules.
     Underride(ConditionalPushRule),
@@ -105,7 +105,7 @@ pub struct RulesetIntoIter {
     postcontent: IndexSetIntoIter<ConditionalPushRule>,
     override_: IndexSetIntoIter<ConditionalPushRule>,
     room: IndexSetIntoIter<SimplePushRule<RoomId>>,
-    sender: IndexSetIntoIter<SimplePushRule<OwnedUserId>>,
+    sender: IndexSetIntoIter<SimplePushRule<UserId>>,
     underride: IndexSetIntoIter<ConditionalPushRule>,
 }
 
@@ -163,7 +163,7 @@ pub enum AnyPushRuleRef<'a> {
     Room(&'a SimplePushRule<RoomId>),
 
     /// Sender-specific rules.
-    Sender(&'a SimplePushRule<OwnedUserId>),
+    Sender(&'a SimplePushRule<UserId>),
 
     /// Lowest priority rules.
     Underride(&'a ConditionalPushRule),
@@ -299,7 +299,7 @@ pub struct RulesetIter<'a> {
     postcontent: IndexSetIter<'a, ConditionalPushRule>,
     override_: IndexSetIter<'a, ConditionalPushRule>,
     room: IndexSetIter<'a, SimplePushRule<RoomId>>,
-    sender: IndexSetIter<'a, SimplePushRule<OwnedUserId>>,
+    sender: IndexSetIter<'a, SimplePushRule<UserId>>,
     underride: IndexSetIter<'a, ConditionalPushRule>,
 }
 

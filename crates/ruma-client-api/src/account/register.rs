@@ -14,7 +14,7 @@ pub mod v3 {
     use std::time::Duration;
 
     use ruma_common::{
-        DeviceId, OwnedUserId,
+        DeviceId, UserId,
         api::{auth_scheme::AppserviceTokenOptional, request, response},
         metadata,
     };
@@ -119,7 +119,7 @@ pub mod v3 {
         pub access_token: Option<String>,
 
         /// The fully-qualified Matrix ID that has been registered.
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// ID of the registered device.
         ///
@@ -167,7 +167,7 @@ pub mod v3 {
 
     impl Response {
         /// Creates a new `Response` with the given user ID.
-        pub fn new(user_id: OwnedUserId) -> Self {
+        pub fn new(user_id: UserId) -> Self {
             Self {
                 access_token: None,
                 user_id,
