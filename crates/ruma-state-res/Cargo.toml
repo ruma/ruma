@@ -35,6 +35,7 @@ criterion = { workspace = true, optional = true }
 assert_matches2 = { workspace = true }
 insta = { workspace = true }
 similar = { workspace = true }
+strass = { workspace = true }
 test-log = { version = "0.2", default-features = false, features = ["trace"] }
 
 [[bench]]
