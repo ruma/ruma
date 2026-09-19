@@ -392,9 +392,7 @@ pub struct CustomEdu {
 mod tests {
     use assert_matches2::assert_matches;
     use js_int::uint;
-    use ruma_common::{
-        canonical_json::assert_to_canonical_json_eq, presence::PresenceState, room_id, user_id,
-    };
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, presence::PresenceState};
     use ruma_events::ToDeviceEventType;
     use serde_json::json;
 
@@ -513,7 +511,7 @@ mod tests {
 
         let edu = serde_json::from_value::<Edu>(json.clone()).unwrap();
         assert_matches!(&edu, Edu::Receipt(ReceiptContent { receipts }));
-        assert!(receipts.get(room_id!("!some_room:example.org")).is_some());
+        assert!(receipts.get("!some_room:example.org").is_some());
 
         assert_eq!(serde_json::to_value(&edu).unwrap(), json);
     }
@@ -564,7 +562,7 @@ mod tests {
         assert_eq!(content.sender, "@john:example.com");
         assert_eq!(content.ev_type, ToDeviceEventType::RoomKeyRequest);
         assert_eq!(content.message_id, "hiezohf6Hoo7kaev");
-        assert!(content.messages.get(user_id!("@alice:example.org")).is_some());
+        assert!(content.messages.contains_key("@alice:example.org"));
 
         assert_eq!(serde_json::to_value(&edu).unwrap(), json);
     }
