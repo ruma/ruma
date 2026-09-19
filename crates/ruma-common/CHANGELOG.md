@@ -60,6 +60,8 @@ Breaking changes:
   - Remove `#[repr(transparent)]`.
   - Leave or add the `ruma_id` attribute.
   - Remove the struct fields declaration (e.g. `(str)`) after the struct name.
+- `KeyId::key_name()` returns an owned type. `KeyId::key_name_str()` can be used to access the key
+  name as a `&str` to avoid an allocation.
 
 Improvements:
 
