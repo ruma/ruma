@@ -32,11 +32,7 @@ pub struct ToDeviceRoomKeyEventContent {
     /// Used to mark key if allowed for shared history.
     ///
     /// Defaults to `false`.
-    #[serde(
-        default,
-        rename = "m.shared_history",
-        skip_serializing_if = "ruma_common::serde::is_default"
-    )]
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
     pub shared_history: bool,
 }
 
@@ -78,7 +74,7 @@ mod tests {
                 "room_id": "!testroomid:example.org",
                 "session_id": "SessId",
                 "session_key": "SessKey",
-                "m.shared_history": true,
+                "shared_history": true,
             })
         );
     }
@@ -90,7 +86,7 @@ mod tests {
             "room_id": "!r:example.org",
             "session_id": "Sess6",
             "session_key": "SessK",
-            "m.shared_history": true,
+            "shared_history": true,
         });
 
         let content: ToDeviceRoomKeyEventContent = serde_json::from_value(content_json).unwrap();
