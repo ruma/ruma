@@ -329,7 +329,6 @@ pub mod v1 {
 
     #[cfg(test)]
     mod tests {
-        use assert_matches2::assert_let;
         use js_int::uint;
         use ruma_common::{
             MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, event_id,
@@ -337,6 +336,7 @@ pub mod v1 {
         };
         use ruma_events::receipt::ReceiptType;
         use serde_json::{from_value as from_json_value, json};
+        use strass::assert_let;
 
         use super::EphemeralData;
 
