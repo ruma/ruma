@@ -1,18 +1,16 @@
 //! `m.space.child` order.
 
-use ruma_macros::IdDst;
+use ruma_macros::ruma_id;
 
 /// The order of an [`m.space.child`] event.
 ///
 /// Space child orders in Matrix are opaque character sequences consisting of ASCII characters
-/// within the range `\x20` (space) and `\x7E` (~), inclusive. Their length must must not exceed 50
+/// within the range `\x20` (space) and `\x7E` (~), inclusive. Their length must not exceed 50
 /// characters.
 ///
 /// [`m.space.child`]: https://spec.matrix.org/v1.19/client-server-api/#mspacechild
-#[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
 #[ruma_id(validate = ruma_identifiers_validation::space_child_order::validate, smallvec_inline_bytes = 50)]
-pub struct SpaceChildOrder(str);
+pub struct SpaceChildOrder;
 
 #[cfg(test)]
 mod tests {

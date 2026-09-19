@@ -44,7 +44,7 @@ pub use self::{
         CrossSigningOrDeviceSignatures, DeviceSignatures, EntitySignatures, ServerSignatures,
         Signatures,
     },
-    space_child_order::{OwnedSpaceChildOrder, SpaceChildOrder},
+    space_child_order::SpaceChildOrder,
     transaction_id::{OwnedTransactionId, TransactionId},
     user_id::{OwnedUserId, UserId},
     voip_id::{OwnedVoipId, VoipId},
