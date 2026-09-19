@@ -829,7 +829,6 @@ mod tests {
 mod client_tests {
     use std::{borrow::Cow, time::Duration};
 
-    use assert_matches2::assert_matches;
     use ruma_common::{
         RoomVersionId,
         api::{
@@ -840,6 +839,7 @@ mod client_tests {
     };
     use ruma_events::AnyStrippedStateEvent;
     use serde_json::{Value as JsonValue, json};
+    use strass::assert_let;
 
     use super::{Filter, PresenceState, Request, Response, State};
 
@@ -941,7 +941,7 @@ mod client_tests {
         let private_room = response.rooms.invite.get(room_id).unwrap();
 
         let first_event = private_room.invite_state.events[0].deserialize().unwrap();
-        assert_matches!(first_event, AnyStrippedStateEvent::RoomCreate(create_event));
+        assert_let!(AnyStrippedStateEvent::RoomCreate(create_event) = first_event);
         assert_eq!(create_event.sender, creator);
         assert_eq!(create_event.content.room_version, RoomVersionId::V11);
     }
@@ -1029,12 +1029,12 @@ mod client_tests {
 
         let joined_room = response.rooms.join.get(joined_room_id).unwrap();
         assert!(joined_room.timeline.is_empty());
-        assert_matches!(&joined_room.state, State::Before(state));
+        assert_let!(State::Before(state) = &joined_room.state);
         assert_eq!(state.events.len(), 1);
 
         let left_room = response.rooms.leave.get(left_room_id).unwrap();
         assert!(left_room.timeline.is_empty());
-        assert_matches!(&left_room.state, State::Before(state));
+        assert_let!(State::Before(state) = &left_room.state);
         assert_eq!(state.events.len(), 1);
     }
 
@@ -1067,12 +1067,12 @@ mod client_tests {
 
         let joined_room = response.rooms.join.get(joined_room_id).unwrap();
         assert!(joined_room.timeline.is_empty());
-        assert_matches!(&joined_room.state, State::After(state));
+        assert_let!(State::After(state) = &joined_room.state);
         assert_eq!(state.events.len(), 0);
 
         let left_room = response.rooms.leave.get(left_room_id).unwrap();
         assert!(left_room.timeline.is_empty());
-        assert_matches!(&left_room.state, State::After(state));
+        assert_let!(State::After(state) = &left_room.state);
         assert_eq!(state.events.len(), 0);
     }
 
@@ -1114,12 +1114,12 @@ mod client_tests {
 
         let joined_room = response.rooms.join.get(joined_room_id).unwrap();
         assert!(joined_room.timeline.is_empty());
-        assert_matches!(&joined_room.state, State::After(state));
+        assert_let!(State::After(state) = &joined_room.state);
         assert_eq!(state.events.len(), 1);
 
         let left_room = response.rooms.leave.get(left_room_id).unwrap();
         assert!(left_room.timeline.is_empty());
-        assert_matches!(&left_room.state, State::After(state));
+        assert_let!(State::After(state) = &left_room.state);
         assert_eq!(state.events.len(), 1);
     }
 }
@@ -1137,6 +1137,7 @@ mod server_tests {
     };
     use ruma_events::{AnyStrippedStateEvent, AnySyncStateEvent};
     use serde_json::{Value as JsonValue, from_slice as from_json_slice, json};
+    use strass::assert_let;
 
     use super::{Filter, JoinedRoom, KnockedRoom, LeftRoom, Request, Response, State};
 
@@ -1183,7 +1184,7 @@ mod server_tests {
         )
         .unwrap();
 
-        assert_matches!(req.filter, Some(Filter::FilterId(id)));
+        assert_let!(Some(Filter::FilterId(id)) = req.filter);
         assert_eq!(id, "myfilter");
         assert_eq!(req.since.as_deref(), Some("myts"));
         assert!(!req.full_state);
@@ -1232,7 +1233,7 @@ mod server_tests {
         )
         .unwrap();
 
-        assert_matches!(req.filter, Some(Filter::FilterId(id)));
+        assert_let!(Some(Filter::FilterId(id)) = req.filter);
         assert_eq!(id, "EOKFFmdZYF");
         assert_eq!(req.since, None);
         assert!(!req.full_state);
