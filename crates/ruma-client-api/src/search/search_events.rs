@@ -601,7 +601,6 @@ pub mod v3 {
 mod tests {
     use std::{borrow::Cow, collections::BTreeMap};
 
-    use assert_matches2::assert_matches;
     use js_int::uint;
     use ruma_common::{
         api::{
@@ -613,6 +612,7 @@ mod tests {
     use serde_json::{
         Value as JsonValue, from_slice as from_json_slice, json, to_vec as to_json_vec,
     };
+    use strass::assert_let;
 
     use super::v3::{GroupingKey, OrderBy, Request, Response, ResultGroupMap, SearchKeys};
 
@@ -714,9 +714,9 @@ mod tests {
         let results = &response.search_categories.room_events;
         assert_eq!(results.count, Some(uint!(1224)));
         assert_eq!(results.groups.len(), 1);
-        assert_matches!(
-            results.groups.get(&GroupingKey::RoomId),
-            Some(ResultGroupMap::RoomId(room_id_group_map))
+        assert_let!(
+            Some(ResultGroupMap::RoomId(room_id_group_map)) =
+                results.groups.get(&GroupingKey::RoomId)
         );
         assert_eq!(room_id_group_map.len(), 1);
         let room_id_group = room_id_group_map.get("!qPewotXpIctQySfjSy:localhost").unwrap();

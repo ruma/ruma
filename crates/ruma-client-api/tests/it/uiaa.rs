@@ -11,16 +11,16 @@ use serde_json::{
     Value as JsonValue, from_slice as from_json_slice, from_str as from_json_str,
     from_value as from_json_value, json, value::to_raw_value as to_raw_json_value,
 };
+use strass::assert_let;
 
 #[test]
 fn deserialize_matrix_user_identifier() {
-    assert_matches!(
-        from_json_value(json!({
+    assert_let!(
+        UserIdentifier::Matrix(id) = from_json_value(json!({
             "type": "m.id.user",
             "user": "cheeky_monkey"
         }))
-        .unwrap(),
-        UserIdentifier::Matrix(id)
+        .unwrap()
     );
     assert_eq!(id.user, "cheeky_monkey");
 }
@@ -50,7 +50,7 @@ fn deserialize_auth_data_registration_token() {
         "session": "session",
     });
 
-    assert_matches!(from_json_value(json), Ok(AuthData::RegistrationToken(data)));
+    assert_let!(Ok(AuthData::RegistrationToken(data)) = from_json_value(json));
     assert_eq!(data.token, "mytoken");
     assert_eq!(data.session.as_deref(), Some("session"));
 }
@@ -67,7 +67,7 @@ fn serialize_auth_data_fallback() {
 fn deserialize_auth_data_fallback() {
     let json = json!({ "session": "opaque_session_id" });
 
-    assert_matches!(from_json_value(json).unwrap(), AuthData::FallbackAcknowledgement(data));
+    assert_let!(AuthData::FallbackAcknowledgement(data) = from_json_value(json).unwrap());
     assert_eq!(data.session, "opaque_session_id");
 }
 
@@ -201,10 +201,7 @@ fn try_uiaa_response_from_http_response() {
         .body(json.as_bytes())
         .unwrap();
 
-    assert_matches!(
-        UiaaResponse::from_http_response(http_response),
-        UiaaResponse::AuthResponse(info)
-    );
+    assert_let!(UiaaResponse::AuthResponse(info) = UiaaResponse::from_http_response(http_response));
     assert_eq!(info.completed, vec![AuthType::ReCaptcha]);
     assert_eq!(info.flows.len(), 2);
     assert_eq!(info.flows[0].stages, vec![AuthType::Password]);

@@ -436,17 +436,17 @@ pub mod v3 {
 
     #[cfg(test)]
     mod tests {
-        use assert_matches2::assert_matches;
         use ruma_common::canonical_json::assert_to_canonical_json_eq;
         use serde_json::{from_value as from_json_value, json};
+        use strass::assert_let;
 
         use super::{LoginInfo, Token};
         use crate::uiaa::UserIdentifier;
 
         #[test]
         fn deserialize_login_type() {
-            assert_matches!(
-                from_json_value(json!({
+            assert_let!(
+                LoginInfo::Password(login) = from_json_value(json!({
                     "type": "m.login.password",
                     "identifier": {
                         "type": "m.id.user",
@@ -454,20 +454,18 @@ pub mod v3 {
                     },
                     "password": "ilovebananas"
                 }))
-                .unwrap(),
-                LoginInfo::Password(login)
+                .unwrap()
             );
-            assert_matches!(login.identifier, Some(UserIdentifier::Matrix(id)));
+            assert_let!(Some(UserIdentifier::Matrix(id)) = login.identifier);
             assert_eq!(id.user, "cheeky_monkey");
             assert_eq!(login.password, "ilovebananas");
 
-            assert_matches!(
-                from_json_value(json!({
+            assert_let!(
+                LoginInfo::Token(Token { token }) = from_json_value(json!({
                     "type": "m.login.token",
                     "token": "1234567890abcdef"
                 }))
-                .unwrap(),
-                LoginInfo::Token(Token { token })
+                .unwrap()
             );
             assert_eq!(token, "1234567890abcdef");
         }
