@@ -1012,7 +1012,18 @@ fn video_msgtype_circle_deserialization() {
 
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
     assert_matches!(event_content.msgtype, MessageType::Video(content));
-    assert_eq!(content.circle, Some(true));
+    assert!(content.circle);
+
+    let json_data = json!({
+        "body": "Upload: my_video.mp4",
+        "url": "mxc://notareal.hs/file",
+        "msgtype": "m.video",
+        "org.interferolog.circle": "true",
+    });
+
+    let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
+    assert_matches!(event_content.msgtype, MessageType::Video(content));
+    assert!(!content.circle);
 }
 
 #[test]

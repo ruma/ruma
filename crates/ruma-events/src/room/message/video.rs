@@ -45,11 +45,18 @@ pub struct VideoMessageEventContent {
 
     /// Whether this video should be displayed as a Circle.
     ///
+    /// Defaults to `false`.
+    ///
     /// This uses the unstable prefix in
     /// [MSC4546](https://github.com/matrix-org/matrix-spec-proposals/pull/4546).
     #[cfg(feature = "unstable-msc4546")]
-    #[serde(rename = "org.interferolog.circle", skip_serializing_if = "Option::is_none")]
-    pub circle: Option<bool>,
+    #[serde(
+        default,
+        rename = "org.interferolog.circle",
+        skip_serializing_if = "ruma_common::serde::is_default",
+        deserialize_with = "ruma_common::serde::default_on_error"
+    )]
+    pub circle: bool,
 }
 
 impl VideoMessageEventContent {
@@ -62,7 +69,7 @@ impl VideoMessageEventContent {
             source,
             info: None,
             #[cfg(feature = "unstable-msc4546")]
-            circle: None,
+            circle: false,
         }
     }
 
@@ -92,8 +99,8 @@ impl VideoMessageEventContent {
     /// Since the field is public, you can also assign to it directly. This method merely acts
     /// as a shorthand for that.
     #[cfg(feature = "unstable-msc4546")]
-    pub fn circle(self, circle: impl Into<Option<bool>>) -> Self {
-        Self { circle: circle.into(), ..self }
+    pub fn circle(self, circle: bool) -> Self {
+        Self { circle, ..self }
     }
 
     /// Computes the filename of the video as defined by the [spec](https://spec.matrix.org/v1.19/client-server-api/#media-captions).
