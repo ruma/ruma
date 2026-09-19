@@ -5,8 +5,7 @@
 use std::{cmp::Ordering, ops::Deref};
 
 use ruma_common::{
-    MilliSecondsSinceUnixEpoch, OwnedSpaceChildOrder, OwnedUserId, RoomId, ServerName,
-    SpaceChildOrder,
+    MilliSecondsSinceUnixEpoch, OwnedUserId, RoomId, ServerName, SpaceChildOrder,
     serde::{JsonCastable, JsonObject},
 };
 use ruma_macros::{Event, EventContent};
@@ -44,7 +43,7 @@ pub struct SpaceChildEventContent {
         deserialize_with = "ruma_common::serde::default_on_error",
         skip_serializing_if = "Option::is_none"
     )]
-    pub order: Option<OwnedSpaceChildOrder>,
+    pub order: Option<SpaceChildOrder>,
 
     /// Space admins can mark particular children of a space as "suggested".
     ///
@@ -203,7 +202,7 @@ where
 impl SpaceChildOrd for OriginalSpaceChildEvent {
     fn space_child_ord_fields(&self) -> SpaceChildOrdFields<'_> {
         SpaceChildOrdFields::new(
-            self.content.order.as_deref(),
+            self.content.order.as_ref(),
             self.origin_server_ts,
             &self.state_key,
         )
@@ -228,7 +227,7 @@ impl SpaceChildOrd for SpaceChildEvent {
 impl SpaceChildOrd for OriginalSyncSpaceChildEvent {
     fn space_child_ord_fields(&self) -> SpaceChildOrdFields<'_> {
         SpaceChildOrdFields::new(
-            self.content.order.as_deref(),
+            self.content.order.as_ref(),
             self.origin_server_ts,
             &self.state_key,
         )
@@ -253,7 +252,7 @@ impl SpaceChildOrd for SyncSpaceChildEvent {
 impl SpaceChildOrd for HierarchySpaceChildEvent {
     fn space_child_ord_fields(&self) -> SpaceChildOrdFields<'_> {
         SpaceChildOrdFields::new(
-            self.content.order.as_deref(),
+            self.content.order.as_ref(),
             self.origin_server_ts,
             &self.state_key,
         )
