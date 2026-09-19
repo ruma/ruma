@@ -7,6 +7,12 @@ Breaking changes:
 - The `DeserializeOwned` bound on the `StaticStateEventContent::Unsigned` associated type is only
   required when using the `Deserialize` implementation of `Original(Sync)StateEvent`.
 
+Improvements:
+
+- Add unstable support for [MSC4546] (Circles) behind the `unstable-msc4546` feature flag.
+
+[MSC4546]: https://github.com/matrix-org/matrix-spec-proposals/pull/4546
+
 ## 0.35.0
 
 Bug fixes:

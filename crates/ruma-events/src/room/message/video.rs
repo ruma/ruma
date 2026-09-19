@@ -42,12 +42,35 @@ pub struct VideoMessageEventContent {
     /// Metadata about the video clip referred to in `source`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub info: Option<Box<VideoInfo>>,
+
+    /// Whether this video should be displayed as a Circle.
+    ///
+    /// Defaults to `false`.
+    ///
+    /// This uses the unstable prefix in
+    /// [MSC4546](https://github.com/matrix-org/matrix-spec-proposals/pull/4546).
+    #[cfg(feature = "unstable-msc4546")]
+    #[serde(
+        default,
+        rename = "org.interferolog.circle",
+        skip_serializing_if = "ruma_common::serde::is_default",
+        deserialize_with = "ruma_common::serde::default_on_error"
+    )]
+    pub circle: bool,
 }
 
 impl VideoMessageEventContent {
     /// Creates a new `VideoMessageEventContent` with the given body and source.
     pub fn new(body: String, source: MediaSource) -> Self {
-        Self { body, formatted: None, filename: None, source, info: None }
+        Self {
+            body,
+            formatted: None,
+            filename: None,
+            source,
+            info: None,
+            #[cfg(feature = "unstable-msc4546")]
+            circle: false,
+        }
     }
 
     /// Creates a new non-encrypted `VideoMessageEventContent` with the given body and url.
@@ -68,6 +91,16 @@ impl VideoMessageEventContent {
     /// as a shorthand for that, because it is very common to set this field.
     pub fn info(self, info: impl Into<Option<Box<VideoInfo>>>) -> Self {
         Self { info: info.into(), ..self }
+    }
+
+    /// Creates a new `VideoMessageEventContent` from `self` with the `circle` field set to the
+    /// given value.
+    ///
+    /// Since the field is public, you can also assign to it directly. This method merely acts
+    /// as a shorthand for that.
+    #[cfg(feature = "unstable-msc4546")]
+    pub fn circle(self, circle: bool) -> Self {
+        Self { circle, ..self }
     }
 
     /// Computes the filename of the video as defined by the [spec](https://spec.matrix.org/v1.19/client-server-api/#media-captions).
