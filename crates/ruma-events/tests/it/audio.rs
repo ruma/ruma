@@ -2,7 +2,6 @@
 
 use std::time::Duration;
 
-use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{
     MilliSecondsSinceUnixEpoch,
@@ -21,6 +20,7 @@ use ruma_events::{
     room::{EncryptedFileHash, V2EncryptedFileInfo, message::Relation},
 };
 use serde_json::{from_value as from_json_value, json};
+use strass::assert_let;
 
 #[cfg(feature = "unstable-msc3246")]
 #[test]
@@ -279,9 +279,9 @@ fn message_event_deserialization() {
         "type": "org.matrix.msc1767.audio",
     });
 
-    assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::Audio(MessageLikeEvent::Original(message_event))
+    assert_let!(
+        AnyMessageLikeEvent::Audio(MessageLikeEvent::Original(message_event)) =
+            from_json_value::<AnyMessageLikeEvent>(json_data).unwrap()
     );
 
     assert_eq!(message_event.event_id, "$event:notareal.hs");

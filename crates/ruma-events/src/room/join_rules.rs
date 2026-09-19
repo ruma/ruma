@@ -133,6 +133,7 @@ mod tests {
     use assert_matches2::assert_matches;
     use ruma_common::owned_room_id;
     use serde_json::json;
+    use strass::assert_let;
 
     use super::{
         AllowRule, JoinRule, OriginalSyncRoomJoinRulesEvent, RedactedRoomJoinRulesEventContent,
@@ -168,7 +169,7 @@ mod tests {
         }"#;
 
         let event: RoomJoinRulesEventContent = serde_json::from_str(json).unwrap();
-        assert_matches!(event.join_rule, JoinRule::Restricted(restricted));
+        assert_let!(JoinRule::Restricted(restricted) = event.join_rule);
         assert_eq!(
             restricted.allow,
             &[
@@ -178,7 +179,7 @@ mod tests {
         );
 
         let event: RedactedRoomJoinRulesEventContent = serde_json::from_str(json).unwrap();
-        assert_matches!(event.join_rule, JoinRule::Restricted(restricted));
+        assert_let!(JoinRule::Restricted(restricted) = event.join_rule);
         assert_eq!(
             restricted.allow,
             &[

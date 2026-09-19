@@ -2,7 +2,6 @@
 
 use std::time::Duration;
 
-use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{
     MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, serde::CanBeEmpty,
@@ -11,6 +10,7 @@ use ruma_events::{
     AnyStateEvent, StateEvent, beacon_info::BeaconInfoEventContent, location::AssetType,
 };
 use serde_json::{from_value as from_json_value, json};
+use strass::assert_let;
 
 fn get_beacon_info_event_content(
     duration: Option<Duration>,
@@ -146,7 +146,7 @@ fn state_event_deserialization() {
 
     let event = from_json_value::<AnyStateEvent>(json_data).unwrap();
 
-    assert_matches!(event, AnyStateEvent::BeaconInfo(StateEvent::Original(ev)));
+    assert_let!(AnyStateEvent::BeaconInfo(StateEvent::Original(ev)) = event);
 
     assert_eq!(ev.content.description.as_deref(), Some("Kylie's live location"));
     assert_eq!(ev.content.ts, MilliSecondsSinceUnixEpoch(uint!(1_636_829_458)));

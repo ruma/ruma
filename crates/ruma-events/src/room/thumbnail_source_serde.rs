@@ -54,6 +54,7 @@ mod tests {
     use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_mxc_uri, serde::Base64};
     use serde::{Deserialize, Serialize};
     use serde_json::json;
+    use strass::assert_let;
 
     use crate::room::{EncryptedFile, EncryptedFileHash, MediaSource, V2EncryptedFileInfo};
 
@@ -67,9 +68,9 @@ mod tests {
     fn deserialize_plain() {
         let json = json!({ "thumbnail_url": "mxc://notareal.hs/abcdef" });
 
-        assert_matches!(
-            serde_json::from_value::<ThumbnailSourceTest>(json),
-            Ok(ThumbnailSourceTest { source: Some(MediaSource::Plain(url)) })
+        assert_let!(
+            Ok(ThumbnailSourceTest { source: Some(MediaSource::Plain(url)) }) =
+                serde_json::from_value::<ThumbnailSourceTest>(json)
         );
         assert_eq!(url, "mxc://notareal.hs/abcdef");
     }
@@ -94,9 +95,9 @@ mod tests {
             },
         });
 
-        assert_matches!(
-            serde_json::from_value::<ThumbnailSourceTest>(json),
-            Ok(ThumbnailSourceTest { source: Some(MediaSource::Encrypted(file)) })
+        assert_let!(
+            Ok(ThumbnailSourceTest { source: Some(MediaSource::Encrypted(file)) }) =
+                serde_json::from_value::<ThumbnailSourceTest>(json)
         );
         assert_eq!(file.url, "mxc://notareal.hs/abcdef");
     }

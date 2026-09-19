@@ -162,6 +162,7 @@ mod tests {
     use assert_matches2::assert_matches;
     use ruma_common::canonical_json::assert_to_canonical_json_eq;
     use serde_json::{from_value as from_json_value, json};
+    use strass::assert_let;
 
     use super::{
         RequestAction, SecretName, SecretRequestAction, ToDeviceSecretRequestEventContent,
@@ -235,7 +236,7 @@ mod tests {
         let content = from_json_value::<ToDeviceSecretRequestEventContent>(json).unwrap();
         assert_eq!(content.requesting_device_id, "ABCDEFG");
         assert_eq!(content.request_id, "randomly_generated_id_9573");
-        assert_matches!(content.action, RequestAction::Request(secret));
+        assert_let!(RequestAction::Request(secret) = content.action);
         assert_eq!(secret.name.as_str(), "org.example.some.secret");
     }
 
@@ -265,7 +266,7 @@ mod tests {
         let content = from_json_value::<ToDeviceSecretRequestEventContent>(json).unwrap();
         assert_eq!(content.requesting_device_id, "XYZxyz");
         assert_eq!(content.request_id, "this_is_a_request_id");
-        assert_matches!(content.action, RequestAction::Request(secret));
+        assert_let!(RequestAction::Request(secret) = content.action);
         assert_eq!(secret.name, SecretName::RecoveryKey);
     }
 

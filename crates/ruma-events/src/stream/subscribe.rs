@@ -49,12 +49,12 @@ impl ToDeviceStreamSubscribeEventContent {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::assert_matches;
     use ruma_common::{
         canonical_json::assert_to_canonical_json_eq, owned_device_id, owned_event_id,
         owned_room_id, serde::Raw,
     };
     use serde_json::{from_value as from_json_value, json};
+    use strass::assert_let;
 
     use super::ToDeviceStreamSubscribeEventContent;
     use crate::{AnyToDeviceEvent, ToDeviceEvent};
@@ -127,7 +127,7 @@ mod tests {
         });
 
         let event = from_json_value::<AnyToDeviceEvent>(event).unwrap();
-        assert_matches!(event, AnyToDeviceEvent::StreamSubscribe(ToDeviceEvent { content, .. }));
+        assert_let!(AnyToDeviceEvent::StreamSubscribe(ToDeviceEvent { content, .. }) = event);
         assert!(!content.resync);
     }
 
@@ -144,7 +144,7 @@ mod tests {
         });
 
         let event = from_json_value::<AnyToDeviceEvent>(event).unwrap();
-        assert_matches!(event, AnyToDeviceEvent::StreamSubscribe(ToDeviceEvent { content, .. }));
+        assert_let!(AnyToDeviceEvent::StreamSubscribe(ToDeviceEvent { content, .. }) = event);
         assert!(!content.resync);
     }
 }

@@ -15,6 +15,7 @@ use ruma_events::{
     room::message::{LocationMessageEventContent, MessageType, Relation, RoomMessageEventContent},
 };
 use serde_json::{from_value as from_json_value, json};
+use strass::assert_let;
 
 #[test]
 fn plain_content_serialization() {
@@ -116,9 +117,9 @@ fn zoomlevel_deserialization_pass() {
         "zoom_level": 16,
     });
 
-    assert_matches!(
-        from_json_value::<LocationContent>(json_data).unwrap(),
-        LocationContent { zoom_level: Some(zoom_level), .. }
+    assert_let!(
+        LocationContent { zoom_level: Some(zoom_level), .. } =
+            from_json_value::<LocationContent>(json_data).unwrap()
     );
     assert_eq!(zoom_level.get(), uint!(16));
 }
@@ -163,7 +164,7 @@ fn message_event_deserialization() {
 
     let ev = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
 
-    assert_matches!(ev, AnyMessageLikeEvent::Location(MessageLikeEvent::Original(ev)));
+    assert_let!(AnyMessageLikeEvent::Location(MessageLikeEvent::Original(ev)) = ev);
     assert_eq!(
         ev.content.text.find_plain(),
         Some("Alice was at geo:51.5008,0.1247;u=35 as of Sat Nov 13 18:50:58 2021")
@@ -198,7 +199,7 @@ fn room_message_unstable_deserialization() {
     });
 
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    assert_matches!(event_content.msgtype, MessageType::Location(content));
+    assert_let!(MessageType::Location(content) = event_content.msgtype);
 
     assert_eq!(content.body, "Alice was at geo:51.5008,0.1247;u=35");
     assert_eq!(content.geo_uri, "geo:51.5008,0.1247;u=35");

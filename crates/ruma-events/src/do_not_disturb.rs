@@ -86,9 +86,9 @@ impl DoNotDisturbRoom {
 mod tests {
     use std::collections::BTreeMap;
 
-    use assert_matches2::assert_matches;
     use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_room_id};
     use serde_json::{from_value as from_json_value, json};
+    use strass::assert_let;
 
     use super::DoNotDisturbEventContent;
     use crate::{AnyGlobalAccountDataEvent, do_not_disturb::DoNotDisturbRoomKey};
@@ -136,9 +136,9 @@ mod tests {
             "type": "dm.filament.do_not_disturb"
         });
 
-        assert_matches!(
-            from_json_value::<AnyGlobalAccountDataEvent>(json),
-            Ok(AnyGlobalAccountDataEvent::DoNotDisturb(ev))
+        assert_let!(
+            Ok(AnyGlobalAccountDataEvent::DoNotDisturb(ev)) =
+                from_json_value::<AnyGlobalAccountDataEvent>(json)
         );
         assert_eq!(
             ev.content.rooms.keys().collect::<Vec<_>>(),
@@ -157,9 +157,9 @@ mod tests {
             "type": "dm.filament.do_not_disturb"
         });
 
-        assert_matches!(
-            from_json_value::<AnyGlobalAccountDataEvent>(json),
-            Ok(AnyGlobalAccountDataEvent::DoNotDisturb(ev))
+        assert_let!(
+            Ok(AnyGlobalAccountDataEvent::DoNotDisturb(ev)) =
+                from_json_value::<AnyGlobalAccountDataEvent>(json)
         );
         assert_eq!(
             ev.content.rooms.keys().collect::<Vec<_>>(),

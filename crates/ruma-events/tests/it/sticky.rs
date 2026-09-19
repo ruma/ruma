@@ -1,10 +1,10 @@
 use std::time::Duration;
 
-use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{MilliSecondsSinceUnixEpoch, serde::CanBeEmpty};
 use ruma_events::{AnyMessageLikeEvent, MessageLikeEvent, sticky::StickyDurationMs};
 use serde_json::{from_value as from_json_value, json};
+use strass::assert_let;
 
 #[test]
 fn new_clamped_keeps_in_range_values() {
@@ -41,9 +41,9 @@ fn deserialize_sticky_event() {
         }
     });
 
-    assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::RoomMessage(MessageLikeEvent::Original(message_event))
+    assert_let!(
+        AnyMessageLikeEvent::RoomMessage(MessageLikeEvent::Original(message_event)) =
+            from_json_value::<AnyMessageLikeEvent>(json_data).unwrap()
     );
 
     assert_eq!(message_event.event_id, "$h29iv0s8:example.com");
@@ -76,9 +76,9 @@ fn deserialize_sticky_event_with_string_duration_is_ignored() {
         }
     });
 
-    assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::RoomMessage(MessageLikeEvent::Original(message_event))
+    assert_let!(
+        AnyMessageLikeEvent::RoomMessage(MessageLikeEvent::Original(message_event)) =
+            from_json_value::<AnyMessageLikeEvent>(json_data).unwrap()
     );
 
     assert!(message_event.sticky.is_none());
@@ -104,9 +104,9 @@ fn deserialize_sticky_top_level_support_server_sends_both_stable_unstable() {
         },
     });
 
-    assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::RoomMessage(MessageLikeEvent::Original(message_event))
+    assert_let!(
+        AnyMessageLikeEvent::RoomMessage(MessageLikeEvent::Original(message_event)) =
+            from_json_value::<AnyMessageLikeEvent>(json_data).unwrap()
     );
 
     assert!(message_event.sticky.is_some());
@@ -130,9 +130,9 @@ fn deserialize_sticky_out_of_range() {
         }
     });
 
-    assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::RoomMessage(MessageLikeEvent::Original(message_event))
+    assert_let!(
+        AnyMessageLikeEvent::RoomMessage(MessageLikeEvent::Original(message_event)) =
+            from_json_value::<AnyMessageLikeEvent>(json_data).unwrap()
     );
 
     let content = message_event.content;
@@ -155,9 +155,9 @@ fn deserialize_sticky_event_default() {
         "type": "m.room.message",
     });
 
-    assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::RoomMessage(MessageLikeEvent::Original(message_event))
+    assert_let!(
+        AnyMessageLikeEvent::RoomMessage(MessageLikeEvent::Original(message_event)) =
+            from_json_value::<AnyMessageLikeEvent>(json_data).unwrap()
     );
 
     assert!(message_event.sticky.is_none());
@@ -183,9 +183,9 @@ fn deserialize_sticky_duration_ttl_ms() {
         }
     });
 
-    assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::RoomMessage(MessageLikeEvent::Original(message_event))
+    assert_let!(
+        AnyMessageLikeEvent::RoomMessage(MessageLikeEvent::Original(message_event)) =
+            from_json_value::<AnyMessageLikeEvent>(json_data).unwrap()
     );
 
     assert_eq!(message_event.unsigned.sticky_duration_ttl_ms, Some(Duration::from_millis(42_000)));
@@ -213,9 +213,9 @@ fn deserialize_sticky_duration_ttl_ms_support_server_sends_both_stable_unstable(
         }
     });
 
-    assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data).unwrap(),
-        AnyMessageLikeEvent::RoomMessage(MessageLikeEvent::Original(message_event))
+    assert_let!(
+        AnyMessageLikeEvent::RoomMessage(MessageLikeEvent::Original(message_event)) =
+            from_json_value::<AnyMessageLikeEvent>(json_data).unwrap()
     );
 
     assert_eq!(message_event.unsigned.sticky_duration_ttl_ms, Some(Duration::from_millis(42_000)));
