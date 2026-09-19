@@ -20,6 +20,7 @@ use ruma_events::{
     room::{EncryptedFileHash, V2EncryptedFileInfo, message::Relation},
 };
 use serde_json::{from_value as from_json_value, json};
+use strass::assert_let;
 
 #[test]
 fn plain_content_serialization() {
@@ -275,9 +276,9 @@ fn message_event_deserialization() {
         "type": "org.matrix.msc1767.image",
     });
 
-    assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data),
-        Ok(AnyMessageLikeEvent::Image(MessageLikeEvent::Original(message_event)))
+    assert_let!(
+        Ok(AnyMessageLikeEvent::Image(MessageLikeEvent::Original(message_event))) =
+            from_json_value::<AnyMessageLikeEvent>(json_data)
     );
 
     assert_eq!(message_event.event_id, "$event:notareal.hs");

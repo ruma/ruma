@@ -233,7 +233,7 @@ fn verification_request_msgtype_deserialization() {
 
     let content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
 
-    assert_matches!(content.msgtype, MessageType::VerificationRequest(verification));
+    assert_let!(MessageType::VerificationRequest(verification) = content.msgtype);
     assert_eq!(verification.body, "@example:localhost is requesting to verify your key, ...");
     assert_eq!(verification.to, user_id);
     assert_eq!(verification.from_device, device_id);
@@ -321,7 +321,7 @@ fn reply_thread_fallback() {
     .make_reply_to(&threaded_message, ForwardThread::Yes, AddMentions::No);
 
     let relation = reply_as_thread_fallback.relates_to.unwrap();
-    assert_matches!(relation, Relation::Thread(thread_info));
+    assert_let!(Relation::Thread(thread_info) = relation);
     assert_eq!(
         thread_info.in_reply_to.map(|in_reply_to| in_reply_to.event_id),
         Some(threaded_message.event_id)
@@ -375,7 +375,7 @@ fn reply_thread_serialization_roundtrip() {
     let reply_as_thread_fallback = as_raw.deserialize().unwrap();
 
     let relation = reply_as_thread_fallback.relates_to.unwrap();
-    assert_matches!(relation, Relation::Thread(thread_info));
+    assert_let!(Relation::Thread(thread_info) = relation);
     assert_eq!(
         thread_info.in_reply_to.map(|in_reply_to| in_reply_to.event_id),
         Some(threaded_message.event_id)
@@ -449,9 +449,8 @@ fn make_replacement() {
 
     let content = content.make_replacement(&original_message);
 
-    assert_matches!(
-        content.msgtype,
-        MessageType::Text(TextMessageEventContent { body, formatted, .. })
+    assert_let!(
+        MessageType::Text(TextMessageEventContent { body, formatted, .. }) = content.msgtype
     );
     assert_eq!(body, "* This is _an edited_ message.");
     let formatted = formatted.unwrap();
@@ -515,9 +514,9 @@ fn audio_msgtype_deserialization() {
     });
 
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    assert_matches!(event_content.msgtype, MessageType::Audio(content));
+    assert_let!(MessageType::Audio(content) = event_content.msgtype);
     assert_eq!(content.body, "Upload: my_song.mp3");
-    assert_matches!(&content.source, MediaSource::Plain(url));
+    assert_let!(MediaSource::Plain(url) = &content.source);
     assert_eq!(url, "mxc://notareal.hs/file");
     assert!(content.caption().is_none());
 }
@@ -592,9 +591,9 @@ fn file_msgtype_plain_content_deserialization() {
     });
 
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    assert_matches!(event_content.msgtype, MessageType::File(content));
+    assert_let!(MessageType::File(content) = event_content.msgtype);
     assert_eq!(content.body, "Upload: my_file.txt");
-    assert_matches!(&content.source, MediaSource::Plain(url));
+    assert_let!(MediaSource::Plain(url) = &content.source);
     assert_eq!(url, "mxc://notareal.hs/file");
     assert!(content.caption().is_none());
 }
@@ -622,9 +621,9 @@ fn file_msgtype_encrypted_content_deserialization() {
     });
 
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    assert_matches!(event_content.msgtype, MessageType::File(content));
+    assert_let!(MessageType::File(content) = event_content.msgtype);
     assert_eq!(content.body, "Upload: my_file.txt");
-    assert_matches!(content.source, MediaSource::Encrypted(encrypted_file));
+    assert_let!(MediaSource::Encrypted(encrypted_file) = content.source);
     assert_eq!(encrypted_file.url, "mxc://notareal.hs/file");
     assert_matches!(encrypted_file.info, EncryptedFileInfo::V2(_));
 }
@@ -646,9 +645,9 @@ fn file_msgtype_custom_encrypted_content_deserialization() {
     });
 
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    assert_matches!(event_content.msgtype, MessageType::File(content));
+    assert_let!(MessageType::File(content) = event_content.msgtype);
     assert_eq!(content.body, "Upload: my_file.txt");
-    assert_matches!(content.source, MediaSource::Encrypted(encrypted_file));
+    assert_let!(MediaSource::Encrypted(encrypted_file) = content.source);
     assert_eq!(encrypted_file.url, "mxc://notareal.hs/file");
     assert_eq!(encrypted_file.info.version(), "local.custom.version");
     let encryption_data = &*encrypted_file.info.data();
@@ -705,16 +704,16 @@ fn gallery_msgtype_deserialization_with_image() {
     });
 
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    assert_matches!(event_content.msgtype, MessageType::Gallery(content));
+    assert_let!(MessageType::Gallery(content) = event_content.msgtype);
     assert_eq!(content.body, "My photos from [FOSDEM 2025](https://fosdem.org/2025/)");
     assert_eq!(
         content.formatted.unwrap().body,
         "My photos from <a href=\"https://fosdem.org/2025/\">FOSDEM 2025</a>"
     );
-    assert_matches!(&content.itemtypes.len(), 1);
-    assert_matches!(&content.itemtypes.first().unwrap(), GalleryItemType::Image(content));
+    assert_eq!(content.itemtypes.len(), 1);
+    assert_let!(GalleryItemType::Image(content) = &content.itemtypes.first().unwrap());
     assert_eq!(content.body, "my_image.jpg");
-    assert_matches!(&content.source, MediaSource::Plain(url));
+    assert_let!(MediaSource::Plain(url) = &content.source);
     assert_eq!(url, "mxc://notareal.hs/file");
     assert!(content.caption().is_none());
 }
@@ -786,9 +785,9 @@ fn image_msgtype_deserialization() {
     });
 
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    assert_matches!(event_content.msgtype, MessageType::Image(content));
+    assert_let!(MessageType::Image(content) = event_content.msgtype);
     assert_eq!(content.body, "Upload: my_image.jpg");
-    assert_matches!(&content.source, MediaSource::Plain(url));
+    assert_let!(MediaSource::Plain(url) = &content.source);
     assert_eq!(url, "mxc://notareal.hs/file");
     assert!(content.caption().is_none());
 }
@@ -851,7 +850,7 @@ fn location_msgtype_deserialization() {
     });
 
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    assert_matches!(event_content.msgtype, MessageType::Location(content));
+    assert_let!(MessageType::Location(content) = event_content.msgtype);
     assert_eq!(content.body, "Alice was at geo:51.5008,0.1247;u=35");
     assert_eq!(content.geo_uri, "geo:51.5008,0.1247;u=35");
 }
@@ -863,9 +862,9 @@ fn text_msgtype_body_deserialization() {
         "msgtype": "m.text",
     });
 
-    assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json_data),
-        Ok(RoomMessageEventContent { msgtype: MessageType::Text(content), .. })
+    assert_let!(
+        Ok(RoomMessageEventContent { msgtype: MessageType::Text(content), .. }) =
+            from_json_value::<RoomMessageEventContent>(json_data)
     );
     assert_eq!(content.body, "test");
 }
@@ -879,9 +878,9 @@ fn text_msgtype_formatted_body_and_body_deserialization() {
         "msgtype": "m.text",
     });
 
-    assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json_data),
-        Ok(RoomMessageEventContent { msgtype: MessageType::Text(content), .. })
+    assert_let!(
+        Ok(RoomMessageEventContent { msgtype: MessageType::Text(content), .. }) =
+            from_json_value::<RoomMessageEventContent>(json_data)
     );
     assert_eq!(content.body, "test");
     let formatted = content.formatted.unwrap();
@@ -909,9 +908,9 @@ fn notice_msgtype_deserialization() {
         "msgtype": "m.notice",
     });
 
-    assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json_data),
-        Ok(RoomMessageEventContent { msgtype: MessageType::Notice(content), .. })
+    assert_let!(
+        Ok(RoomMessageEventContent { msgtype: MessageType::Notice(content), .. }) =
+            from_json_value::<RoomMessageEventContent>(json_data)
     );
     assert_eq!(content.body, "test");
 }
@@ -938,9 +937,9 @@ fn emote_msgtype_deserialization() {
         "msgtype": "m.emote",
     });
 
-    assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json_data),
-        Ok(RoomMessageEventContent { msgtype: MessageType::Emote(content), .. })
+    assert_let!(
+        Ok(RoomMessageEventContent { msgtype: MessageType::Emote(content), .. }) =
+            from_json_value::<RoomMessageEventContent>(json_data)
     );
     assert_eq!(content.body, "test");
 }
@@ -972,9 +971,9 @@ fn video_msgtype_deserialization() {
     });
 
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    assert_matches!(event_content.msgtype, MessageType::Video(content));
+    assert_let!(MessageType::Video(content) = event_content.msgtype);
     assert_eq!(content.body, "Upload: my_video.mp4");
-    assert_matches!(&content.source, MediaSource::Plain(url));
+    assert_let!(MediaSource::Plain(url) = &content.source);
     assert_eq!(url, "mxc://notareal.hs/file");
     assert!(content.caption().is_none());
 }
@@ -1012,7 +1011,7 @@ fn video_msgtype_circle_deserialization() {
     });
 
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    assert_matches!(event_content.msgtype, MessageType::Video(content));
+    assert_let!(MessageType::Video(content) = event_content.msgtype);
     assert!(content.circle);
 
     let json_data = json!({
@@ -1023,7 +1022,7 @@ fn video_msgtype_circle_deserialization() {
     });
 
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    assert_matches!(event_content.msgtype, MessageType::Video(content));
+    assert_let!(MessageType::Video(content) = event_content.msgtype);
     assert!(!content.circle);
 }
 
@@ -1057,7 +1056,7 @@ fn add_mentions_then_make_replacement() {
 
     let mentions = content.mentions.unwrap();
     assert_eq!(mentions.user_ids, [bob.clone()].into());
-    assert_matches!(content.relates_to, Some(Relation::Replacement(replacement)));
+    assert_let!(Some(Relation::Replacement(replacement)) = content.relates_to);
     let mentions = replacement.new_content.mentions.unwrap();
     assert_eq!(mentions.user_ids, [alice, bob].into());
 }
@@ -1091,7 +1090,7 @@ fn add_first_mentions_then_make_replacement() {
 
     let mentions = content.mentions.unwrap();
     assert_eq!(mentions.user_ids, [alice.clone(), bob.clone()].into());
-    assert_matches!(content.relates_to, Some(Relation::Replacement(replacement)));
+    assert_let!(Some(Relation::Replacement(replacement)) = content.relates_to);
     let mentions = replacement.new_content.mentions.unwrap();
     assert_eq!(mentions.user_ids, [alice, bob].into());
 }
@@ -1126,7 +1125,7 @@ fn make_replacement_then_add_mentions() {
 
     let mentions = content.mentions.unwrap();
     assert_eq!(mentions.user_ids, [alice, bob].into());
-    assert_matches!(content.relates_to, Some(Relation::Replacement(replacement)));
+    assert_let!(Some(Relation::Replacement(replacement)) = content.relates_to);
     assert!(replacement.new_content.mentions.is_none());
 }
 
@@ -1141,7 +1140,7 @@ fn mentions_room_deserialization() {
     });
 
     let content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
-    assert_matches!(content.msgtype, MessageType::Text(text));
+    assert_let!(MessageType::Text(text) = content.msgtype);
     assert_eq!(text.body, "room!");
     let mentions = content.mentions.unwrap();
     assert!(mentions.room);

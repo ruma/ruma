@@ -216,6 +216,7 @@ mod tests {
         MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, owned_event_id,
     };
     use serde_json::{from_value as from_json_value, json};
+    use strass::assert_let;
 
     use super::{Receipt, ReceiptThread};
 
@@ -253,7 +254,7 @@ mod tests {
 
         let receipt = from_json_value::<Receipt>(json!({ "thread_id": "$abcdef76543" })).unwrap();
         assert_eq!(receipt.ts, None);
-        assert_matches!(receipt.thread, ReceiptThread::Thread(event_id));
+        assert_let!(ReceiptThread::Thread(event_id) = receipt.thread);
         assert_eq!(event_id, "$abcdef76543");
 
         let receipt = from_json_value::<Receipt>(json!({ "ts": 1_664_702_144_365_u64 })).unwrap();

@@ -67,11 +67,10 @@ impl From<RedactedStateRoomEncryptedEventContent>
 
 #[cfg(test)]
 mod tests {
-
-    use assert_matches2::assert_matches;
     use js_int::uint;
     use ruma_common::canonical_json::assert_to_canonical_json_eq;
     use serde_json::{from_value as from_json_value, json};
+    use strass::assert_let;
 
     use crate::{
         AnyStateEvent, StateEvent,
@@ -118,7 +117,7 @@ mod tests {
 
         let content: StateRoomEncryptedEventContent = from_json_value(json_data).unwrap();
 
-        assert_matches!(content.scheme, EncryptedEventScheme::MegolmV1AesSha2(scheme));
+        assert_let!(EncryptedEventScheme::MegolmV1AesSha2(scheme) = content.scheme);
         assert_eq!(scheme.ciphertext, "ciphertext");
         assert_eq!(scheme.sender_key, None);
         assert_eq!(scheme.device_id, None);
@@ -143,9 +142,9 @@ mod tests {
         });
         let event = from_json_value::<AnyStateEvent>(json_data).unwrap();
 
-        assert_matches!(event, AnyStateEvent::RoomEncrypted(StateEvent::Original(ev)));
+        assert_let!(AnyStateEvent::RoomEncrypted(StateEvent::Original(ev)) = event);
 
-        assert_matches!(ev.content.scheme, EncryptedEventScheme::MegolmV1AesSha2(scheme));
+        assert_let!(EncryptedEventScheme::MegolmV1AesSha2(scheme) = ev.content.scheme);
         assert_eq!(scheme.ciphertext, "ciphertext");
         assert_eq!(scheme.sender_key, None);
         assert_eq!(scheme.device_id, None);

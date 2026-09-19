@@ -266,6 +266,7 @@ mod tests {
         serde::Base64,
     };
     use serde_json::{from_value as from_json_value, json};
+    use strass::assert_let;
 
     use super::{
         RoomKeyWithheldCodeInfo, RoomKeyWithheldSessionData, ToDeviceRoomKeyWithheldEventContent,
@@ -346,7 +347,7 @@ mod tests {
         assert_eq!(content.algorithm, EventEncryptionAlgorithm::MegolmV1AesSha2);
         assert_eq!(content.sender_key.as_bytes(), PUBLIC_KEY);
         assert_eq!(content.reason, None);
-        assert_matches!(content.code, RoomKeyWithheldCodeInfo::Blacklisted(session_data));
+        assert_let!(RoomKeyWithheldCodeInfo::Blacklisted(session_data) = content.code);
         assert_eq!(session_data.room_id, room_id);
         assert_eq!(session_data.session_id, "unique_id");
     }

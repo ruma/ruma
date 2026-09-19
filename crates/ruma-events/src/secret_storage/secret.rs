@@ -86,9 +86,9 @@ impl JsonCastable<AesHmacSha2EncryptedData> for SecretEncryptedData {}
 mod tests {
     use std::collections::BTreeMap;
 
-    use assert_matches2::assert_matches;
     use ruma_common::{canonical_json::assert_to_canonical_json_eq, serde::Base64};
     use serde_json::{from_value as from_json_value, json};
+    use strass::assert_let;
 
     use super::{AesHmacSha2EncryptedData, SecretEncryptedData, SecretEventContent};
 
@@ -135,9 +135,9 @@ mod tests {
         let deserialized: SecretEventContent = from_json_value(json).unwrap();
         let secret_data = deserialized.encrypted.get("key_one").unwrap();
 
-        assert_matches!(
-            SecretEncryptedData::deserialize_as_aes_hmac_sha2(secret_data),
-            Ok(AesHmacSha2EncryptedData { iv, ciphertext, mac })
+        assert_let!(
+            Ok(AesHmacSha2EncryptedData { iv, ciphertext, mac }) =
+                SecretEncryptedData::deserialize_as_aes_hmac_sha2(secret_data)
         );
         assert_eq!(iv.encode(), "YWJjZGVmZ2hpamtsbW5vcA");
         assert_eq!(ciphertext.encode(), "dGhpc2lzZGVmaW5pdGVseWNpcGhlcnRleHQ");

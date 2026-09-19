@@ -1,4 +1,3 @@
-use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::canonical_json::assert_to_canonical_json_eq;
 use ruma_events::{
@@ -6,6 +5,7 @@ use ruma_events::{
     room::{join_rules::JoinRule, topic::RoomTopicEventContent},
 };
 use serde_json::{from_value as from_json_value, json};
+use strass::assert_let;
 
 #[test]
 fn serialize_stripped_state_event_any_content() {
@@ -68,17 +68,17 @@ fn deserialize_stripped_state_events() {
     });
 
     let ev = from_json_value::<AnyStrippedStateEvent>(name_event).unwrap();
-    assert_matches!(ev, AnyStrippedStateEvent::RoomName(ev));
+    assert_let!(AnyStrippedStateEvent::RoomName(ev) = ev);
     assert_eq!(ev.content.name.as_deref(), Some("Ruma"));
     assert_eq!(ev.sender, "@example:localhost");
 
     let ev = from_json_value::<AnyStrippedStateEvent>(join_rules_event).unwrap();
-    assert_matches!(ev, AnyStrippedStateEvent::RoomJoinRules(ev));
+    assert_let!(AnyStrippedStateEvent::RoomJoinRules(ev) = ev);
     assert_eq!(ev.content.join_rule, JoinRule::Public);
     assert_eq!(ev.sender, "@example:localhost");
 
     let ev = from_json_value::<AnyStrippedStateEvent>(avatar_event).unwrap();
-    assert_matches!(ev, AnyStrippedStateEvent::RoomAvatar(ev));
+    assert_let!(AnyStrippedStateEvent::RoomAvatar(ev) = ev);
     assert_eq!(ev.content.url.unwrap(), "mxc://example.com/iMag3");
     assert_eq!(ev.sender, "@example:localhost");
 
@@ -114,9 +114,9 @@ fn deserialize_stripped_state_msc4319_format() {
             },
         },
     });
-    assert_matches!(
-        from_json_value::<AnyStrippedStateEvent>(event_json).unwrap(),
-        AnyStrippedStateEvent::RoomMember(member_event)
+    assert_let!(
+        AnyStrippedStateEvent::RoomMember(member_event) =
+            from_json_value::<AnyStrippedStateEvent>(event_json).unwrap()
     );
     assert_eq!(member_event.content.membership, MembershipState::Invite);
     assert_eq!(member_event.origin_server_ts, Some(origin_server_ts));
