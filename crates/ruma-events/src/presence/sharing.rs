@@ -95,7 +95,7 @@ impl PresenceSharingEventContent {
 mod tests {
     use ruma_common::{
         canonical_json::assert_to_canonical_json_eq, owned_room_id, owned_server_name,
-        owned_user_id, room_id, server_name, user_id,
+        owned_user_id,
     };
     use serde_json::{from_value as from_json_value, json};
 
@@ -156,22 +156,19 @@ mod tests {
         assert!(content.share_locally);
         assert_eq!(content.users.len(), 2);
         assert_eq!(
-            content.users.get(user_id!("@alice:example.com")).unwrap(),
+            content.users.get("@alice:example.com").unwrap(),
             &UserPresenceSharingState::Allow
         );
         assert_eq!(
-            content.users.get(user_id!("@mallory:example.com")).unwrap(),
+            content.users.get("@mallory:example.com").unwrap(),
             &UserPresenceSharingState::Deny
         );
         assert_eq!(content.rooms.len(), 1);
         assert_eq!(
-            content.rooms.get(room_id!("!family-group-chat")).unwrap(),
+            content.rooms.get("!family-group-chat").unwrap(),
             &RoomPresenceSharingState::Allow
         );
         assert_eq!(content.servers.len(), 1);
-        assert_eq!(
-            content.servers.get(server_name!("matrix.org")).unwrap(),
-            &ServerPresenceSharingState::Deny
-        );
+        assert_eq!(content.servers.get("matrix.org").unwrap(), &ServerPresenceSharingState::Deny);
     }
 }

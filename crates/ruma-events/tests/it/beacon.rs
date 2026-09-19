@@ -46,10 +46,7 @@ fn beacon_event_content_deserialization() {
     let event_content: BeaconEventContent =
         from_json_value::<BeaconEventContent>(json_data).unwrap();
 
-    assert_eq!(
-        event_content.relates_to.event_id,
-        owned_event_id!("$beacon_info_event_id:example.com")
-    );
+    assert_eq!(event_content.relates_to.event_id, "$beacon_info_event_id:example.com");
     assert_eq!(event_content.location.uri, "geo:51.5008,0.1247;u=35");
     assert_eq!(event_content.ts, MilliSecondsSinceUnixEpoch(uint!(1_636_829_458)));
 }

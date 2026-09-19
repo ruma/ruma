@@ -78,10 +78,10 @@ impl PresenceEventContent {
 mod tests {
     use js_int::uint;
     use ruma_common::{
-        canonical_json::assert_to_canonical_json_eq, mxc_uri, owned_mxc_uri,
-        presence::PresenceState,
+        canonical_json::assert_to_canonical_json_eq, owned_mxc_uri, presence::PresenceState,
     };
     use serde_json::{from_value as from_json_value, json};
+    use strass::assert_variant_eq;
 
     use super::{PresenceEvent, PresenceEventContent};
 
@@ -123,10 +123,7 @@ mod tests {
         });
 
         let ev = from_json_value::<PresenceEvent>(json).unwrap();
-        assert_eq!(
-            ev.content.avatar_url.as_deref(),
-            Some(mxc_uri!("mxc://localhost/wefuiwegh8742w"))
-        );
+        assert_variant_eq!(ev.content.avatar_url, Some("mxc://localhost/wefuiwegh8742w"));
         assert_eq!(ev.content.currently_active, Some(false));
         assert_eq!(ev.content.displayname, None);
         assert_eq!(ev.content.last_active_ago, Some(uint!(2_478_593)));

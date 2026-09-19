@@ -936,10 +936,11 @@ mod tests {
     use js_int::uint;
     use maplit::btreemap;
     use ruma_common::{
-        MilliSecondsSinceUnixEpoch, ServerSigningKeyId, SigningKeyAlgorithm, mxc_uri,
-        serde::CanBeEmpty, server_name, server_signing_key_version, user_id,
+        MilliSecondsSinceUnixEpoch, ServerSigningKeyId, SigningKeyAlgorithm, serde::CanBeEmpty,
+        server_signing_key_version,
     };
     use serde_json::{from_value as from_json_value, json};
+    use strass::assert_variant_eq;
 
     use super::{MembershipState, RoomMemberEventContent};
     use crate::OriginalStateEvent;
@@ -1050,10 +1051,7 @@ mod tests {
         assert_eq!(ev.state_key, "@alice:example.org");
         assert!(ev.unsigned.is_empty());
 
-        assert_eq!(
-            ev.content.avatar_url.as_deref(),
-            Some(mxc_uri!("mxc://example.org/SEsfnsuifSDFSSEF"))
-        );
+        assert_variant_eq!(ev.content.avatar_url, Some("mxc://example.org/SEsfnsuifSDFSSEF"));
         assert_eq!(ev.content.displayname.as_deref(), Some("Alice Margatroid"));
         assert_eq!(ev.content.is_direct, Some(true));
         assert_eq!(ev.content.membership, MembershipState::Invite);
@@ -1063,7 +1061,7 @@ mod tests {
         let signed = third_party_invite.signed.deserialize().unwrap();
         assert_eq!(signed.mxid, "@alice:example.org");
         assert_eq!(signed.signatures.len(), 1);
-        let server_signatures = signed.signatures.get(server_name!("magic.forest")).unwrap();
+        let server_signatures = signed.signatures.get("magic.forest").unwrap();
         assert_eq!(
             *server_signatures,
             btreemap! {
@@ -1124,10 +1122,7 @@ mod tests {
         assert_matches!(ev.content.third_party_invite, None);
 
         let prev_content = ev.unsigned.prev_content.unwrap();
-        assert_eq!(
-            prev_content.avatar_url.as_deref(),
-            Some(mxc_uri!("mxc://example.org/SEsfnsuifSDFSSEF"))
-        );
+        assert_variant_eq!(prev_content.avatar_url, Some("mxc://example.org/SEsfnsuifSDFSSEF"));
         assert_eq!(prev_content.displayname.as_deref(), Some("Alice Margatroid"));
         assert_eq!(prev_content.is_direct, Some(true));
         assert_eq!(prev_content.membership, MembershipState::Invite);
@@ -1137,7 +1132,7 @@ mod tests {
         let signed = third_party_invite.signed.deserialize().unwrap();
         assert_eq!(signed.mxid, "@alice:example.org");
         assert_eq!(signed.signatures.len(), 1);
-        let server_signatures = signed.signatures.get(server_name!("magic.forest")).unwrap();
+        let server_signatures = signed.signatures.get("magic.forest").unwrap();
         assert_eq!(
             *server_signatures,
             btreemap! {
@@ -1178,9 +1173,9 @@ mod tests {
         assert_eq!(ev.content.is_direct, None);
         assert_eq!(ev.content.membership, MembershipState::Join);
         assert_matches!(ev.content.third_party_invite, None);
-        assert_eq!(
-            ev.content.join_authorized_via_users_server.as_deref(),
-            Some(user_id!("@notcarl:example.com"))
+        assert_variant_eq!(
+            ev.content.join_authorized_via_users_server,
+            Some("@notcarl:example.com")
         );
     }
 }

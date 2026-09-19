@@ -115,6 +115,7 @@ criterion = { workspace = true, optional = true }
 assert_matches2 = { workspace = true }
 assign = { workspace = true }
 maplit = { workspace = true }
+strass = { workspace = true }
 trybuild = "1.0.71"
 
 [[bench]]

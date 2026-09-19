@@ -59,9 +59,7 @@ impl FromIterator<(OwnedDirectUserIdentifier, Vec<OwnedRoomId>)> for DirectEvent
 mod tests {
     use std::collections::BTreeMap;
 
-    use ruma_common::{
-        DirectUserIdentifier, canonical_json::assert_to_canonical_json_eq, owned_room_id, user_id,
-    };
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_room_id, user_id};
     use serde_json::{from_value as from_json_value, json};
 
     use super::{DirectEvent, DirectEventContent};
@@ -102,12 +100,11 @@ mod tests {
 
         let event: DirectEvent = from_json_value(json_data).unwrap();
 
-        let direct_rooms = event.content.get(<&DirectUserIdentifier>::from(alice)).unwrap();
+        let direct_rooms = event.content.get(alice.as_str()).unwrap();
         assert!(direct_rooms.contains(&rooms[0]));
         assert!(direct_rooms.contains(&rooms[1]));
 
-        let email_direct_rooms =
-            event.content.get(<&DirectUserIdentifier>::from(alice_mail)).unwrap();
+        let email_direct_rooms = event.content.get(alice_mail).unwrap();
         assert!(email_direct_rooms.contains(&mail_rooms[0]));
     }
 }
