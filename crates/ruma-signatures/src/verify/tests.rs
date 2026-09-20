@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use assert_matches2::assert_matches;
+use assert_matches::assert_matches;
 use ruma_common::{
     CanonicalJsonValue, ServerSigningKeyId, SigningKeyAlgorithm, owned_server_name,
     room_version_rules::{RoomVersionRules, SignaturesRules},

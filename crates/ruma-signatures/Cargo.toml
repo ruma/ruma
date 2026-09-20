@@ -30,7 +30,7 @@ sha2 = "0.11.0"
 thiserror = { workspace = true }
 
 [dev-dependencies]
-assert_matches2 = { workspace = true }
+assert_matches = { workspace = true }
 insta = { workspace = true }
 strass = { workspace = true }
 
