@@ -30,6 +30,9 @@ api = ["dep:date_header", "dep:http", "dep:konst"]
 js = ["getrandom?/wasm_js", "uuid?/js"]
 rand = ["dep:rand", "dep:getrandom", "dep:uuid"]
 
+# Enable `owned_*!` macros that allow to get an owned identifier for backwards
+# compatibility.
+unstable-identifier-owned-macros = []
 # Enable `*_ref!` macros that allow to get a `&'static` identifier.
 unstable-identifier-ref-macros = []
 unstable-msc2870 = []

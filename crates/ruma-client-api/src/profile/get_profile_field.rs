@@ -18,7 +18,7 @@ pub mod v3 {
     #[cfg(feature = "client")]
     use ruma_common::api::EmptyBody;
     use ruma_common::{
-        OwnedUserId,
+        UserId,
         api::{Metadata, auth_scheme::NoAccessToken, error::Error, path_builder::VersionHistory},
         metadata,
         profile::{ProfileFieldName, ProfileFieldValue, StaticProfileField},
@@ -41,7 +41,7 @@ pub mod v3 {
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Request {
         /// The user whose profile will be fetched.
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// The profile field to get.
         pub field: ProfileFieldName,
@@ -49,12 +49,12 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given user ID and field.
-        pub fn new(user_id: OwnedUserId, field: ProfileFieldName) -> Self {
+        pub fn new(user_id: UserId, field: ProfileFieldName) -> Self {
             Self { user_id, field }
         }
 
         /// Creates a new request with the given user ID and statically-known field.
-        pub fn new_static<F: StaticProfileField>(user_id: OwnedUserId) -> RequestStatic<F> {
+        pub fn new_static<F: StaticProfileField>(user_id: UserId) -> RequestStatic<F> {
             RequestStatic::new(user_id)
         }
     }
@@ -118,7 +118,7 @@ pub mod v3 {
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct RequestStatic<F: StaticProfileField> {
         /// The user whose profile will be fetched.
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// The profile field to get.
         field: PhantomData<F>,
@@ -126,7 +126,7 @@ pub mod v3 {
 
     impl<F: StaticProfileField> RequestStatic<F> {
         /// Creates a new request with the given user ID.
-        pub fn new(user_id: OwnedUserId) -> Self {
+        pub fn new(user_id: UserId) -> Self {
             Self { user_id, field: PhantomData }
         }
     }
@@ -276,8 +276,9 @@ pub mod v3 {
 #[cfg(all(test, feature = "client"))]
 mod tests_client {
     use ruma_common::{
-        owned_mxc_uri, owned_user_id,
+        mxc_uri,
         profile::{ProfileFieldName, ProfileFieldValue},
+        user_id,
     };
     use serde_json::{json, to_vec as to_json_vec};
 
@@ -293,7 +294,7 @@ mod tests_client {
 
         // Profile field that existed in Matrix 1.0.
         let avatar_url_request =
-            Request::new(owned_user_id!("@alice:localhost"), ProfileFieldName::AvatarUrl);
+            Request::new(user_id!("@alice:localhost"), ProfileFieldName::AvatarUrl);
 
         // Matrix 1.11
         let http_request = avatar_url_request
@@ -330,7 +331,7 @@ mod tests_client {
 
         // Profile field that didn't exist in Matrix 1.0.
         let custom_field_request =
-            Request::new(owned_user_id!("@alice:localhost"), "dev.ruma.custom_field".into());
+            Request::new(user_id!("@alice:localhost"), "dev.ruma.custom_field".into());
 
         // Matrix 1.11
         let http_request = custom_field_request
@@ -404,7 +405,7 @@ mod tests_client {
         use crate::profile::AvatarUrl;
 
         let response = get_static_response::<RequestStatic<AvatarUrl>>(Some(
-            ProfileFieldValue::AvatarUrl(owned_mxc_uri!("mxc://localhost/abcdef")),
+            ProfileFieldValue::AvatarUrl(mxc_uri!("mxc://localhost/abcdef")),
         ))
         .unwrap();
         assert_eq!(response.value.unwrap(), "mxc://localhost/abcdef");
@@ -427,7 +428,7 @@ mod tests_client {
 #[cfg(all(test, feature = "server"))]
 mod tests_server {
     use ruma_common::{
-        owned_mxc_uri,
+        mxc_uri,
         profile::{ProfileFieldName, ProfileFieldValue},
     };
     use serde_json::{Value as JsonValue, from_slice as from_json_slice, json};
@@ -457,7 +458,7 @@ mod tests_server {
         use ruma_common::api::OutgoingResponseExt;
 
         let response =
-            Response::new(ProfileFieldValue::AvatarUrl(owned_mxc_uri!("mxc://localhost/abcdef")));
+            Response::new(ProfileFieldValue::AvatarUrl(mxc_uri!("mxc://localhost/abcdef")));
 
         let http_response = response.try_into_http_response::<Vec<u8>>().unwrap();
 

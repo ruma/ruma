@@ -1,9 +1,7 @@
 use std::collections::HashSet;
 
 use js_int::int;
-use ruma_common::{
-    UserId, owned_event_id, room_version_rules::AuthorizationRules, serde::JsonObject,
-};
+use ruma_common::{UserId, event_id, room_version_rules::AuthorizationRules, serde::JsonObject};
 use ruma_events::{TimelineEventType, room::power_levels::UserPowerLevel};
 use serde_json::{Value as JsonValue, json};
 use test_log::test;
@@ -37,7 +35,7 @@ fn initial_room_power_levels(authorization_rules: &AuthorizationRules) -> Pdu {
     let content = initial_room_power_levels_content(authorization_rules, &creator);
 
     Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-power-levels-initial"),
+        event_id!("$room-power-levels-initial"),
         creator,
         TimelineEventType::RoomPowerLevels,
         String::new(),
@@ -71,7 +69,7 @@ fn not_int_or_string_int_in_content() {
             content.insert((*field).to_owned(), value.clone());
 
             let pdu = Pdu::with_minimal_state_fields(
-                owned_event_id!("$room-power-levels-field"),
+                event_id!("$room-power-levels-field"),
                 creator.clone(),
                 TimelineEventType::RoomPowerLevels,
                 String::new(),
@@ -146,7 +144,7 @@ fn not_int_or_string_int_in_events() {
         content.insert("events".to_owned(), events.into());
 
         let pdu = Pdu::with_minimal_state_fields(
-            owned_event_id!("$room-power-levels-events"),
+            event_id!("$room-power-levels-events"),
             creator.clone(),
             TimelineEventType::RoomPowerLevels,
             String::new(),
@@ -218,7 +216,7 @@ fn not_int_or_string_int_in_notifications() {
         content.insert("notifications".to_owned(), notifications.into());
 
         let pdu = Pdu::with_minimal_state_fields(
-            owned_event_id!("$room-power-levels-notifications"),
+            event_id!("$room-power-levels-notifications"),
             creator.clone(),
             TimelineEventType::RoomPowerLevels,
             String::new(),
@@ -272,7 +270,7 @@ fn not_user_id_in_users() {
     let creator = current_room_power_levels_event.sender.clone();
 
     let pdu = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-power-levels-spambot"),
+        event_id!("$room-power-levels-spambot"),
         creator.clone(),
         TimelineEventType::RoomPowerLevels,
         String::new(),
@@ -321,7 +319,7 @@ fn not_int_or_string_int_in_users() {
         users.insert("@bar:baz".to_owned(), value.clone());
 
         let incoming_event = Pdu::with_minimal_state_fields(
-            owned_event_id!("$room-power-levels-bar"),
+            event_id!("$room-power-levels-bar"),
             creator.clone(),
             TimelineEventType::RoomPowerLevels,
             String::new(),
@@ -408,7 +406,7 @@ fn change_content_level_with_current_higher_power_level() {
         current_content.insert((*field).to_owned(), current_value.into());
 
         let current_room_power_levels_event = Pdu::with_minimal_state_fields(
-            owned_event_id!("$room-power-levels-current"),
+            event_id!("$room-power-levels-current"),
             alice_id.clone(),
             TimelineEventType::RoomPowerLevels,
             String::new(),
@@ -419,7 +417,7 @@ fn change_content_level_with_current_higher_power_level() {
         incoming_content.insert((*field).to_owned(), incoming_value.into());
 
         let pdu = Pdu::with_minimal_state_fields(
-            owned_event_id!("$room-power-levels-field"),
+            event_id!("$room-power-levels-field"),
             bob_id.clone(),
             TimelineEventType::RoomPowerLevels,
             String::new(),
@@ -467,7 +465,7 @@ fn change_content_level_with_new_higher_power_level() {
         current_content.insert((*field).to_owned(), current_value.into());
 
         let current_room_power_levels_event = Pdu::with_minimal_state_fields(
-            owned_event_id!("$room-power-levels-current"),
+            event_id!("$room-power-levels-current"),
             alice_id.clone(),
             TimelineEventType::RoomPowerLevels,
             String::new(),
@@ -478,7 +476,7 @@ fn change_content_level_with_new_higher_power_level() {
         incoming_content.insert((*field).to_owned(), incoming_value.into());
 
         let pdu = Pdu::with_minimal_state_fields(
-            owned_event_id!("$room-power-levels-field"),
+            event_id!("$room-power-levels-field"),
             bob_id.clone(),
             TimelineEventType::RoomPowerLevels,
             String::new(),
@@ -526,7 +524,7 @@ fn change_content_level_with_same_power_level() {
         current_content.insert((*field).to_owned(), current_value.into());
 
         let current_room_power_levels_event = Pdu::with_minimal_state_fields(
-            owned_event_id!("$room-power-levels-current"),
+            event_id!("$room-power-levels-current"),
             alice_id.clone(),
             TimelineEventType::RoomPowerLevels,
             String::new(),
@@ -537,7 +535,7 @@ fn change_content_level_with_same_power_level() {
         incoming_content.insert((*field).to_owned(), incoming_value.into());
 
         let pdu = Pdu::with_minimal_state_fields(
-            owned_event_id!("$room-power-levels-field"),
+            event_id!("$room-power-levels-field"),
             bob_id.clone(),
             TimelineEventType::RoomPowerLevels,
             String::new(),
@@ -571,7 +569,7 @@ fn change_events_level_with_current_higher_power_level() {
         },
     });
     let current_room_power_levels_event = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-power-levels-current"),
+        event_id!("$room-power-levels-current"),
         alice_id.clone(),
         TimelineEventType::RoomPowerLevels,
         String::new(),
@@ -588,7 +586,7 @@ fn change_events_level_with_current_higher_power_level() {
         },
     });
     let pdu = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-power-levels-incoming"),
+        event_id!("$room-power-levels-incoming"),
         bob_id,
         TimelineEventType::RoomPowerLevels,
         String::new(),
@@ -624,7 +622,7 @@ fn change_events_level_with_new_higher_power_level() {
         },
     });
     let current_room_power_levels_event = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-power-levels-current"),
+        event_id!("$room-power-levels-current"),
         alice_id.clone(),
         TimelineEventType::RoomPowerLevels,
         String::new(),
@@ -641,7 +639,7 @@ fn change_events_level_with_new_higher_power_level() {
         },
     });
     let pdu = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-power-levels-incoming"),
+        event_id!("$room-power-levels-incoming"),
         bob_id,
         TimelineEventType::RoomPowerLevels,
         String::new(),
@@ -677,7 +675,7 @@ fn change_events_level_with_same_power_level() {
         },
     });
     let current_room_power_levels_event = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-power-levels-current"),
+        event_id!("$room-power-levels-current"),
         alice_id.clone(),
         TimelineEventType::RoomPowerLevels,
         String::new(),
@@ -694,7 +692,7 @@ fn change_events_level_with_same_power_level() {
         },
     });
     let pdu = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-power-levels-incoming"),
+        event_id!("$room-power-levels-incoming"),
         bob_id,
         TimelineEventType::RoomPowerLevels,
         String::new(),
@@ -727,7 +725,7 @@ fn change_notifications_level_with_current_higher_power_level() {
         },
     });
     let current_room_power_levels_event = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-power-levels-current"),
+        event_id!("$room-power-levels-current"),
         alice_id.clone(),
         TimelineEventType::RoomPowerLevels,
         String::new(),
@@ -744,7 +742,7 @@ fn change_notifications_level_with_current_higher_power_level() {
         },
     });
     let pdu = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-power-levels-incoming"),
+        event_id!("$room-power-levels-incoming"),
         bob_id,
         TimelineEventType::RoomPowerLevels,
         String::new(),
@@ -790,7 +788,7 @@ fn change_notifications_level_with_new_higher_power_level() {
         },
     });
     let current_room_power_levels_event = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-power-levels-current"),
+        event_id!("$room-power-levels-current"),
         alice_id.clone(),
         TimelineEventType::RoomPowerLevels,
         String::new(),
@@ -807,7 +805,7 @@ fn change_notifications_level_with_new_higher_power_level() {
         },
     });
     let pdu = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-power-levels-incoming"),
+        event_id!("$room-power-levels-incoming"),
         bob_id,
         TimelineEventType::RoomPowerLevels,
         String::new(),
@@ -853,7 +851,7 @@ fn change_notifications_level_with_same_power_level() {
         },
     });
     let current_room_power_levels_event = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-power-levels-current"),
+        event_id!("$room-power-levels-current"),
         alice_id.clone(),
         TimelineEventType::RoomPowerLevels,
         String::new(),
@@ -870,7 +868,7 @@ fn change_notifications_level_with_same_power_level() {
         },
     });
     let pdu = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-power-levels-incoming"),
+        event_id!("$room-power-levels-incoming"),
         bob_id,
         TimelineEventType::RoomPowerLevels,
         String::new(),
@@ -912,7 +910,7 @@ fn change_other_user_level_with_current_higher_power_level() {
         },
     });
     let current_room_power_levels_event = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-power-levels-current"),
+        event_id!("$room-power-levels-current"),
         alice_id.clone(),
         TimelineEventType::RoomPowerLevels,
         String::new(),
@@ -926,7 +924,7 @@ fn change_other_user_level_with_current_higher_power_level() {
         },
     });
     let pdu = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-power-levels-incoming"),
+        event_id!("$room-power-levels-incoming"),
         bob_id,
         TimelineEventType::RoomPowerLevels,
         String::new(),
@@ -961,7 +959,7 @@ fn change_other_user_level_with_new_higher_power_level() {
         },
     });
     let current_room_power_levels_event = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-power-levels-current"),
+        event_id!("$room-power-levels-current"),
         alice_id.clone(),
         TimelineEventType::RoomPowerLevels,
         String::new(),
@@ -976,7 +974,7 @@ fn change_other_user_level_with_new_higher_power_level() {
         },
     });
     let pdu = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-power-levels-incoming"),
+        event_id!("$room-power-levels-incoming"),
         bob_id,
         TimelineEventType::RoomPowerLevels,
         String::new(),
@@ -1011,7 +1009,7 @@ fn change_other_user_level_with_same_power_level() {
         },
     });
     let current_room_power_levels_event = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-power-levels-current"),
+        event_id!("$room-power-levels-current"),
         alice_id.clone(),
         TimelineEventType::RoomPowerLevels,
         String::new(),
@@ -1026,7 +1024,7 @@ fn change_other_user_level_with_same_power_level() {
         },
     });
     let pdu = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-power-levels-incoming"),
+        event_id!("$room-power-levels-incoming"),
         bob_id,
         TimelineEventType::RoomPowerLevels,
         String::new(),
@@ -1056,7 +1054,7 @@ fn change_own_user_level_to_new_higher_power_level() {
         },
     });
     let current_room_power_levels_event = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-power-levels-current"),
+        event_id!("$room-power-levels-current"),
         alice_id.clone(),
         TimelineEventType::RoomPowerLevels,
         String::new(),
@@ -1070,7 +1068,7 @@ fn change_own_user_level_to_new_higher_power_level() {
         },
     });
     let pdu = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-power-levels-incoming"),
+        event_id!("$room-power-levels-incoming"),
         bob_id,
         TimelineEventType::RoomPowerLevels,
         String::new(),
@@ -1103,7 +1101,7 @@ fn change_own_user_level_to_lower_power_level() {
         },
     });
     let current_room_power_levels_event = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-power-levels-current"),
+        event_id!("$room-power-levels-current"),
         alice_id.clone(),
         TimelineEventType::RoomPowerLevels,
         String::new(),
@@ -1117,7 +1115,7 @@ fn change_own_user_level_to_lower_power_level() {
         },
     });
     let pdu = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-power-levels-incoming"),
+        event_id!("$room-power-levels-incoming"),
         bob_id,
         TimelineEventType::RoomPowerLevels,
         String::new(),
@@ -1146,7 +1144,7 @@ fn creator_has_infinite_power() {
         },
     });
     let current_room_power_levels_event = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-power-levels-current"),
+        event_id!("$room-power-levels-current"),
         alice_id.clone(),
         TimelineEventType::RoomPowerLevels,
         String::new(),
@@ -1159,7 +1157,7 @@ fn creator_has_infinite_power() {
         },
     });
     let pdu = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-power-levels-incoming"),
+        event_id!("$room-power-levels-incoming"),
         alice_id,
         TimelineEventType::RoomPowerLevels,
         String::new(),
@@ -1189,7 +1187,7 @@ fn dont_allow_creator_in_users_field() {
         },
     });
     let current_room_power_levels_event = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-power-levels-current"),
+        event_id!("$room-power-levels-current"),
         alice_id.clone(),
         TimelineEventType::RoomPowerLevels,
         String::new(),
@@ -1203,7 +1201,7 @@ fn dont_allow_creator_in_users_field() {
         },
     });
     let pdu = Pdu::with_minimal_state_fields(
-        owned_event_id!("$room-power-levels-incoming"),
+        event_id!("$room-power-levels-incoming"),
         alice_id.clone(),
         TimelineEventType::RoomPowerLevels,
         String::new(),

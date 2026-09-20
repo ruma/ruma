@@ -4,7 +4,7 @@
 
 use std::collections::BTreeMap;
 
-use ruma_common::{OwnedVoipId, VoipVersionId};
+use ruma_common::{VoipId, VoipVersionId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -18,10 +18,10 @@ use super::StreamMetadata;
 #[ruma_event(type = "m.call.sdp_stream_metadata_changed", alias = "org.matrix.call.sdp_stream_metadata_changed", kind = MessageLike)]
 pub struct CallSdpStreamMetadataChangedEventContent {
     /// A unique identifier for the call.
-    pub call_id: OwnedVoipId,
+    pub call_id: VoipId,
 
     /// A unique ID for this session for the duration of the call.
-    pub party_id: OwnedVoipId,
+    pub party_id: VoipId,
 
     /// The version of the VoIP specification this messages adheres to.
     ///
@@ -39,8 +39,8 @@ impl CallSdpStreamMetadataChangedEventContent {
     /// Creates a new `SdpStreamMetadataChangedEventContent` with the given call ID, party ID, VoIP
     /// version and stream metadata.
     pub fn new(
-        call_id: OwnedVoipId,
-        party_id: OwnedVoipId,
+        call_id: VoipId,
+        party_id: VoipId,
         version: VoipVersionId,
         sdp_stream_metadata: BTreeMap<String, StreamMetadata>,
     ) -> Self {

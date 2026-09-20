@@ -14,7 +14,7 @@ use super::{
     UserLimitExceededErrorData, WrongRoomKeysVersionErrorData,
 };
 #[cfg(feature = "unstable-msc4406")]
-use crate::{OwnedUserId, api::error::SenderIgnoredErrorData};
+use crate::{UserId, api::error::SenderIgnoredErrorData};
 
 enum Field<'de> {
     ErrorCode,
@@ -254,7 +254,7 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             #[cfg(feature = "unstable-msc4406")]
             ErrorCode::SenderIgnored => ErrorKind::SenderIgnored(SenderIgnoredErrorData {
                 sender: sender
-                    .map(from_json_value::<Option<OwnedUserId>>)
+                    .map(from_json_value::<Option<UserId>>)
                     .transpose()
                     .map_err(de::Error::custom)?
                     .flatten(),

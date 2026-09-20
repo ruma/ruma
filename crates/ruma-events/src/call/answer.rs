@@ -4,7 +4,7 @@
 
 use std::collections::BTreeMap;
 
-use ruma_common::{OwnedVoipId, VoipVersionId};
+use ruma_common::{VoipId, VoipVersionId};
 use ruma_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
@@ -23,11 +23,11 @@ pub struct CallAnswerEventContent {
     pub answer: SessionDescription,
 
     /// A unique identifier for the call.
-    pub call_id: OwnedVoipId,
+    pub call_id: VoipId,
 
     /// **Required in VoIP version 1.** A unique ID for this session for the duration of the call.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub party_id: Option<OwnedVoipId>,
+    pub party_id: Option<VoipId>,
 
     /// The version of the VoIP specification this messages adheres to.
     pub version: VoipVersionId,
@@ -46,7 +46,7 @@ pub struct CallAnswerEventContent {
 
 impl CallAnswerEventContent {
     /// Creates an `CallAnswerEventContent` with the given answer, call ID and VoIP version.
-    pub fn new(answer: SessionDescription, call_id: OwnedVoipId, version: VoipVersionId) -> Self {
+    pub fn new(answer: SessionDescription, call_id: VoipId, version: VoipVersionId) -> Self {
         Self {
             answer,
             call_id,
@@ -60,17 +60,13 @@ impl CallAnswerEventContent {
 
     /// Convenience method to create a VoIP version 0 `CallAnswerEventContent` with all the required
     /// fields.
-    pub fn version_0(answer: SessionDescription, call_id: OwnedVoipId) -> Self {
+    pub fn version_0(answer: SessionDescription, call_id: VoipId) -> Self {
         Self::new(answer, call_id, VoipVersionId::V0)
     }
 
     /// Convenience method to create a VoIP version 1 `CallAnswerEventContent` with all the required
     /// fields.
-    pub fn version_1(
-        answer: SessionDescription,
-        call_id: OwnedVoipId,
-        party_id: OwnedVoipId,
-    ) -> Self {
+    pub fn version_1(answer: SessionDescription, call_id: VoipId, party_id: VoipId) -> Self {
         Self {
             answer,
             call_id,

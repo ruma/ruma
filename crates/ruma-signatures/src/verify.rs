@@ -3,8 +3,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use ruma_common::{
-    AnyKeyName, CanonicalJsonObject, CanonicalJsonValue, IdParseError, OwnedEventId,
-    OwnedServerName, SigningKeyAlgorithm, SigningKeyId, UserId,
+    AnyKeyName, CanonicalJsonObject, CanonicalJsonValue, EventId, IdParseError, ServerName,
+    SigningKeyAlgorithm, SigningKeyId, UserId,
     canonical_json::{
         CanonicalJsonFieldError, CanonicalJsonObjectExt, CanonicalJsonType, RedactingSerializer,
     },
@@ -344,7 +344,7 @@ fn verify_canonical_json_for_entity(
         };
 
         // If we cannot parse the key ID, ignore.
-        let Ok(parsed_key_id) = <&SigningKeyId<AnyKeyName>>::try_from(key_id.as_str()) else {
+        let Ok(parsed_key_id) = <SigningKeyId<AnyKeyName>>::try_from(key_id.as_str()) else {
             continue;
         };
 
@@ -419,12 +419,12 @@ where
 pub fn required_server_signatures_to_verify_event(
     object: &CanonicalJsonObject,
     rules: &SignaturesRules,
-) -> Result<BTreeSet<OwnedServerName>, VerificationError> {
+) -> Result<BTreeSet<ServerName>, VerificationError> {
     let mut servers_to_check = BTreeSet::new();
 
     if !is_invite_via_third_party_id(object)? {
         let sender = object.get_as_required_string("sender", "sender")?;
-        let user_id = <&UserId>::try_from(sender).map_err(|source| {
+        let user_id = UserId::try_from(sender).map_err(|source| {
             VerificationError::ParseIdentifier { identifier_type: "user ID", source }
         })?;
 
@@ -433,16 +433,15 @@ pub fn required_server_signatures_to_verify_event(
 
     if rules.check_event_id_server {
         let raw_event_id = object.get_as_required_string("event_id", "event_id")?;
-        let event_id: OwnedEventId = raw_event_id.parse().map_err(|source| {
+        let event_id: EventId = raw_event_id.parse().map_err(|source| {
             VerificationError::ParseIdentifier { identifier_type: "event ID", source }
         })?;
 
-        let server_name = event_id.server_name().map(ToOwned::to_owned).ok_or_else(|| {
-            VerificationError::ParseIdentifier {
+        let server_name =
+            event_id.server_name().ok_or_else(|| VerificationError::ParseIdentifier {
                 identifier_type: "event ID",
                 source: IdParseError::InvalidServerName,
-            }
-        })?;
+            })?;
 
         servers_to_check.insert(server_name);
     }
@@ -460,7 +459,7 @@ pub fn required_server_signatures_to_verify_event(
             .transpose()?
             .flatten()
     {
-        let authorized_user = <&UserId>::try_from(authorized_user).map_err(|source| {
+        let authorized_user = UserId::try_from(authorized_user).map_err(|source| {
             VerificationError::ParseIdentifier { identifier_type: "user ID", source }
         })?;
 

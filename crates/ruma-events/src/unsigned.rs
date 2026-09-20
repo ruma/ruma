@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use js_int::Int;
 use ruma_common::{
-    EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedTransactionId, OwnedUserId, UserId,
+    EventId, MilliSecondsSinceUnixEpoch, TransactionId, UserId,
     serde::{CanBeEmpty, Raw},
 };
 use serde::{Deserialize, de::DeserializeOwned};
@@ -31,7 +31,7 @@ pub struct MessageLikeUnsigned<C: MessageLikeEventContent> {
 
     /// The client-supplied transaction ID, if the client being given the event is the same one
     /// which sent it.
-    pub transaction_id: Option<OwnedTransactionId>,
+    pub transaction_id: Option<TransactionId>,
 
     /// [Bundled aggregations] of related child events.
     ///
@@ -97,10 +97,10 @@ pub struct StateUnsigned<C: PossiblyRedactedStateEventContent> {
 
     /// The client-supplied transaction ID, if the client being given the event is the same one
     /// which sent it.
-    pub transaction_id: Option<OwnedTransactionId>,
+    pub transaction_id: Option<TransactionId>,
 
     /// The event ID of the state event replaced by this event.
-    pub replaces_state: Option<OwnedEventId>,
+    pub replaces_state: Option<EventId>,
 
     /// Optional previous content of the event.
     pub prev_content: Option<C>,
@@ -249,10 +249,10 @@ pub struct UnsignedRoomRedactionEvent {
     pub content: RoomRedactionEventContent,
 
     /// The globally unique event identifier for the user who sent the event.
-    pub event_id: OwnedEventId,
+    pub event_id: EventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    pub sender: OwnedUserId,
+    pub sender: UserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     pub origin_server_ts: MilliSecondsSinceUnixEpoch,
@@ -270,10 +270,10 @@ pub struct CustomRedactionEvent {
     event_type: Box<str>,
 
     /// The globally unique event identifier for the user who sent the event.
-    event_id: OwnedEventId,
+    event_id: EventId,
 
     /// The fully-qualified ID of the user who sent this event.
-    sender: OwnedUserId,
+    sender: UserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
     origin_server_ts: MilliSecondsSinceUnixEpoch,

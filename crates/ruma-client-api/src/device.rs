@@ -1,6 +1,6 @@
 //! Endpoints for managing devices.
 
-use ruma_common::{MilliSecondsSinceUnixEpoch, OwnedDeviceId};
+use ruma_common::{DeviceId, MilliSecondsSinceUnixEpoch};
 use serde::{Deserialize, Serialize};
 
 pub mod delete_device;
@@ -14,7 +14,7 @@ pub mod update_device;
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct Device {
     /// Device ID
-    pub device_id: OwnedDeviceId,
+    pub device_id: DeviceId,
 
     /// Public display name of the device.
     pub display_name: Option<String>,
@@ -29,7 +29,7 @@ pub struct Device {
 
 impl Device {
     /// Creates a new `Device` with the given device ID.
-    pub fn new(device_id: OwnedDeviceId) -> Self {
+    pub fn new(device_id: DeviceId) -> Self {
         Self { device_id, display_name: None, last_seen_ip: None, last_seen_ts: None }
     }
 }

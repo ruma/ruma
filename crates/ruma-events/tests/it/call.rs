@@ -3,7 +3,7 @@ use assign::assign;
 use js_int::uint;
 use ruma_common::{
     MilliSecondsSinceUnixEpoch, VoipVersionId, canonical_json::assert_to_canonical_json_eq,
-    owned_room_id, serde::CanBeEmpty,
+    room_id, serde::CanBeEmpty,
 };
 #[cfg(feature = "unstable-msc2747")]
 use ruma_events::call::CallCapabilities;
@@ -118,7 +118,7 @@ fn answer_v0_event_deserialization_then_convert_to_full() {
 
     assert_let!(
         AnyMessageLikeEvent::CallAnswer(MessageLikeEvent::Original(message_event)) =
-            sync_ev.into_full_event(owned_room_id!("!roomid:room.com"))
+            sync_ev.into_full_event(room_id!("!roomid:room.com"))
     );
     assert_eq!(message_event.event_id, "$h29iv0s8:example.com");
     assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));

@@ -10,7 +10,7 @@ pub mod unstable {
     use std::time::Duration;
 
     use ruma_common::{
-        OwnedRoomId, OwnedTransactionId,
+        RoomId, TransactionId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::Raw,
@@ -33,7 +33,7 @@ pub mod unstable {
     pub struct Request {
         /// The room to send the event to.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The type of event to send.
         #[ruma_api(path)]
@@ -49,7 +49,7 @@ pub mod unstable {
         ///
         /// [access token is refreshed]: https://spec.matrix.org/v1.19/client-server-api/#refreshing-access-tokens
         #[ruma_api(path)]
-        pub txn_id: OwnedTransactionId,
+        pub txn_id: TransactionId,
 
         /// The duration that the server should wait before sending this event
         #[serde(with = "ruma_common::serde::duration::ms")]
@@ -94,8 +94,8 @@ pub mod unstable {
         /// Since `Request` stores the request body in serialized form, this function can fail if
         /// `T`s [`::serde::Serialize`] implementation can fail.
         pub fn new(
-            room_id: OwnedRoomId,
-            txn_id: OwnedTransactionId,
+            room_id: RoomId,
+            txn_id: TransactionId,
             delay: Duration,
             state_key: Option<String>,
             content: &AnyTimelineEventContent,
@@ -116,8 +116,8 @@ pub mod unstable {
         /// `delay_parameters` and raw event content.
         pub fn new_raw(
             event_type: TimelineEventType,
-            room_id: OwnedRoomId,
-            txn_id: OwnedTransactionId,
+            room_id: RoomId,
+            txn_id: TransactionId,
             delay: Duration,
             state_key: Option<String>,
             content: Raw<AnyTimelineEventContent>,
@@ -152,7 +152,7 @@ pub mod unstable {
                 MatrixVersion, OutgoingRequestExt as _, SupportedVersions,
                 auth_scheme::SendAccessToken,
             },
-            owned_room_id,
+            room_id,
         };
         use ruma_events::{AnyMessageLikeEventContent, room::message::RoomMessageEventContent};
         use serde_json::{Value as JsonValue, json};
@@ -162,7 +162,7 @@ pub mod unstable {
 
         #[test]
         fn serialize_send_delayed_event_request() {
-            let room_id = owned_room_id!("!roomid:example.org");
+            let room_id = room_id!("!roomid:example.org");
             let supported = SupportedVersions {
                 versions: [MatrixVersion::V1_1].into(),
                 features: Default::default(),
@@ -207,7 +207,7 @@ pub mod unstable {
             };
 
             let mut req = Request::new(
-                owned_room_id!("!roomid:example.org"),
+                room_id!("!roomid:example.org"),
                 "1234".into(),
                 Duration::from_millis(30_000),
                 None,

@@ -1,4 +1,4 @@
-//! Types and functions to handle the identifiers internal storage representations.
+//! Implementation of the `ruma_id` attribute macro.
 
 use std::borrow::Cow;
 
@@ -6,30 +6,70 @@ use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::parse_quote;
 
-use super::{IdDst, Types};
+mod parse;
+
+pub(crate) use self::parse::RumaIdAttrs;
 use crate::util::{RumaCommon, RumaCommonReexport};
 
-/// Data for the owned variant of an identifier.
-pub(super) struct OwnedId {
-    /// The name of the owned type.
-    pub(super) ident: syn::Ident,
+/// Generate the `Owned` version of an identifier and various trait implementations.
+pub(crate) fn expand_ruma_id(
+    ruma_id_attrs: RumaIdAttrs,
+    item: syn::ItemStruct,
+) -> syn::Result<TokenStream> {
+    let ruma_id = RumaId::parse(ruma_id_attrs, item)?;
 
-    /// The owned type with generics, if any.
-    pub(super) id_type: syn::Type,
+    let struct_impl = ruma_id.expand_struct();
+    let id_to_string_impls = ruma_id.expand_to_string_impls();
+    let fallible_from_str_impls = ruma_id.expand_fallible_from_str_impls();
+    let infallible_from_str_impls = ruma_id.expand_infallible_from_str_impls();
+    let partial_eq_impls = ruma_id.expand_partial_eq_impls();
+
+    Ok(quote! {
+        #struct_impl
+        #id_to_string_impls
+        #fallible_from_str_impls
+        #infallible_from_str_impls
+        #partial_eq_impls
+    })
+}
+
+/// The parsed input of the `ruma_id` macro.
+struct RumaId {
+    /// The name of the identifier type.
+    ident: syn::Ident,
+
+    /// The attributes on the identifier type.
+    attrs: Vec<syn::Attribute>,
+
+    /// The visibility of the identifier type.
+    vis: syn::Visibility,
+
+    /// The identifier type with generics, if any.
+    id_type: syn::Type,
+
+    /// The generics on the identifier type.
+    generics: syn::Generics,
+
+    /// The declaration of the generics of the identifier type to use on `impl` blocks.
+    impl_generics: TokenStream,
+
+    /// The path to the function to use to validate the identifier.
+    validate: Option<syn::Path>,
 
     /// The size of the inline array for the `SmallVec` inner representation.
-    pub(super) smallvec_inline_bytes: usize,
+    smallvec_inline_bytes: usize,
 
     /// `#[cfg]` attributes for the internal storage representations.
     storage_attrs: StorageCfgAttributes,
+
+    /// Common types.
+    types: Types,
+
+    /// The path to use imports from the ruma-common crate.
+    ruma_common: RumaCommon,
 }
 
-impl OwnedId {
-    /// Construct a new `OwnedId`.
-    pub(super) fn new(ident: syn::Ident, id_type: syn::Type, smallvec_inline_bytes: usize) -> Self {
-        Self { ident, id_type, smallvec_inline_bytes, storage_attrs: StorageCfgAttributes::new() }
-    }
-
+impl RumaId {
     /// Expand an implementation for all the internal storage representations by calling the given
     /// function for each value and concatenating the outputs gated behind the proper `#[cfg]`
     /// attribute.
@@ -51,15 +91,16 @@ impl OwnedId {
             .collect()
     }
 
-    /// Generate the `Owned{ident}` type and its implementations.
-    pub(super) fn expand_struct(&self, id_dst: &IdDst) -> TokenStream {
-        let owned_ident = &self.ident;
-        let owned_id = &self.id_type;
-
-        let generics = &id_dst.generics;
-        let impl_generics = &id_dst.impl_generics;
-        let types = &id_dst.types;
-        let ruma_common = &id_dst.ruma_common;
+    /// Generate the identifier type and its basic implementations.
+    pub(super) fn expand_struct(&self) -> TokenStream {
+        let ident = &self.ident;
+        let attrs = &self.attrs;
+        let vis = &self.vis;
+        let id = &self.id_type;
+        let generics = &self.generics;
+        let impl_generics = &self.impl_generics;
+        let types = &self.types;
+        let ruma_common = &self.ruma_common;
 
         let str = &types.str;
         let box_str = &types.box_str;
@@ -86,10 +127,9 @@ impl OwnedId {
         }
         .unzip();
 
-        let doc_header = format!("Owned variant of [`{}`].", id_dst.ident);
         let doc_values = StorageCfgValue::ALL
             .iter()
-            .map(|value| StorageCfgValue::doc(value, self))
+            .map(|value| StorageCfgValue::doc(value, self.smallvec_inline_bytes))
             .collect::<Vec<_>>()
             .join("\n* ");
 
@@ -110,10 +150,14 @@ impl OwnedId {
             let expanded = value.expand_from_string_impl(&string_var, types);
             quote! { inner: #expanded, }
         });
+
+        let as_str_docs = format!("Extracts a string slice from this `{ident}`.");
         let as_str_impls = self.expand_for_each_storage_value(|value| {
             let expanded = value.expand_as_str_impl(&self_inner_field, types);
             quote! { { #expanded } }
         });
+
+        let as_bytes_docs = format!("Extracts a byte slice from this `{ident}`.");
         let as_bytes_impls = self.expand_for_each_storage_value(|value| {
             let expanded = value.expand_as_bytes_impl(&self_inner_field);
             quote! { { #expanded } }
@@ -150,7 +194,7 @@ impl OwnedId {
         });
 
         let zeroize_doc_header = format!(
-            "Securely zero memory (aka [zeroize](https://en.wikipedia.org/wiki/Zeroisation)) of `{owned_ident}`."
+            "Securely zero memory (aka [zeroize](https://en.wikipedia.org/wiki/Zeroisation)) of `{ident}`."
         );
         let zeroize_impls = self.expand_for_each_storage_value(|value| {
             let expanded = value.expand_zeroize_impl(&self_inner_field, ruma_common);
@@ -167,7 +211,7 @@ impl OwnedId {
         });
 
         quote! {
-            #[doc = #doc_header]
+            #( #attrs )*
             ///
             /// ## Inner representation
             ///
@@ -202,13 +246,13 @@ impl OwnedId {
             /// ```shell
             /// RUMA_IDENTIFIERS_STORAGE="{value}"
             /// ```
-            pub struct #owned_ident #generics {
+            #vis struct #ident #generics {
                 #inner_types_decl
                 #phantom_decl
             }
 
             #[automatically_derived]
-            impl #impl_generics #owned_id {
+            impl #impl_generics #id {
                 pub(super) fn from_str_unchecked(#string_var: &#str) -> Self {
                     Self {
                         #from_str_impls
@@ -230,13 +274,15 @@ impl OwnedId {
                     }
                 }
 
-                /// Access the inner string without going through the borrowed type.
-                pub(super) fn as_inner_str(&self) -> &#str {
+                #[doc = #as_str_docs]
+                #[inline]
+                pub fn as_str(&self) -> &#str {
                     #as_str_impls
                 }
 
-                /// Access the inner bytes without going through the borrowed type.
-                pub(super) fn as_inner_bytes(&self) -> &#bytes {
+                #[doc = #as_bytes_docs]
+                #[inline]
+                pub fn as_bytes(&self) -> &#bytes {
                     #as_bytes_impls
                 }
 
@@ -268,95 +314,341 @@ impl OwnedId {
             }
 
             #[automatically_derived]
-            impl #impl_generics ::std::clone::Clone for #owned_id {
+            impl #impl_generics ::std::clone::Clone for #id {
                 fn clone(&self) -> Self {
                     unsafe { Self::from_inner_unchecked(self.inner.clone()) }
                 }
             }
 
             #[automatically_derived]
-            impl #impl_generics ::std::cmp::PartialEq for #owned_id {
+            impl #impl_generics ::std::cmp::PartialEq for #id {
                 fn eq(&self, other: &Self) -> ::std::primitive::bool {
                     self.inner.eq(&other.inner)
                 }
             }
 
             #[automatically_derived]
-            impl #impl_generics ::std::cmp::Eq for #owned_id {}
+            impl #impl_generics ::std::cmp::Eq for #id {}
 
             #[automatically_derived]
-            impl #impl_generics ::std::cmp::PartialOrd for #owned_id {
+            impl #impl_generics ::std::cmp::PartialOrd for #id {
                 fn partial_cmp(&self, other: &Self) -> ::std::option::Option<::std::cmp::Ordering> {
                     ::std::option::Option::Some(self.cmp(other))
                 }
             }
 
             #[automatically_derived]
-            impl #impl_generics ::std::cmp::Ord for #owned_id {
+            impl #impl_generics ::std::cmp::Ord for #id {
                 fn cmp(&self, other: &Self) -> ::std::cmp::Ordering {
                     self.inner.cmp(&other.inner)
                 }
             }
 
             #[automatically_derived]
-            impl #impl_generics ::std::hash::Hash for #owned_id {
+            impl #impl_generics ::std::hash::Hash for #id {
                 fn hash<H>(&self, state: &mut H)
                 where
                     H: ::std::hash::Hasher,
                 {
-                    self.as_inner_str().hash(state)
+                    self.as_str().hash(state)
                 }
             }
 
             #[automatically_derived]
-            impl #impl_generics ::std::borrow::Borrow<#str> for #owned_id {
+            impl #impl_generics ::std::borrow::Borrow<#str> for #id {
                 fn borrow(&self) -> &#str {
-                    self.as_inner_str()
+                    self.as_str()
                 }
             }
 
             #[automatically_derived]
-            impl #impl_generics ::std::convert::AsRef<#str> for #owned_id {
+            impl #impl_generics ::std::convert::AsRef<#str> for #id {
                 fn as_ref(&self) -> &#str {
-                    self.as_inner_str()
+                    self.as_str()
                 }
             }
 
             #[automatically_derived]
-            impl #impl_generics ::std::convert::AsRef<#bytes> for #owned_id {
+            impl #impl_generics ::std::convert::AsRef<#bytes> for #id {
                 fn as_ref(&self) -> &#bytes {
-                    self.as_inner_bytes()
+                    self.as_bytes()
                 }
             }
 
             #[automatically_derived]
-            impl #impl_generics ::std::convert::From<#owned_id> for #box_str {
-                fn from(id: #owned_id) -> Self {
+            impl #impl_generics ::std::convert::From<#id> for #box_str {
+                fn from(id: #id) -> Self {
                     #into_box_str_impls
                 }
             }
 
             #[automatically_derived]
-            impl #impl_generics ::std::convert::From<#owned_id> for #string {
-                fn from(id: #owned_id) -> Self {
+            impl #impl_generics ::std::convert::From<#id> for #string {
+                fn from(id: #id) -> Self {
                     #into_string_impls
                 }
             }
 
             #[automatically_derived]
-            impl #impl_generics ::std::convert::From<&#owned_id> for #string {
-                fn from(id: &#owned_id) -> Self {
-                    id.as_inner_str().to_owned()
+            impl #impl_generics ::std::convert::From<&#id> for #string {
+                fn from(id: &#id) -> Self {
+                    id.as_str().to_owned()
                 }
             }
 
             #[automatically_derived]
-            impl #impl_generics ::std::convert::From<&#owned_id> for #owned_id {
-                fn from(id: &#owned_id) -> Self {
+            impl #impl_generics ::std::convert::From<&#id> for #id {
+                fn from(id: &#id) -> Self {
                     id.clone()
                 }
             }
         }
+    }
+
+    /// Generate `FromStr` and other fallible string conversions implementations for this
+    /// identifier, if it has a validation function.
+    ///
+    /// The error returned during conversion is `ruma_common::IdParseError`.
+    fn expand_fallible_from_str_impls(&self) -> Option<TokenStream> {
+        let validate = self.validate.as_ref()?;
+
+        let ident = &self.ident;
+        let generic_params = &self.generics.params;
+        let impl_generics = &self.impl_generics;
+
+        let ruma_common = &self.ruma_common;
+        let serde = ruma_common.reexported(RumaCommonReexport::Serde);
+
+        let parse_doc_header = format!("Try parsing a `&str` into an `{ident}`.");
+
+        let str = &self.types.str;
+        let cow = &self.types.cow;
+        let box_str = &self.types.box_str;
+        let string = &self.types.string;
+        let cow_str = &self.types.cow_str;
+        let id = &self.id_type;
+
+        Some(quote! {
+            #[automatically_derived]
+            impl #impl_generics #id {
+                #[doc = #parse_doc_header]
+                ///
+                /// The same can also be done using `FromStr`, `TryFrom` or `TryInto`.
+                /// This function is simply more constrained and thus useful in generic contexts.
+                pub fn parse(
+                    s: impl ::std::convert::AsRef<#str>,
+                ) -> ::std::result::Result<Self, #ruma_common::IdParseError> {
+                    let s = s.as_ref();
+                    #validate(s)?;
+                    ::std::result::Result::Ok(Self::from_str_unchecked(s))
+                }
+            }
+
+            #[automatically_derived]
+            impl #impl_generics ::std::str::FromStr for #id {
+                type Err = #ruma_common::IdParseError;
+
+                fn from_str(s: &#str) -> ::std::result::Result<Self, Self::Err> {
+                    Self::parse(s)
+                }
+            }
+
+            #[automatically_derived]
+            impl #impl_generics ::std::convert::TryFrom<&#str> for #id {
+                type Error = #ruma_common::IdParseError;
+
+                fn try_from(s: &#str) -> ::std::result::Result<Self, Self::Error> {
+                    Self::parse(s)
+                }
+            }
+
+            #[automatically_derived]
+            impl #impl_generics ::std::convert::TryFrom<#box_str> for #id {
+                type Error = #ruma_common::IdParseError;
+
+                fn try_from(s: #box_str) -> ::std::result::Result<Self, Self::Error> {
+                    #validate(&s)?;
+                    ::std::result::Result::Ok(Self::from_box_str_unchecked(s))
+                }
+            }
+
+            #[automatically_derived]
+            impl #impl_generics ::std::convert::TryFrom<#string> for #id {
+                type Error = #ruma_common::IdParseError;
+
+                fn try_from(s: #string) -> ::std::result::Result<Self, Self::Error> {
+                    #validate(&s)?;
+                    ::std::result::Result::Ok(Self::from_string_unchecked(s))
+                }
+            }
+
+            #[automatically_derived]
+            impl<'a, #generic_params> ::std::convert::TryFrom<#cow_str> for #id {
+                type Error = #ruma_common::IdParseError;
+
+                fn try_from(s: #cow_str) -> ::std::result::Result<Self, Self::Error> {
+                    #validate(&s)?;
+                    Ok(match s {
+                        #cow::Borrowed(s) => Self::from_str_unchecked(s),
+                        #cow::Owned(s) => Self::from_string_unchecked(s),
+                    })
+                }
+            }
+
+            #[automatically_derived]
+            impl<'de, #generic_params> #serde::Deserialize<'de> for #id {
+                fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+                where
+                    D: #serde::Deserializer<'de>,
+                {
+                    use #serde::de::Error;
+
+                    // We always deserialize as a string to make sure that it is valid UTF-8,
+                    // regardless of the inner representation.
+                    #ruma_common::serde::deserialize_cow_str(deserializer)?
+                        .try_into()
+                        .map_err(D::Error::custom)
+                }
+            }
+        })
+    }
+
+    /// Generate `From<&str>` and other infallible string conversions implementations for this
+    /// identifier, if it doesn't have a validation function.
+    fn expand_infallible_from_str_impls(&self) -> Option<TokenStream> {
+        if self.validate.is_some() {
+            return None;
+        }
+
+        let impl_generics = &self.impl_generics;
+        let generic_params = &self.generics.params;
+
+        let str = &self.types.str;
+        let cow = &self.types.cow;
+        let box_str = &self.types.box_str;
+        let string = &self.types.string;
+        let cow_str = &self.types.cow_str;
+        let id = &self.id_type;
+
+        let ruma_common = &self.ruma_common;
+        let serde = ruma_common.reexported(RumaCommonReexport::Serde);
+
+        Some(quote! {
+            #[automatically_derived]
+            impl #impl_generics ::std::convert::From<&#str> for #id {
+                fn from(s: &#str) -> Self {
+                    Self::from_str_unchecked(s)
+                }
+            }
+
+            #[automatically_derived]
+            impl #impl_generics ::std::convert::From<#box_str> for #id {
+                fn from(s: #box_str) -> Self {
+                    Self::from_box_str_unchecked(s)
+                }
+            }
+
+            #[automatically_derived]
+            impl #impl_generics ::std::convert::From<#string> for #id {
+                fn from(s: #string) -> Self {
+                    Self::from_string_unchecked(s)
+                }
+            }
+
+            #[automatically_derived]
+            impl<'a, #generic_params> ::std::convert::From<#cow_str> for #id {
+                fn from(s: #cow_str) -> Self {
+                    match s {
+                        #cow::Borrowed(s) => Self::from_str_unchecked(s),
+                        #cow::Owned(s) => Self::from_string_unchecked(s),
+                    }
+                }
+            }
+
+            #[automatically_derived]
+            impl<'de, #generic_params> #serde::Deserialize<'de> for #id {
+                fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+                where
+                    D: #serde::Deserializer<'de>,
+                {
+                    // We always deserialize as a string to make sure that it is valid UTF-8,
+                    // regardless of the inner representation.
+                    #ruma_common::serde::deserialize_cow_str(deserializer).map(::std::convert::Into::into)
+                }
+            }
+        })
+    }
+
+    /// Generate `std::fmt::Display`, `std::fmt::Debug` and `serde::Serialize` traits
+    /// implementations, using it's `.as_str()` function.
+    fn expand_to_string_impls(&self) -> TokenStream {
+        let serde = self.ruma_common.reexported(RumaCommonReexport::Serde);
+
+        let id = &self.id_type;
+        let impl_generics = &self.impl_generics;
+
+        quote! {
+            #[automatically_derived]
+            impl #impl_generics ::std::fmt::Display for #id {
+                fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+                    self.as_str().fmt(f)
+                }
+            }
+
+            #[automatically_derived]
+            impl #impl_generics ::std::fmt::Debug for #id {
+                fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+                    self.as_str().fmt(f)
+                }
+            }
+
+            #[automatically_derived]
+            impl #impl_generics #serde::Serialize for #id {
+                fn serialize<S>(&self, serializer: S) -> ::std::result::Result<S::Ok, S::Error>
+                where
+                    S: #serde::Serializer,
+                {
+                    serializer.serialize_str(self.as_str())
+                }
+            }
+        }
+    }
+
+    /// Generate `std::cmp::PartialEq` implementations by comparing strings.
+    fn expand_partial_eq_impls(&self) -> TokenStream {
+        let generics_params = &self.generics.params;
+        let impl_generics = &self.impl_generics;
+
+        let str = &self.types.str;
+        let string = &self.types.string;
+        let cow_str = &self.types.cow_str;
+        let id = &self.id_type;
+
+        let ref_id: syn::Type = parse_quote! { &#id };
+        let ref_str: syn::Type = parse_quote! { &#str };
+        let cow_generics = quote! { <'a, #generics_params> };
+
+        // Implement `PartialEq` with the given lhs and rhs types.
+        let expand_partial_eq = |lhs: &syn::Type, rhs: &syn::Type| {
+            let impl_generics =
+                if *lhs == *cow_str || *rhs == *cow_str { &cow_generics } else { impl_generics };
+
+            quote! {
+                #[automatically_derived]
+                impl #impl_generics ::std::cmp::PartialEq<#rhs> for #lhs {
+                    fn eq(&self, other: &#rhs) -> bool {
+                        ::std::convert::AsRef::<#str>::as_ref(self) == ::std::convert::AsRef::<#str>::as_ref(other)
+                    }
+                }
+            }
+        };
+
+        // Implement reciprocal `PartialEq` implementation for the identifier type with common
+        // string types.
+        [str, &ref_str, string, cow_str, &ref_id]
+            .iter()
+            .flat_map(|other| [expand_partial_eq(id, other), expand_partial_eq(other, id)])
+            .collect()
     }
 }
 
@@ -404,7 +696,7 @@ impl StorageCfgValue {
     /// The docs for this value.
     ///
     /// This should be a doc string that looks like `` `{value}` -- Use a `{type}`.``.
-    fn doc(&self, owned_id: &OwnedId) -> Cow<'static, str> {
+    fn doc(&self, smallvec_inline_bytes: usize) -> Cow<'static, str> {
         match self {
             Self::Default => Cow::Borrowed(""),
             Self::Arc => Cow::Borrowed("`Arc` -- Use an `Arc<str>`."),
@@ -413,9 +705,8 @@ impl StorageCfgValue {
                  Requires the `triomphe` cargo feature.",
             ),
             Self::SmallVec => Cow::Owned(format!(
-                "`SmallVec` -- Use a `smallvec::SmallVec<[u8; {}]>`. \
+                "`SmallVec` -- Use a `smallvec::SmallVec<[u8; {smallvec_inline_bytes}]>`. \
                  Requires the `smallvec` cargo feature.",
-                owned_id.smallvec_inline_bytes
             )),
         }
     }
@@ -571,7 +862,7 @@ impl StorageCfgValue {
         match self {
             Self::Default => quote! { #inner_field },
             Self::Arc | Self::ThinArc => quote! {
-                #id_var.as_inner_str().into()
+                #id_var.as_str().into()
             },
             Self::SmallVec => {
                 quote! {
@@ -591,7 +882,7 @@ impl StorageCfgValue {
         match self {
             Self::Default => quote! { #inner_field.into() },
             Self::Arc | Self::ThinArc => quote! {
-                #id_var.as_inner_str().into()
+                #id_var.as_str().into()
             },
             Self::SmallVec => {
                 let string = &types.string;
@@ -634,6 +925,59 @@ impl StorageCfgAttributes {
             arc: value_to_attribute(StorageCfgValue::Arc),
             small_vec: value_to_attribute(StorageCfgValue::SmallVec),
             thin_arc: value_to_attribute(StorageCfgValue::ThinArc),
+        }
+    }
+}
+
+/// Common types.
+struct Types {
+    /// `str`.
+    str: syn::Type,
+
+    /// `Cow`.
+    cow: syn::Type,
+
+    /// `Box<str>`.
+    box_str: syn::Type,
+
+    /// `Arc<str>`.
+    arc_str: syn::Type,
+
+    /// `String`.
+    string: syn::Type,
+
+    /// `Cow<'a, str>`.
+    cow_str: syn::Type,
+
+    /// `[u8]`.
+    bytes: syn::Type,
+
+    /// `triomphe::ThinArc<(), u8>`.
+    thin_arc_bytes: syn::Type,
+
+    /// `smallvec::SmallVec<[u8; N]`.
+    small_vec_bytes: syn::Type,
+}
+
+impl Types {
+    fn new(ruma_common: &RumaCommon, smallvec_inline_bytes: usize) -> Self {
+        let str = parse_quote! { ::std::primitive::str };
+        let byte = quote! { ::std::primitive::u8 };
+        let cow = parse_quote! { ::std::borrow::Cow };
+
+        let triomphe = ruma_common.reexported(RumaCommonReexport::Triomphe);
+        let smallvec = ruma_common.reexported(RumaCommonReexport::Smallvec);
+
+        Self {
+            box_str: parse_quote! { ::std::boxed::Box<#str> },
+            arc_str: parse_quote! { ::std::sync::Arc<#str> },
+            string: parse_quote! { ::std::string::String },
+            cow_str: parse_quote! { #cow<'a, #str> },
+            bytes: parse_quote! { [#byte] },
+            thin_arc_bytes: parse_quote! { #triomphe::ThinArc<(), #byte> },
+            small_vec_bytes: parse_quote! { #smallvec::SmallVec<[#byte; #smallvec_inline_bytes]> },
+            str,
+            cow,
         }
     }
 }

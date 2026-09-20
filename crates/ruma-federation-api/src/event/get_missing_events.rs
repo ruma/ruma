@@ -9,7 +9,7 @@ pub mod v1 {
 
     use js_int::{UInt, uint};
     use ruma_common::{
-        OwnedEventId, OwnedRoomId,
+        EventId, RoomId,
         api::{request, response},
         metadata,
     };
@@ -29,7 +29,7 @@ pub mod v1 {
     pub struct Request {
         /// The room ID to search in.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The maximum number of events to retrieve.
         ///
@@ -46,10 +46,10 @@ pub mod v1 {
         /// The latest event IDs that the sender already has.
         ///
         /// These are skipped when retrieving the previous events of `latest_events`.
-        pub earliest_events: Vec<OwnedEventId>,
+        pub earliest_events: Vec<EventId>,
 
         /// The event IDs to retrieve the previous events for.
-        pub latest_events: Vec<OwnedEventId>,
+        pub latest_events: Vec<EventId>,
     }
 
     /// Response type for the `get_missing_events` endpoint.
@@ -63,9 +63,9 @@ pub mod v1 {
     impl Request {
         /// Creates a new `Request` for events in the given room with the given constraints.
         pub fn new(
-            room_id: OwnedRoomId,
-            earliest_events: Vec<OwnedEventId>,
-            latest_events: Vec<OwnedEventId>,
+            room_id: RoomId,
+            earliest_events: Vec<EventId>,
+            latest_events: Vec<EventId>,
         ) -> Self {
             Self {
                 room_id,

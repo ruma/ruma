@@ -1,10 +1,10 @@
 use js_int::{UInt, uint};
 use ruma_common::{
-    EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId, RoomVersionId,
-    owned_event_id, owned_user_id,
+    EventId, MilliSecondsSinceUnixEpoch, RoomId, RoomVersionId, UserId, event_id,
     room::JoinRule,
     room_version_rules::{AuthorizationRules, RoomVersionRules},
     serde::JsonObject,
+    user_id,
 };
 use ruma_events::{StateEventType, TimelineEventType};
 use serde_json::{json, to_value as to_json_value};
@@ -31,7 +31,7 @@ use crate::{
 /// Every PDU in the factory can be modified after creation if needed.
 pub struct RoomTimelineFactory {
     /// The ID of the room.
-    room_id: OwnedRoomId,
+    room_id: RoomId,
 
     /// The rules for the current room version.
     rules: RoomVersionRules,
@@ -42,17 +42,17 @@ pub struct RoomTimelineFactory {
     server_ts: UInt,
 
     /// The PDUs in the room.
-    pdus: EventIdMap<OwnedEventId, Pdu>,
+    pdus: EventIdMap<EventId, Pdu>,
 
     /// The ordered list of PDUs in the timeline.
     ///
     /// Following the `prev_events` of PDUs should give that order.
-    timeline: Vec<OwnedEventId>,
+    timeline: Vec<EventId>,
 
     /// The current state at the end of the timeline.
     ///
     /// Map of `(type, state_key)` to `event_id`.
-    state: StateMap<OwnedEventId>,
+    state: StateMap<EventId>,
 }
 
 impl RoomTimelineFactory {
@@ -97,7 +97,7 @@ impl RoomTimelineFactory {
     }
 
     /// Get a reference to map of PDUs.
-    pub fn pdus(&self) -> &EventIdMap<OwnedEventId, Pdu> {
+    pub fn pdus(&self) -> &EventIdMap<EventId, Pdu> {
         &self.pdus
     }
 
@@ -134,16 +134,12 @@ impl RoomTimelineFactory {
     }
 
     /// Get a reference to the state map.
-    pub fn state(&self) -> &StateMap<OwnedEventId> {
+    pub fn state(&self) -> &StateMap<EventId> {
         &self.state
     }
 
     /// Get the event ID of the PDU for the given `type` and `state_key` in the current state.
-    pub fn state_event_id(
-        &self,
-        event_type: &StateEventType,
-        state_key: &str,
-    ) -> Option<&OwnedEventId> {
+    pub fn state_event_id(&self, event_type: &StateEventType, state_key: &str) -> Option<&EventId> {
         self.state.get(&(event_type.clone(), state_key.to_owned()))
     }
 
@@ -163,7 +159,7 @@ impl RoomTimelineFactory {
     /// Get the full auth chain for the given state map.
     ///
     /// Panics if an event in the auth chain is missing from the map of PDUs.
-    pub fn full_auth_chain(&self, state_map: &StateMap<OwnedEventId>) -> EventIdSet<OwnedEventId> {
+    pub fn full_auth_chain(&self, state_map: &StateMap<EventId>) -> EventIdSet<EventId> {
         let mut auth_chain = EventIdSet::new();
         let mut stack = state_map.values().cloned().collect::<Vec<_>>();
 
@@ -242,8 +238,8 @@ impl RoomTimelineFactory {
     /// Returns the newly created PDU.
     pub fn create_room_member(
         &mut self,
-        event_id: OwnedEventId,
-        target: OwnedUserId,
+        event_id: EventId,
+        target: UserId,
         content: RoomMemberPduContent,
     ) -> Pdu {
         let (sender, content) = content.into_parts(&target);
@@ -268,8 +264,8 @@ impl RoomTimelineFactory {
     /// Returns a mutable reference to the added PDU.
     pub fn add_room_member(
         &mut self,
-        event_id: OwnedEventId,
-        target: OwnedUserId,
+        event_id: EventId,
+        target: UserId,
         content: RoomMemberPduContent,
     ) -> &mut Pdu {
         let pdu = self.create_room_member(event_id, target, content);
@@ -281,8 +277,8 @@ impl RoomTimelineFactory {
     /// Returns the newly created PDU.
     pub fn create_room_power_levels(
         &mut self,
-        event_id: OwnedEventId,
-        sender: OwnedUserId,
+        event_id: EventId,
+        sender: UserId,
         content: RoomPowerLevelsPduContent,
     ) -> Pdu {
         let mut pdu = Pdu::with_minimal_state_fields(
@@ -302,8 +298,8 @@ impl RoomTimelineFactory {
     /// Returns a mutable reference to the added PDU.
     pub fn add_room_power_levels(
         &mut self,
-        event_id: OwnedEventId,
-        sender: OwnedUserId,
+        event_id: EventId,
+        sender: UserId,
         content: RoomPowerLevelsPduContent,
     ) -> &mut Pdu {
         let pdu = self.create_room_power_levels(event_id, sender, content);
@@ -315,8 +311,8 @@ impl RoomTimelineFactory {
     /// Returns the newly created PDU.
     pub fn create_room_join_rules(
         &mut self,
-        event_id: OwnedEventId,
-        sender: OwnedUserId,
+        event_id: EventId,
+        sender: UserId,
         join_rule: JoinRule,
     ) -> Pdu {
         let mut pdu = Pdu::with_minimal_state_fields(
@@ -336,8 +332,8 @@ impl RoomTimelineFactory {
     /// Returns a mutable reference to the added PDU.
     pub fn add_room_join_rules(
         &mut self,
-        event_id: OwnedEventId,
-        sender: OwnedUserId,
+        event_id: EventId,
+        sender: UserId,
         join_rule: JoinRule,
     ) -> &mut Pdu {
         let pdu = self.create_room_join_rules(event_id, sender, join_rule);
@@ -349,9 +345,9 @@ impl RoomTimelineFactory {
     /// Returns the newly created PDU.
     pub fn create_room_redaction(
         &mut self,
-        event_id: OwnedEventId,
-        sender: OwnedUserId,
-        redacts: OwnedEventId,
+        event_id: EventId,
+        sender: UserId,
+        redacts: EventId,
     ) -> Pdu {
         let mut content = JsonObject::new();
 
@@ -372,9 +368,9 @@ impl RoomTimelineFactory {
     /// Returns a mutable reference to the added PDU.
     pub fn add_room_redaction(
         &mut self,
-        event_id: OwnedEventId,
-        sender: OwnedUserId,
-        redacts: OwnedEventId,
+        event_id: EventId,
+        sender: UserId,
+        redacts: EventId,
     ) -> &mut Pdu {
         let pdu = self.create_room_redaction(event_id, sender, redacts);
         self.add_pdu(pdu)
@@ -385,8 +381,8 @@ impl RoomTimelineFactory {
     /// Returns the newly created PDU.
     pub fn create_text_message(
         &mut self,
-        event_id: OwnedEventId,
-        sender: OwnedUserId,
+        event_id: EventId,
+        sender: UserId,
         text: impl Into<String>,
     ) -> Pdu {
         let mut pdu = Pdu::with_minimal_fields(
@@ -427,7 +423,7 @@ impl RoomTimelineFactory {
         });
 
         let mut pdu = Pdu::with_minimal_state_fields(
-            owned_event_id!("$room-third-party-invite-zara"),
+            event_id!("$room-third-party-invite-zara"),
             UserFactory::Bob.user_id(),
             TimelineEventType::RoomThirdPartyInvite,
             "uniquetoken".to_owned(),
@@ -484,7 +480,7 @@ impl RoomTimelineFactory {
         });
 
         let mut pdu = Pdu::with_minimal_state_fields(
-            owned_event_id!("$room-member-zara-invite"),
+            event_id!("$room-member-zara-invite"),
             bob_id,
             TimelineEventType::RoomMember,
             zara_id.into(),
@@ -567,13 +563,13 @@ impl PublicChatInitialPdu {
     }
 
     /// The default `event_id` of the PDU.
-    pub fn event_id(self) -> OwnedEventId {
+    pub fn event_id(self) -> EventId {
         match self {
-            Self::RoomCreate => owned_event_id!("$room-create"),
-            Self::RoomMemberAliceJoin => owned_event_id!("$room-member-alice-join"),
-            Self::RoomPowerLevels => owned_event_id!("$room-power-levels"),
-            Self::RoomJoinRules => owned_event_id!("$room-join-rules"),
-            Self::RoomMemberBobJoin => owned_event_id!("$room-member-bob-join"),
+            Self::RoomCreate => event_id!("$room-create"),
+            Self::RoomMemberAliceJoin => event_id!("$room-member-alice-join"),
+            Self::RoomPowerLevels => event_id!("$room-power-levels"),
+            Self::RoomJoinRules => event_id!("$room-join-rules"),
+            Self::RoomMemberBobJoin => event_id!("$room-member-bob-join"),
         }
     }
 }
@@ -608,12 +604,12 @@ pub enum UserFactory {
 
 impl UserFactory {
     /// Get the ID of this user.
-    pub fn user_id(self) -> OwnedUserId {
+    pub fn user_id(self) -> UserId {
         match self {
-            Self::Alice => owned_user_id!("@alice:matrix.local"),
-            Self::Bob => owned_user_id!("@bob:matrix.local"),
-            Self::Charlie => owned_user_id!("@charlie:matrix.local"),
-            Self::Zara => owned_user_id!("@zara:other.local"),
+            Self::Alice => user_id!("@alice:matrix.local"),
+            Self::Bob => user_id!("@bob:matrix.local"),
+            Self::Charlie => user_id!("@charlie:matrix.local"),
+            Self::Zara => user_id!("@zara:other.local"),
         }
     }
 }
@@ -630,7 +626,7 @@ pub struct RoomCreatePduBuilder {
     rules: RoomVersionRules,
 
     /// The value of the `additional_creators` field in the content.
-    additional_creators: Vec<OwnedUserId>,
+    additional_creators: Vec<UserId>,
 }
 
 impl RoomCreatePduBuilder {
@@ -653,7 +649,7 @@ impl RoomCreatePduBuilder {
     /// The field is only set if the list is not empty.
     ///
     /// Defaults to an empty list.
-    pub fn additional_creators(mut self, additional_creators: Vec<OwnedUserId>) -> Self {
+    pub fn additional_creators(mut self, additional_creators: Vec<UserId>) -> Self {
         self.additional_creators = additional_creators;
         self
     }
@@ -727,7 +723,7 @@ pub enum RoomMemberPduContent {
     /// room.
     JoinAuthorized {
         /// A member of the room that can invite the target user.
-        via_users_server: OwnedUserId,
+        via_users_server: UserId,
     },
 
     /// The target user updates their display name.
@@ -739,13 +735,13 @@ pub enum RoomMemberPduContent {
     /// The target user is banned from the room.
     Ban {
         /// The user that banned the target user.
-        sender: OwnedUserId,
+        sender: UserId,
     },
 
     /// The target user is invited to the room.
     Invite {
         /// The user that invited the target user.
-        sender: OwnedUserId,
+        sender: UserId,
     },
 
     /// The target user knocked on the room.
@@ -757,13 +753,13 @@ pub enum RoomMemberPduContent {
     /// The target user was kicked from the room.
     Kick {
         /// The user that kicked the target user.
-        sender: OwnedUserId,
+        sender: UserId,
     },
 }
 
 impl RoomMemberPduContent {
     /// Get the sender and content for this membership.
-    pub fn into_parts(self, target: &OwnedUserId) -> (OwnedUserId, JsonObject) {
+    pub fn into_parts(self, target: &UserId) -> (UserId, JsonObject) {
         let mut content = JsonObject::new();
 
         let (sender, membership) = match self {
@@ -819,7 +815,7 @@ pub enum RoomPowerLevelsPduContent {
     /// The power level of the given user is changed to the given value.
     User {
         /// The user.
-        user_id: OwnedUserId,
+        user_id: UserId,
 
         /// The new power level.
         value: i32,
@@ -870,7 +866,7 @@ mod tests {
     use assert_matches2::assert_matches;
     use js_int::int;
     use ruma_common::{
-        RoomVersionId, owned_event_id, room::JoinRuleKind, room_version_rules::AuthorizationRules,
+        RoomVersionId, event_id, room::JoinRuleKind, room_version_rules::AuthorizationRules,
     };
     use ruma_events::{StateEventType, room::member::MembershipState};
     use strass::assert_variant_eq;
@@ -891,7 +887,7 @@ mod tests {
         assert_eq!(factory.room_id, "!room:matrix.local");
 
         // `m.room.create`.
-        let room_create_event_id = owned_event_id!("$room-create");
+        let room_create_event_id = event_id!("$room-create");
         assert_eq!(factory.timeline[0], room_create_event_id);
         assert_eq!(
             *factory.state_event_id(&StateEventType::RoomCreate, "").unwrap(),
@@ -912,7 +908,7 @@ mod tests {
         assert!(pdu.auth_events.is_empty());
 
         // `m.room.member` for Alice.
-        let room_member_alice_join_event_id = owned_event_id!("$room-member-alice-join");
+        let room_member_alice_join_event_id = event_id!("$room-member-alice-join");
         assert_eq!(factory.timeline[1], room_member_alice_join_event_id);
         assert_eq!(
             *factory.state_event_id(&StateEventType::RoomMember, "@alice:matrix.local").unwrap(),
@@ -927,7 +923,7 @@ mod tests {
         assert_eq!(pdu.auth_events, [room_create_event_id.clone()].into());
 
         // `m.room.power_levels`.
-        let room_power_levels_event_id = owned_event_id!("$room-power-levels");
+        let room_power_levels_event_id = event_id!("$room-power-levels");
         assert_eq!(factory.timeline[2], room_power_levels_event_id);
         assert_eq!(
             *factory.state_event_id(&StateEventType::RoomPowerLevels, "").unwrap(),
@@ -946,7 +942,7 @@ mod tests {
         );
 
         // `m.room.join_rules`.
-        let room_join_rules_event_id = owned_event_id!("$room-join-rules");
+        let room_join_rules_event_id = event_id!("$room-join-rules");
         assert_eq!(factory.timeline[3], room_join_rules_event_id);
         assert_eq!(
             *factory.state_event_id(&StateEventType::RoomJoinRules, "").unwrap(),
@@ -968,7 +964,7 @@ mod tests {
         );
 
         // `m.room.member` for Bob.
-        let room_member_bob_join_event_id = owned_event_id!("$room-member-bob-join");
+        let room_member_bob_join_event_id = event_id!("$room-member-bob-join");
         assert_eq!(factory.timeline[4], room_member_bob_join_event_id);
         assert_eq!(
             *factory.state_event_id(&StateEventType::RoomMember, "@bob:matrix.local").unwrap(),
@@ -1002,7 +998,7 @@ mod tests {
         assert_eq!(factory.room_id, "!room:matrix.local");
 
         // `m.room.create`.
-        let room_create_event_id = owned_event_id!("$room-create");
+        let room_create_event_id = event_id!("$room-create");
         assert_eq!(factory.timeline[0], room_create_event_id);
         assert_eq!(
             *factory.state_event_id(&StateEventType::RoomCreate, "").unwrap(),
@@ -1020,7 +1016,7 @@ mod tests {
         assert!(pdu.auth_events.is_empty());
 
         // `m.room.member` for Alice.
-        let room_member_alice_join_event_id = owned_event_id!("$room-member-alice-join");
+        let room_member_alice_join_event_id = event_id!("$room-member-alice-join");
         assert_eq!(factory.timeline[1], room_member_alice_join_event_id);
         assert_eq!(
             *factory.state_event_id(&StateEventType::RoomMember, "@alice:matrix.local").unwrap(),
@@ -1035,7 +1031,7 @@ mod tests {
         assert_eq!(pdu.auth_events, [room_create_event_id.clone()].into());
 
         // `m.room.power_levels`.
-        let room_power_levels_event_id = owned_event_id!("$room-power-levels");
+        let room_power_levels_event_id = event_id!("$room-power-levels");
         assert_eq!(factory.timeline[2], room_power_levels_event_id);
         assert_eq!(
             *factory.state_event_id(&StateEventType::RoomPowerLevels, "").unwrap(),
@@ -1054,7 +1050,7 @@ mod tests {
         );
 
         // `m.room.join_rules`.
-        let room_join_rules_event_id = owned_event_id!("$room-join-rules");
+        let room_join_rules_event_id = event_id!("$room-join-rules");
         assert_eq!(factory.timeline[3], room_join_rules_event_id);
         assert_eq!(
             *factory.state_event_id(&StateEventType::RoomJoinRules, "").unwrap(),
@@ -1076,7 +1072,7 @@ mod tests {
         );
 
         // `m.room.member` for Bob.
-        let room_member_bob_join_event_id = owned_event_id!("$room-member-bob-join");
+        let room_member_bob_join_event_id = event_id!("$room-member-bob-join");
         assert_eq!(factory.timeline[4], room_member_bob_join_event_id);
         assert_eq!(
             *factory.state_event_id(&StateEventType::RoomMember, "@bob:matrix.local").unwrap(),
@@ -1111,7 +1107,7 @@ mod tests {
         assert_eq!(factory.room_id, "!room-create");
 
         // `m.room.create`.
-        let room_create_event_id = owned_event_id!("$room-create");
+        let room_create_event_id = event_id!("$room-create");
         assert_eq!(factory.timeline[0], room_create_event_id);
         assert_eq!(
             *factory.state_event_id(&StateEventType::RoomCreate, "").unwrap(),
@@ -1129,7 +1125,7 @@ mod tests {
         assert!(pdu.auth_events.is_empty());
 
         // `m.room.member` for Alice.
-        let room_member_alice_join_event_id = owned_event_id!("$room-member-alice-join");
+        let room_member_alice_join_event_id = event_id!("$room-member-alice-join");
         assert_eq!(factory.timeline[1], room_member_alice_join_event_id);
         assert_eq!(
             *factory.state_event_id(&StateEventType::RoomMember, "@alice:matrix.local").unwrap(),
@@ -1144,7 +1140,7 @@ mod tests {
         assert!(pdu.auth_events.is_empty());
 
         // `m.room.power_levels`.
-        let room_power_levels_event_id = owned_event_id!("$room-power-levels");
+        let room_power_levels_event_id = event_id!("$room-power-levels");
         assert_eq!(factory.timeline[2], room_power_levels_event_id);
         assert_eq!(
             *factory.state_event_id(&StateEventType::RoomPowerLevels, "").unwrap(),
@@ -1159,7 +1155,7 @@ mod tests {
         assert_eq!(pdu.auth_events, [room_member_alice_join_event_id.clone(),].into());
 
         // `m.room.join_rules`.
-        let room_join_rules_event_id = owned_event_id!("$room-join-rules");
+        let room_join_rules_event_id = event_id!("$room-join-rules");
         assert_eq!(factory.timeline[3], room_join_rules_event_id);
         assert_eq!(
             *factory.state_event_id(&StateEventType::RoomJoinRules, "").unwrap(),
@@ -1176,7 +1172,7 @@ mod tests {
         );
 
         // `m.room.member` for Bob.
-        let room_member_bob_join_event_id = owned_event_id!("$room-member-bob-join");
+        let room_member_bob_join_event_id = event_id!("$room-member-bob-join");
         assert_eq!(factory.timeline[4], room_member_bob_join_event_id);
         assert_eq!(
             *factory.state_event_id(&StateEventType::RoomMember, "@bob:matrix.local").unwrap(),

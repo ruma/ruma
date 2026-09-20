@@ -10,7 +10,7 @@ pub mod v3 {
     use std::collections::BTreeMap;
 
     use ruma_common::{
-        OwnedDeviceId, OwnedUserId,
+        DeviceId, UserId,
         api::{auth_scheme::AccessToken, request, response},
         encryption::{CrossSigningKey, DeviceKeys},
         metadata,
@@ -37,7 +37,7 @@ pub mod v3 {
     pub struct Request {
         /// Signed keys.
         #[ruma_api(body)]
-        pub signed_keys: BTreeMap<OwnedUserId, SignedKeys>,
+        pub signed_keys: BTreeMap<UserId, SignedKeys>,
     }
 
     /// Response type for the `upload_signatures` endpoint.
@@ -46,12 +46,12 @@ pub mod v3 {
     pub struct Response {
         /// Signature processing failures.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub failures: BTreeMap<OwnedUserId, BTreeMap<String, Failure>>,
+        pub failures: BTreeMap<UserId, BTreeMap<String, Failure>>,
     }
 
     impl Request {
         /// Creates a new `Request` with the given signed keys.
-        pub fn new(signed_keys: BTreeMap<OwnedUserId, SignedKeys>) -> Self {
+        pub fn new(signed_keys: BTreeMap<UserId, SignedKeys>) -> Self {
             Self { signed_keys }
         }
     }
@@ -75,7 +75,7 @@ pub mod v3 {
         }
 
         /// Add the given device keys.
-        pub fn add_device_keys(&mut self, device_id: OwnedDeviceId, device_keys: Raw<DeviceKeys>) {
+        pub fn add_device_keys(&mut self, device_id: DeviceId, device_keys: Raw<DeviceKeys>) {
             self.0.insert(device_id.as_str().into(), device_keys.into_json());
         }
 

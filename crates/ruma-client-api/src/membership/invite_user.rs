@@ -13,7 +13,7 @@ pub mod v3 {
     //! [spec-3pid]: https://spec.matrix.org/v1.19/client-server-api/#thirdparty_post_matrixclientv3roomsroomidinvite
 
     use ruma_common::{
-        OwnedRoomId, OwnedUserId,
+        RoomId, UserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
@@ -36,7 +36,7 @@ pub mod v3 {
     pub struct Request {
         /// The room where the user should be invited.
         #[ruma_api(path)]
-        pub room_id: OwnedRoomId,
+        pub room_id: RoomId,
 
         /// The user to invite.
         #[ruma_api(body)]
@@ -50,7 +50,7 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given room ID and invitation recipient.
-        pub fn new(room_id: OwnedRoomId, recipient: InvitationRecipient) -> Self {
+        pub fn new(room_id: RoomId, recipient: InvitationRecipient) -> Self {
             Self { room_id, recipient }
         }
     }
@@ -91,7 +91,7 @@ pub mod v3 {
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct InviteUserId {
         /// The Matrix identifier of the user to invite.
-        pub user_id: OwnedUserId,
+        pub user_id: UserId,
 
         /// The reason for inviting the user.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -100,7 +100,7 @@ pub mod v3 {
 
     impl InviteUserId {
         /// Constructs a new `InviteUserId` with the given Matrix identifier.
-        pub fn new(user_id: OwnedUserId) -> Self {
+        pub fn new(user_id: UserId) -> Self {
             Self { user_id, reason: None }
         }
     }

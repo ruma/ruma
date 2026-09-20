@@ -1,4 +1,4 @@
-use ruma_macros::IdDst;
+use ruma_macros::ruma_id;
 
 /// A Matrix transaction ID.
 ///
@@ -8,9 +8,8 @@ use ruma_macros::IdDst;
 /// You can create one from a string (using `.into()`) but the recommended way is to use
 /// `TransactionId::new()` to generate a random one. If that function is not available for you, you
 /// need to activate this crate's `rand` Cargo feature.
-#[repr(transparent)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
-pub struct TransactionId(str);
+#[ruma_id]
+pub struct TransactionId;
 
 impl TransactionId {
     /// Creates a random transaction ID.
@@ -18,9 +17,8 @@ impl TransactionId {
     /// This will currently be a UUID without hyphens, but no guarantees are made about the
     /// structure of transaction IDs generated from this function.
     #[cfg(feature = "rand")]
-    #[allow(clippy::new_ret_no_self)]
-    pub fn new() -> OwnedTransactionId {
+    pub fn new() -> Self {
         let id = uuid::Uuid::new_v4();
-        OwnedTransactionId::from_string_unchecked(id.simple().to_string())
+        Self::from_string_unchecked(id.simple().to_string())
     }
 }
