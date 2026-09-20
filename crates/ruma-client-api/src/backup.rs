@@ -236,7 +236,7 @@ impl From<EncryptedSessionDataInit> for EncryptedSessionData {
 mod tests {
     use std::borrow::Cow;
 
-    use assert_matches2::assert_matches;
+    use assert_matches::assert_matches;
     use ruma_common::{
         SigningKeyAlgorithm, SigningKeyId, canonical_json::assert_to_canonical_json_eq,
         owned_user_id, serde::Base64,
