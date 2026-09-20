@@ -885,7 +885,7 @@ mod tests {
     use assert_matches2::assert_matches;
     use js_int::{Int, int, uint};
     use macro_rules_attribute::apply;
-    use serde_json::{Value as JsonValue, from_value as from_json_value, json};
+    use serde_json::{from_value as from_json_value, json};
     use smol_macros::test;
     use strass::assert_let;
 
@@ -1483,8 +1483,7 @@ mod tests {
         assert_eq!(condition.kind(), "local_dev_custom");
         let data = condition.data();
         assert_eq!(data.len(), 1);
-        assert_let!(Some(JsonValue::String(foo)) = data.get("foo"));
-        assert_eq!(foo, "bar");
+        assert_eq!(data["foo"], "bar");
 
         assert_to_canonical_json_eq!(condition, json);
     }
