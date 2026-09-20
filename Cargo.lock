@@ -2008,7 +2008,7 @@ name = "ruma-html"
 version = "0.9.0"
 dependencies = [
  "as_variant",
- "assert_matches2",
+ "assert_matches",
  "html5ever",
  "ruma-common",
  "strass",
