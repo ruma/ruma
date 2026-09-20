@@ -25,7 +25,7 @@ use ruma_events::{
     },
 };
 use serde_json::{Value as JsonValue, from_value as from_json_value, json};
-use strass::assert_let;
+use strass::{assert_let, assert_variant_eq};
 
 #[test]
 fn custom_msgtype_serialization_roundtrip() {
@@ -516,8 +516,7 @@ fn audio_msgtype_deserialization() {
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
     assert_let!(MessageType::Audio(content) = event_content.msgtype);
     assert_eq!(content.body, "Upload: my_song.mp3");
-    assert_let!(MediaSource::Plain(url) = &content.source);
-    assert_eq!(url, "mxc://notareal.hs/file");
+    assert_variant_eq!(content.source, MediaSource::Plain("mxc://notareal.hs/file"));
     assert!(content.caption().is_none());
 }
 
@@ -593,8 +592,7 @@ fn file_msgtype_plain_content_deserialization() {
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
     assert_let!(MessageType::File(content) = event_content.msgtype);
     assert_eq!(content.body, "Upload: my_file.txt");
-    assert_let!(MediaSource::Plain(url) = &content.source);
-    assert_eq!(url, "mxc://notareal.hs/file");
+    assert_variant_eq!(content.source, MediaSource::Plain("mxc://notareal.hs/file"));
     assert!(content.caption().is_none());
 }
 
@@ -713,8 +711,7 @@ fn gallery_msgtype_deserialization_with_image() {
     assert_eq!(content.itemtypes.len(), 1);
     assert_let!(GalleryItemType::Image(content) = &content.itemtypes.first().unwrap());
     assert_eq!(content.body, "my_image.jpg");
-    assert_let!(MediaSource::Plain(url) = &content.source);
-    assert_eq!(url, "mxc://notareal.hs/file");
+    assert_variant_eq!(content.source, MediaSource::Plain("mxc://notareal.hs/file"));
     assert!(content.caption().is_none());
 }
 
@@ -787,8 +784,7 @@ fn image_msgtype_deserialization() {
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
     assert_let!(MessageType::Image(content) = event_content.msgtype);
     assert_eq!(content.body, "Upload: my_image.jpg");
-    assert_let!(MediaSource::Plain(url) = &content.source);
-    assert_eq!(url, "mxc://notareal.hs/file");
+    assert_variant_eq!(content.source, MediaSource::Plain("mxc://notareal.hs/file"));
     assert!(content.caption().is_none());
 }
 
@@ -973,8 +969,7 @@ fn video_msgtype_deserialization() {
     let event_content = from_json_value::<RoomMessageEventContent>(json_data).unwrap();
     assert_let!(MessageType::Video(content) = event_content.msgtype);
     assert_eq!(content.body, "Upload: my_video.mp4");
-    assert_let!(MediaSource::Plain(url) = &content.source);
-    assert_eq!(url, "mxc://notareal.hs/file");
+    assert_variant_eq!(content.source, MediaSource::Plain("mxc://notareal.hs/file"));
     assert!(content.caption().is_none());
 }
 

@@ -203,7 +203,7 @@ mod tests {
         event_id,
         serde::{Base64, Raw},
     };
-    use serde_json::{Value as JsonValue, from_value as from_json_value, json};
+    use serde_json::{from_value as from_json_value, json};
     use strass::assert_let;
 
     use super::{
@@ -379,8 +379,7 @@ mod tests {
         assert_eq!(content.transaction_id, "456");
         let data = &*content.method.data();
         assert_eq!(data.len(), 1);
-        assert_let!(Some(JsonValue::String(value)) = data.get("test"));
-        assert_eq!(value, "field");
+        assert_eq!(data["test"], "field");
 
         assert_to_canonical_json_eq!(content, json);
     }
