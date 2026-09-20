@@ -205,49 +205,6 @@ fn deserialize_redacted_custom_sync_state() {
     assert_eq!(state_ev.event_id(), "$h29iv0s8:example.com");
 }
 
-/* #[test]
-fn redact_method_properly_redacts() {
-    let ev = json!({
-        "type": "m.room.message",
-        "event_id": "$143273582443PhrSn:example.com",
-        "origin_server_ts": 1,
-        "room_id": "!roomid:room.com",
-        "sender": "@user:example.com",
-        "content": {
-            "body": "test",
-            "msgtype": "m.audio",
-            "url": "mxc://example.com/AuDi0",
-        },
-    });
-
-    let redaction = OriginalSyncRoomRedactionEvent {
-        content: RoomRedactionEventContent::with_reason("redacted because".into()),
-        redacts: owned_event_id!("$143273582443PhrSn:example.com"),
-        event_id: owned_event_id!("$h29iv0s8:example.com"),
-        origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(1)),
-        sender: owned_user_id!("@carl:example.com"),
-        unsigned: MessageLikeUnsigned::default(),
-    };
-
-    let event: AnyMessageLikeEvent = from_json_value(ev).unwrap();
-
-    assert_matches!(
-        event.redact(redaction, &RoomVersionId::V6),
-        AnyMessageLikeEvent::RoomMessage(MessageLikeEvent::Redacted(RedactedMessageLikeEvent {
-            content: RedactedRoomMessageEventContent { .. },
-            event_id,
-            room_id,
-            sender,
-            origin_server_ts,
-            unsigned,
-        })) if event_id == event_id!("$143273582443PhrSn:example.com")
-            && unsigned.redacted_because.is_some()
-            && room_id == room_id!("!roomid:room.com")
-            && sender == user_id!("@user:example.com")
-            && origin_server_ts == MilliSecondsSinceUnixEpoch(uint!(1))
-    );
-} */
-
 #[test]
 fn redact_message_content() {
     let json = json!({
