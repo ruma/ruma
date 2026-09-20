@@ -150,7 +150,7 @@ impl From<String> for VoipVersionId {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::assert_matches;
+    use assert_matches::assert_matches;
     use js_int::uint;
     use serde_json::{from_value as from_json_value, json};
 
@@ -177,7 +177,7 @@ mod tests {
 
     #[test]
     fn valid_custom_string_version() {
-        assert_matches!(VoipVersionId::from("io.ruma.2"), version);
+        let version = VoipVersionId::from("io.ruma.2");
         assert_eq!(version.as_ref(), "io.ruma.2");
     }
 
