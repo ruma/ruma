@@ -645,8 +645,7 @@ fn custom_encrypted_file_serialization_roundtrip() {
     assert_eq!(file.info.version(), "local.dev.custom");
     let data = &*file.info.data();
     assert_eq!(data.len(), 1);
-    assert_let!(Some(JsonValue::String(value)) = data.get("foo"));
-    assert_eq!(value, "bar");
+    assert_eq!(data["foo"], "bar");
 
     assert_to_canonical_json_eq!(file, json);
 }

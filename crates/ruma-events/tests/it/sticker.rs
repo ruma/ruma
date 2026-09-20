@@ -11,7 +11,7 @@ use ruma_events::{
     sticker::{StickerEventContent, StickerEventContentWithoutRelation, StickerMediaSource},
 };
 use serde_json::{from_value as from_json_value, json};
-use strass::assert_let;
+use strass::{assert_let, assert_variant_eq};
 
 #[test]
 fn content_serialization() {
@@ -120,8 +120,7 @@ fn content_deserialization() {
 
     let content = from_json_value::<StickerEventContent>(json_data).unwrap();
     assert_eq!(content.body, "Upload: my_image.jpg");
-    assert_let!(StickerMediaSource::Plain(sticker_url) = content.source);
-    assert_eq!(sticker_url, "mxc://notareal.hs/file");
+    assert_variant_eq!(content.source, StickerMediaSource::Plain("mxc://notareal.hs/file"));
 
     let encrypted_json_data = json!({
         "body": "Upload: my_image.jpg",
@@ -179,13 +178,14 @@ fn replace_content_deserialization() {
 
     let content = from_json_value::<StickerEventContent>(json_data).unwrap();
     assert_eq!(content.body, "* Upload: my_image.jpg");
-    assert_let!(StickerMediaSource::Plain(sticker_url) = content.source);
-    assert_eq!(sticker_url, "mxc://notareal.hs/file");
+    assert_variant_eq!(content.source, StickerMediaSource::Plain("mxc://notareal.hs/file"));
 
     assert_let!(Some(Relation::Replacement(replacement)) = content.relates_to);
     assert_eq!(replacement.new_content.body, "Upload: my_image.jpg");
-    assert_let!(StickerMediaSource::Plain(sticker_url) = replacement.new_content.source);
-    assert_eq!(sticker_url, "mxc://notareal.hs/file");
+    assert_variant_eq!(
+        replacement.new_content.source,
+        StickerMediaSource::Plain("mxc://notareal.hs/file")
+    );
 
     let encrypted_json_data = json!({
         "body": "* Upload: my_image.jpg",
@@ -234,11 +234,10 @@ fn replace_content_deserialization() {
             Some(Relation::Replacement(encrypted_replacement)) = encrypted_content.relates_to
         );
         assert_eq!(encrypted_replacement.new_content.body, "Upload: my_image.jpg");
-        assert_let!(
-            StickerMediaSource::Plain(encrypted_sticker_url) =
-                encrypted_replacement.new_content.source
+        assert_variant_eq!(
+            encrypted_replacement.new_content.source,
+            StickerMediaSource::Plain("mxc://notareal.hs/file")
         );
-        assert_eq!(encrypted_sticker_url, "mxc://notareal.hs/file");
     }
 }
 
@@ -286,8 +285,10 @@ fn event_deserialization() {
     assert_eq!(content.info.width, Some(uint!(1011)));
     assert_eq!(content.info.mimetype.as_deref(), Some("image/png"));
     assert_eq!(content.info.size, Some(uint!(84242)));
-    assert_let!(StickerMediaSource::Plain(sticker_url) = content.source);
-    assert_eq!(sticker_url, "mxc://matrix.org/jxPXTKpyydzdHJkdFNZjTZrD");
+    assert_variant_eq!(
+        content.source,
+        StickerMediaSource::Plain("mxc://matrix.org/jxPXTKpyydzdHJkdFNZjTZrD")
+    );
 
     assert_let!(Some(MediaSource::Plain(thumbnail_url)) = content.info.thumbnail_source);
     assert_eq!(thumbnail_url, "mxc://matrix.org/irnsNRS2879");

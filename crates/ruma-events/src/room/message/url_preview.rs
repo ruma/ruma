@@ -128,7 +128,7 @@ mod tests {
     use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_mxc_uri};
     use ruma_events::room::message::{MessageType, RoomMessageEventContent};
     use serde_json::{from_value as from_json_value, json};
-    use strass::assert_let;
+    use strass::{assert_let, assert_variant_eq};
 
     use super::{super::text::TextMessageEventContent, *};
     use crate::room::{EncryptedFile, EncryptedFileHashes, V2EncryptedFileInfo};
@@ -322,8 +322,10 @@ mod tests {
         // Check the preview image parsed:
         let PreviewImage { size, height, width, mimetype, source } = image.clone().unwrap();
         assert_eq!(size.unwrap(), uint!(16588));
-        assert_let!(PreviewImageSource::Url(url) = source);
-        assert_eq!(url, "mxc://maunium.net/zeHhTqqUtUSUTUDxQisPdwZO");
+        assert_variant_eq!(
+            source,
+            PreviewImageSource::Url("mxc://maunium.net/zeHhTqqUtUSUTUDxQisPdwZO")
+        );
         assert_eq!(height.unwrap(), uint!(400));
         assert_eq!(width.unwrap(), uint!(800));
         assert_eq!(mimetype.as_deref(), Some("image/jpeg"));
@@ -367,8 +369,10 @@ mod tests {
         // Check the preview image parsed:
         let PreviewImage { size, height, width, mimetype, source } = image.clone().unwrap();
         assert_eq!(size.unwrap(), uint!(16588));
-        assert_let!(PreviewImageSource::Url(url) = source);
-        assert_eq!(url, "mxc://maunium.net/zeHhTqqUtUSUTUDxQisPdwZO");
+        assert_variant_eq!(
+            source,
+            PreviewImageSource::Url("mxc://maunium.net/zeHhTqqUtUSUTUDxQisPdwZO")
+        );
         assert_eq!(height.unwrap(), uint!(400));
         assert_eq!(width.unwrap(), uint!(800));
         assert_eq!(mimetype.as_deref(), Some("image/jpeg"));
@@ -518,8 +522,10 @@ mod tests {
         // Check the preview image parsed:
         let PreviewImage { size, height, width, mimetype, source } = image.clone().unwrap();
         assert_eq!(size.unwrap(), uint!(16588));
-        assert_let!(PreviewImageSource::Url(url) = source);
-        assert_eq!(url, "mxc://maunium.net/zeHhTqqUtUSUTUDxQisPdwZO");
+        assert_variant_eq!(
+            source,
+            PreviewImageSource::Url("mxc://maunium.net/zeHhTqqUtUSUTUDxQisPdwZO")
+        );
         assert_eq!(height.unwrap(), uint!(400));
         assert_eq!(width.unwrap(), uint!(800));
         assert_eq!(mimetype.as_deref(), Some("image/jpeg"));
