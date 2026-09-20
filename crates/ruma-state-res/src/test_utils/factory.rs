@@ -867,7 +867,7 @@ impl RoomPowerLevelsPduContent {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::assert_matches;
+    use assert_matches::assert_matches;
     use js_int::int;
     use ruma_common::{
         RoomVersionId, owned_event_id, room::JoinRuleKind, room_version_rules::AuthorizationRules,
