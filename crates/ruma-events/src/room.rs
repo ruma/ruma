@@ -427,7 +427,7 @@ pub struct CustomEncryptedFileHash {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::assert_matches;
+    use assert_matches::assert_matches;
     use ruma_common::owned_mxc_uri;
     use serde::Deserialize;
     use serde_json::{from_value as from_json_value, json};

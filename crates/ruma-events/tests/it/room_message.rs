@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use assert_matches2::assert_matches;
+use assert_matches::assert_matches;
 use ruma_common::{
     OwnedDeviceId,
     canonical_json::assert_to_canonical_json_eq,

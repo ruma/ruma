@@ -1,6 +1,6 @@
 #![cfg(feature = "unstable-msc3488")]
 
-use assert_matches2::assert_matches;
+use assert_matches::assert_matches;
 use assign::assign;
 use js_int::uint;
 use ruma_common::{

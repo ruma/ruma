@@ -2,7 +2,7 @@
 
 use std::{collections::BTreeMap, ops::Range};
 
-use assert_matches2::assert_matches;
+use assert_matches::assert_matches;
 use js_int::{UInt, uint};
 use ruma_common::{
     MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, owned_event_id,

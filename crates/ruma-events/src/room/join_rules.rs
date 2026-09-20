@@ -130,7 +130,7 @@ impl SyncRoomJoinRulesEvent {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::assert_matches;
+    use assert_matches::assert_matches;
     use ruma_common::owned_room_id;
     use serde_json::json;
     use strass::assert_let;

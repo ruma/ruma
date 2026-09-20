@@ -1,4 +1,4 @@
-use assert_matches2::assert_matches;
+use assert_matches::assert_matches;
 use js_int::uint;
 use ruma_common::{
     MilliSecondsSinceUnixEpoch, VoipVersionId,
