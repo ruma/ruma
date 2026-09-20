@@ -658,7 +658,7 @@ mod tests {
     use assert_matches2::assert_matches;
     use js_int::uint;
     use ruma_common::{OwnedRoomId, owned_room_id};
-    use serde_json::{Value as JsonValue, from_value as from_json_value, json};
+    use serde_json::{from_value as from_json_value, json};
     use strass::assert_let;
 
     use super::{
@@ -799,8 +799,7 @@ mod tests {
         assert_eq!(join_rule.kind().as_str(), "local.dev.unicorns");
         let data = &*join_rule.data();
         assert_eq!(data.len(), 1);
-        assert_let!(Some(JsonValue::Bool(value)) = data.get("rainbows"));
-        assert!(value);
+        assert_eq!(data["rainbows"], true);
 
         assert_to_canonical_json_eq!(join_rule, json);
     }
@@ -837,8 +836,7 @@ mod tests {
         assert_eq!(allow_rule.rule_type(), "org.msc9000.something");
         let data = &*allow_rule.data();
         assert_eq!(data.len(), 1);
-        assert_let!(Some(JsonValue::String(value)) = data.get("foo"));
-        assert_eq!(value, "bar");
+        assert_eq!(data["foo"], "bar");
 
         assert_to_canonical_json_eq!(allow_rule, json);
     }
