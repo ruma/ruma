@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use assert_matches2::assert_matches;
+use assert_matches::assert_matches;
 use http::header::{CONTENT_DISPOSITION, LOCATION};
 use ruma_common::{
     api::{

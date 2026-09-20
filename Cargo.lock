@@ -1915,7 +1915,7 @@ name = "ruma-common"
 version = "0.20.0"
 dependencies = [
  "as_variant",
- "assert_matches2",
+ "assert_matches",
  "assign",
  "base64 0.23.1",
  "bytes",

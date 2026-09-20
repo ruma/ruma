@@ -632,7 +632,7 @@ mod tests {
         collections::{BTreeMap, BTreeSet},
     };
 
-    use assert_matches2::assert_matches;
+    use assert_matches::assert_matches;
 
     use super::{PathBuilder, StablePathSelector, VersionHistory};
     use crate::api::{
