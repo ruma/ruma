@@ -167,7 +167,7 @@ impl<'de> Deserialize<'de> for MsisdnUserIdentifier {
 #[cfg(test)]
 mod tests {
     use ruma_common::canonical_json::assert_to_canonical_json_eq;
-    use serde_json::{Value as JsonValue, from_value as from_json_value, json};
+    use serde_json::{from_value as from_json_value, json};
     use strass::assert_let;
 
     use crate::uiaa::{
@@ -283,8 +283,7 @@ mod tests {
         let id = from_json_value::<UserIdentifier>(json.clone()).unwrap();
         assert_eq!(id.identifier_type(), "local.dev.identifier");
         let data = &*id.data();
-        assert_let!(Some(JsonValue::String(foo)) = data.get("foo"));
-        assert_eq!(foo, "bar");
+        assert_eq!(data["foo"], "bar");
 
         assert_to_canonical_json_eq!(id, json);
     }
@@ -302,8 +301,7 @@ mod tests {
         assert_eq!(auth_data.session(), Some("abcdef"));
         let data = auth_data.data();
         assert_eq!(data.len(), 1);
-        assert_let!(Some(JsonValue::String(foo)) = data.get("foo"));
-        assert_eq!(foo, "bar");
+        assert_eq!(data["foo"], "bar");
 
         assert_to_canonical_json_eq!(auth_data, json);
     }
