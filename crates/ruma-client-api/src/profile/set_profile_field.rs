@@ -315,7 +315,7 @@ mod tests_client {
 mod tests_server {
     use ruma_common::{api::IncomingRequestExt as _, profile::ProfileFieldValue};
     use serde_json::{json, to_vec as to_json_vec};
-    use strass::assert_let;
+    use strass::assert_variant_eq;
 
     use super::v3::Request;
 
@@ -337,8 +337,7 @@ mod tests_server {
         .unwrap();
 
         assert_eq!(request.user_id, "@alice:localhost");
-        assert_let!(ProfileFieldValue::DisplayName(display_name) = request.value);
-        assert_eq!(display_name, "Alice");
+        assert_variant_eq!(request.value, ProfileFieldValue::DisplayName("Alice"));
     }
 
     #[test]

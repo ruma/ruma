@@ -298,11 +298,9 @@ mod tests {
         assert_eq!(backup_algorithm.algorithm(), "local.dev.unknown_algorithm");
         assert_let!(Cow::Borrowed(auth_data) = backup_algorithm.auth_data());
 
-        assert_let!(Some(JsonValue::String(foo)) = auth_data.get("foo"));
-        assert_eq!(foo, "bar");
+        assert_eq!(auth_data["foo"], "bar");
         assert_let!(Some(JsonValue::Object(signatures)) = auth_data.get("signatures"));
-        assert_let!(Some(JsonValue::String(signature)) = signatures.get("ed25519:DEVICEID"));
-        assert_eq!(signature, "signature");
+        assert_eq!(signatures["ed25519:DEVICEID"], "signature");
 
         assert_to_canonical_json_eq!(backup_algorithm, json);
     }

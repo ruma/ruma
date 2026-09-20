@@ -82,7 +82,7 @@ mod tests {
     use ruma_common::{
         canonical_json::assert_to_canonical_json_eq, push::HttpPusherData, serde::JsonObject,
     };
-    use serde_json::{Value as JsonValue, from_value as from_json_value, json};
+    use serde_json::{from_value as from_json_value, json};
     use strass::assert_let;
 
     use crate::push::{CustomPusherData, EmailPusherData, PusherKind};
@@ -185,8 +185,7 @@ mod tests {
 
         assert_let!(PusherKind::Email(data) = from_json_value(json).unwrap());
         assert_eq!(data.data.len(), 1);
-        assert_let!(Some(JsonValue::String(custom_value)) = data.data.get("custom_key"));
-        assert_eq!(custom_value, "value");
+        assert_eq!(data.data["custom_key"], "value");
     }
 
     #[test]
@@ -215,8 +214,7 @@ mod tests {
 
         assert_let!(PusherKind::Http(data) = from_json_value(json).unwrap());
         assert_eq!(data.data.len(), 1);
-        assert_let!(Some(JsonValue::String(custom_value)) = data.data.get("custom_key"));
-        assert_eq!(custom_value, "value");
+        assert_eq!(data.data["custom_key"], "value");
     }
 
     #[test]
