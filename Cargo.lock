@@ -2065,7 +2065,7 @@ dependencies = [
 name = "ruma-signatures"
 version = "0.22.0"
 dependencies = [
- "assert_matches2",
+ "assert_matches",
  "base64 0.23.1",
  "ed25519-dalek",
  "insta",
