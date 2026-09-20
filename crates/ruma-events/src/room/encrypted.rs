@@ -285,7 +285,7 @@ impl From<MegolmV1AesSha2ContentInit> for MegolmV1AesSha2Content {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::assert_matches;
+    use assert_matches::assert_matches;
     use js_int::uint;
     use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_event_id, serde::Raw};
     use serde_json::{from_value as from_json_value, json};

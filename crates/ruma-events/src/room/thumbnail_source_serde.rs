@@ -50,7 +50,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::assert_matches;
+    use assert_matches::assert_matches;
     use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_mxc_uri, serde::Base64};
     use serde::{Deserialize, Serialize};
     use serde_json::json;

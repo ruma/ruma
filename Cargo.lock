@@ -1956,7 +1956,7 @@ name = "ruma-events"
 version = "0.35.0"
 dependencies = [
  "as_variant",
- "assert_matches2",
+ "assert_matches",
  "assign",
  "criterion",
  "indexmap",

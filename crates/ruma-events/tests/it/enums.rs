@@ -1,4 +1,4 @@
-use assert_matches2::assert_matches;
+use assert_matches::assert_matches;
 use js_int::int;
 use ruma_common::serde::test::serde_json_eq;
 use ruma_events::{
