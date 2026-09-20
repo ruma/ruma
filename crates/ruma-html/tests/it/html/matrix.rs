@@ -1,4 +1,4 @@
-use assert_matches2::assert_matches;
+use assert_matches::assert_matches;
 use ruma_html::{
     Html,
     matrix::{AnchorUri, MatrixElement},
