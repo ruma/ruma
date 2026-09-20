@@ -98,7 +98,7 @@ smallvec = { version = "1.15.2", features = ["const_generics", "union"], optiona
 thiserror = { workspace = true }
 time = "0.3.47"
 tracing = { workspace = true, features = ["attributes"] }
-triomphe = { version = "0.1.16", optional = true }
+triomphe = { version = "0.1.16", default-features = false, features = ["std"], optional = true }
 url = { workspace = true }
 uuid = { version = "1.0.0", optional = true, features = ["v4"] }
 web-time = { workspace = true }
