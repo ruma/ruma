@@ -1,4 +1,4 @@
-use assert_matches2::assert_matches;
+use assert_matches::assert_matches;
 use assign::assign;
 use ruma_client_api::uiaa::{
     self, AuthData, AuthFlow, AuthType, UiaaInfo, UiaaResponse, UserIdentifier,

@@ -1128,7 +1128,7 @@ mod client_tests {
 mod server_tests {
     use std::time::Duration;
 
-    use assert_matches2::assert_matches;
+    use assert_matches::assert_matches;
     use ruma_common::{
         api::{IncomingRequestExt as _, OutgoingResponseExt as _},
         owned_room_id,
