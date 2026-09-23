@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+Improvements:
+
+- Zeroize temporary copies of private key material in `Ed25519KeyPair::generate()` and, with the
+  `ring-compat` feature, in `Ed25519KeyPair::from_der()`.
+
 ## 0.22.0
 
 Breaking changes:
