@@ -155,8 +155,8 @@ impl Ed25519KeyPair {
 // Copy of SigningKey::generate, updated to use `TryCryptoRng`
 // from current rand instead of the old `CryptoRngCore`.
 fn generate_signing_key<R: TryCryptoRng + ?Sized>(csprng: &mut R) -> Result<SigningKey, R::Error> {
-    let mut secret = SecretKey::default();
-    csprng.try_fill_bytes(&mut secret)?;
+    let mut secret = Zeroizing::new(SecretKey::default());
+    csprng.try_fill_bytes(secret.as_mut())?;
     Ok(SigningKey::from_bytes(&secret))
 }
 
