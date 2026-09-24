@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+Breaking changes:
+
+- Delay fields in `send_delayed_event` requests are now `delay_ms` instead of `delay`.
+
 Bug fixes:
 
 - In the `session::login::v3` module, the `identity_server` field is no longer
