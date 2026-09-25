@@ -534,7 +534,7 @@ pub mod v3 {
         pub fn new(allowed_scopes: BTreeSet<OAuthClientScope>) -> Self {
             Self { allowed_scopes }
         }
-        
+
         /// Returns whether the capability indicates that the authenticated user
         /// is able to access some administrative functionality.
         pub fn is_admin(&self) -> bool {
