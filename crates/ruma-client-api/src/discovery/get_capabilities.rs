@@ -164,9 +164,9 @@ pub mod v3 {
         #[serde(
             rename = "org.continuwuity.msc4540.admin",
             default,
-            skip_serializing_if = "Option::is_none"
+            skip_serializing_if = "AdminCapability::is_default"
         )]
-        pub admin: Option<AdminCapability>,
+        pub admin: AdminCapability,
 
         /// Any other custom capabilities that the server supports outside of the specification,
         /// labeled using the Java package naming convention and stored as arbitrary JSON values.
@@ -521,51 +521,35 @@ pub mod v3 {
     ///
     /// [MSC4540]: https://github.com/matrix-org/matrix-spec-proposals/pull/4540
     #[cfg(feature = "unstable-msc4540")]
-    #[derive(Clone, Debug, Serialize, Deserialize)]
-    #[serde(untagged)]
+    #[derive(Clone, Debug, Default, Serialize, Deserialize)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-    pub enum AdminCapability {
-        /// Admin capability for devices using legacy authentication.
-        Legacy {
-            /// Whether the device may access administrative functionality.
-            legacy_access: bool,
-        },
-
-        /// Admin capability for devices using OAuth authentication.
-        OAuth {
-            /// The scopes the device may request to access administrative functionality.
-            allowed_scopes: BTreeSet<OAuthClientScope>,
-        },
+    pub struct AdminCapability {
+        /// The scopes the device may request to access administrative functionality.
+        pub allowed_scopes: BTreeSet<OAuthClientScope>,
     }
 
     #[cfg(feature = "unstable-msc4540")]
     impl AdminCapability {
-        /// Create a new [`AdminCapability`] for a legacy device.
-        pub fn new_legacy(legacy_access: bool) -> Self {
-            Self::Legacy { legacy_access }
+        /// Create a new [`AdminCapability`].
+        pub fn new(allowed_scopes: BTreeSet<OAuthClientScope>) -> Self {
+            Self { allowed_scopes }
         }
-
-        /// Create a new [`AdminCapability`] for an OAuth device.
-        pub fn new_oauth(allowed_scopes: BTreeSet<OAuthClientScope>) -> Self {
-            Self::OAuth { allowed_scopes }
-        }
-
+        
         /// Returns whether the capability indicates that the authenticated user
         /// is able to access some administrative functionality.
         pub fn is_admin(&self) -> bool {
-            match self {
-                Self::Legacy { legacy_access } => *legacy_access,
-                Self::OAuth { allowed_scopes } => !allowed_scopes.is_empty(),
-            }
+            !self.allowed_scopes.is_empty()
         }
 
         /// Returns whether the admin functionality gated by a particular scope
         /// is available to the authenticated user.
-        pub fn scope_allowed(&self, scope: &OAuthClientScope) -> bool {
-            match self {
-                Self::Legacy { .. } => true,
-                Self::OAuth { allowed_scopes } => allowed_scopes.contains(scope),
-            }
+        pub fn is_scope_allowed(&self, scope: &OAuthClientScope) -> bool {
+            self.allowed_scopes.contains(scope)
+        }
+
+        /// Returns whether all fields have their default value.
+        pub fn is_default(&self) -> bool {
+            self.allowed_scopes.is_empty()
         }
     }
 }
