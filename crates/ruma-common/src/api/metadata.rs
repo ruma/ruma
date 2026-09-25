@@ -892,11 +892,13 @@ pub enum FeatureFlag {
 #[non_exhaustive]
 pub enum OAuthClientScope {
     /// Full access to all endpoints of the client-server API, unless explicitly noted.
+    #[ruma_enum(rename = "urn:matrix:client:api:*")]
     ApiFullAccess,
 
     /// Access to the endpoints in the [Server Administration] module.
     ///
     /// [Server Administration]: https://spec.matrix.org/v1.19/client-server-api/#server-administration
+    #[ruma_enum(rename = "urn:matrix:client:cc.c10y.msc4484.server_administration")]
     #[cfg(feature = "unstable-msc4484")]
     ServerAdministration,
 
