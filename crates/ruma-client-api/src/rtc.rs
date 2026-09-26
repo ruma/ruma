@@ -7,6 +7,8 @@ use std::borrow::Cow;
 use ruma_common::serde::JsonObject;
 use serde::{Deserialize, Deserializer, Serialize};
 
+#[cfg(feature = "unstable-msc4195")]
+pub mod livekit;
 pub mod transports;
 
 /// Information about a specific MatrixRTC transport.
