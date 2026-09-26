@@ -758,6 +758,7 @@ mod tests {
 
     #[test]
     fn presence_edu() {
+        #[cfg(not(feature = "unstable-msc4532"))]
         let json = json!({
             "content": {
                 "push": [
@@ -767,6 +768,24 @@ mod tests {
                         "currently_active": true,
                         "last_active_ago": 1000,
                         "status_msg": "Making cupcakes"
+                    }
+                ]
+            },
+            "edu_type": "m.presence"
+        });
+        #[cfg(feature = "unstable-msc4532")]
+        let json = json!({
+            "content": {
+                "push": [
+                    {
+                        "user_id": "@alice:example.com",
+                        "presence": "online",
+                        "currently_active": true,
+                        "last_active_ago": 1000,
+                        "status_msg": "Making cupcakes",
+                        "org.continuwuity.presence_v2.msc4532.status": {
+                            "msg": "Making cupcakes"
+                        }
                     }
                 ]
             },
@@ -810,7 +829,6 @@ mod tests {
                         "presence": "online",
                         "currently_active": true,
                         "last_active_ago": 1000,
-                        "status_msg": "Making cupcakes",
                         "stream_id": 321,
                         "prev_id": 123,
                         "recipients": {
@@ -831,10 +849,6 @@ mod tests {
         assert_eq!(presence_update.presence, PresenceState::Online);
         assert!(presence_update.currently_active);
         assert_eq!(presence_update.last_active_ago, uint!(1000));
-        #[cfg(not(feature = "unstable-msc4532"))]
-        assert_eq!(presence_update.status_msg.as_deref(), Some("Making cupcakes"));
-        #[cfg(feature = "unstable-msc4532")]
-        assert_eq!(presence_update.status.msg.as_deref(), Some("Making cupcakes"));
         assert_eq!(presence_update.stream_id, Some(int!(321)));
         assert_eq!(presence_update.prev_id, Some(int!(123)));
         assert_let!(PresenceRecipientListUpdates { add, delete } = &presence_update.recipients);
