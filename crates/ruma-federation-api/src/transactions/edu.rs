@@ -207,7 +207,11 @@ pub struct PresenceUpdate {
     pub presence: PresenceState,
 
     /// An optional description to accompany the presence.
-    #[cfg(not(feature = "unstable-msc4532"))]
+    #[cfg_attr(
+        feature = "unstable-msc4532",
+        deprecated(note = "Deprecated when MSC4532 is enabled, use `status` instead")
+    )]
+    #[allow(dead_code)]
     pub status_msg: Option<String>,
 
     /// Optional status information to accompany the presence.
@@ -266,8 +270,8 @@ impl<'de> Deserialize<'de> for PresenceUpdate {
             user_id: repr.user_id,
             presence: repr.presence,
             last_active_ago: repr.last_active_ago,
-            #[cfg(not(feature = "unstable-msc4532"))]
-            status_msg: repr.status_msg,
+            #[allow(deprecated)]
+            status_msg: repr.status_msg.clone(),
             #[cfg(feature = "unstable-msc4532")]
             status: if repr.status == PresenceStatus::default() {
                 PresenceStatus::new(repr.status_msg)
@@ -318,7 +322,7 @@ impl PresenceUpdate {
             user_id,
             presence,
             last_active_ago: last_activity,
-            #[cfg(not(feature = "unstable-msc4532"))]
+            #[allow(deprecated)]
             status_msg: None,
             #[cfg(feature = "unstable-msc4532")]
             status: PresenceStatus::default(),
