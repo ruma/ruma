@@ -58,7 +58,11 @@ pub mod v3 {
     #[ruma_api(manual_body_serde)]
     pub struct Response {
         /// The state message for this user if one was set.
-        #[cfg(not(feature = "unstable-msc4532"))]
+        #[cfg_attr(
+            feature = "unstable-msc4532",
+            deprecated(note = "Deprecated when MSC4532 is enabled, use `status` instead")
+        )]
+        #[allow(dead_code)]
         pub status_msg: Option<String>,
 
         /// The status information for this user's presence.
@@ -95,7 +99,7 @@ pub mod v3 {
         pub fn new(presence: PresenceState) -> Self {
             Self {
                 presence,
-                #[cfg(not(feature = "unstable-msc4532"))]
+                #[allow(deprecated)]
                 status_msg: None,
                 #[cfg(feature = "unstable-msc4532")]
                 status: PresenceStatus::default(),
@@ -155,8 +159,8 @@ pub mod v3 {
             } = ResponseBodyRepr::deserialize(deserializer)?;
 
             Ok(Self {
-                #[cfg(not(feature = "unstable-msc4532"))]
-                status_msg,
+                #[allow(deprecated)]
+                status_msg: status_msg.clone(),
                 // If MSC4532 is enabled, utilize the legacy field if that's all we have
                 #[cfg(feature = "unstable-msc4532")]
                 status: if status == PresenceStatus::default() {

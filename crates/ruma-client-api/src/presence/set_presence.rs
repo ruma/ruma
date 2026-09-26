@@ -39,7 +39,11 @@ pub mod v3 {
         pub presence: PresenceState,
 
         /// The status message to attach to this state.
-        #[cfg(not(feature = "unstable-msc4532"))]
+        #[cfg_attr(
+            feature = "unstable-msc4532",
+            deprecated(note = "Deprecated when MSC4532 is enabled, use `status` instead")
+        )]
+        #[allow(dead_code)]
         pub status_msg: Option<String>,
 
         /// The status information to attach to this state.
@@ -62,7 +66,7 @@ pub mod v3 {
             Self {
                 user_id,
                 presence,
-                #[cfg(not(feature = "unstable-msc4532"))]
+                #[allow(deprecated)]
                 status_msg: None,
                 #[cfg(feature = "unstable-msc4532")]
                 status: PresenceStatus::default(),
@@ -114,7 +118,7 @@ pub mod v3 {
 
             Ok(Self {
                 presence,
-                #[cfg(not(feature = "unstable-msc4532"))]
+                #[allow(deprecated)]
                 status_msg: status_msg.clone(),
                 // If MSC4532 is enabled, utilize the legacy field if that's all we have
                 #[cfg(feature = "unstable-msc4532")]
