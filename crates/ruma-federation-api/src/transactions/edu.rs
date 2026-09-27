@@ -320,10 +320,10 @@ impl Serialize for PresenceUpdate {
     where
         S: serde::Serializer,
     {
+        #[allow(unused_variables)]
         let PresenceUpdate {
             user_id,
             presence,
-            #[allow(unused_variables)]
             status_msg,
             #[cfg(feature = "unstable-msc4532")]
             status,
@@ -337,18 +337,22 @@ impl Serialize for PresenceUpdate {
             prev_id,
         } = self;
 
+        #[cfg(feature = "unstable-msc4532")]
+        let currently_active = &presence.currently_active();
+
         #[allow(deprecated)]
         PresenceUpdateRepr {
-            user_id: user_id.clone(),
-            presence: presence.clone(),
-            last_active_ago: *last_active_ago,
-            currently_active: *currently_active,
             #[cfg(not(feature = "unstable-msc4532"))]
             status_msg: status_msg.clone(),
             #[cfg(feature = "unstable-msc4532")]
             status_msg: status.msg.clone(),
             #[cfg(feature = "unstable-msc4532")]
             status: status.clone(),
+
+            user_id: user_id.clone(),
+            presence: presence.clone(),
+            last_active_ago: *last_active_ago,
+            currently_active: *currently_active,
             #[cfg(feature = "unstable-msc4495")]
             recipients: recipients.clone(),
             #[cfg(feature = "unstable-msc4495")]
