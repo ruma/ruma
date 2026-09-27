@@ -440,6 +440,7 @@ pub mod v1 {
                 assert_let!(EphemeralData::Presence(presence) = &data);
                 assert_eq!(presence.sender, user_id);
                 assert_eq!(presence.content.currently_active, Some(false));
+                assert_eq!(presence.content.status_msg.as_deref(), Some("Making cupcakes"));
 
                 assert_to_canonical_json_eq!(data, presence_json);
             }
@@ -464,6 +465,7 @@ pub mod v1 {
                 assert_let!(EphemeralData::Presence(presence) = &data);
                 assert_eq!(presence.sender, user_id);
                 assert_eq!(presence.content.currently_active, Some(false));
+                assert_eq!(presence.content.status.msg.as_deref(), Some("Making cupcakes"));
 
                 assert_to_canonical_json_eq!(data, presence_json);
             }
