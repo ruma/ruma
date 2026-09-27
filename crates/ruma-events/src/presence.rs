@@ -92,6 +92,12 @@ pub struct PresenceEventContent {
     pub avatar_url: Option<OwnedMxcUri>,
 
     /// Whether or not the user is currently active.
+    #[cfg_attr(
+        feature = "unstable-msc4532",
+        deprecated(
+            note = "Deprecated when MSC4532 is enabled, use `PresenceState::currently_active` instead"
+        )
+    )]
     pub currently_active: Option<bool>,
 
     /// The current display name for this user.
@@ -125,13 +131,13 @@ impl<'de> Deserialize<'de> for PresenceEventContent {
         D: serde::Deserializer<'de>,
     {
         let repr = PresenceEventRepr::deserialize(deserializer)?;
+        #[allow(deprecated)]
         Ok(Self {
             avatar_url: repr.avatar_url,
             currently_active: repr.currently_active,
             displayname: repr.displayname,
             last_active_ago: repr.last_active_ago,
             presence: repr.presence,
-            #[allow(deprecated)]
             status_msg: repr.status_msg.clone(),
             #[cfg(feature = "unstable-msc4532")]
             status: if repr.status == PresenceStatus::default() {
@@ -147,6 +153,7 @@ impl Serialize for PresenceEventContent {
     where
         S: serde::Serializer,
     {
+        #[allow(deprecated)]
         PresenceEventRepr {
             avatar_url: self.avatar_url.clone(),
             currently_active: self.currently_active,
@@ -167,13 +174,13 @@ impl Serialize for PresenceEventContent {
 impl PresenceEventContent {
     /// Creates a new `PresenceEventContent` with the given state.
     pub fn new(presence: PresenceState) -> Self {
+        #[allow(deprecated)]
         Self {
             avatar_url: None,
             currently_active: None,
             displayname: None,
             last_active_ago: None,
             presence,
-            #[allow(deprecated)]
             status_msg: None,
             #[cfg(feature = "unstable-msc4532")]
             status: PresenceStatus::default(),
