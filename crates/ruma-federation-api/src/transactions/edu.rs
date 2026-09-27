@@ -269,59 +269,92 @@ pub struct PresenceUpdateRepr {
     prev_id: Option<Int>,
 }
 
+#[allow(deprecated)]
 impl<'de> Deserialize<'de> for PresenceUpdate {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: de::Deserializer<'de>,
     {
-        let repr = PresenceUpdateRepr::deserialize(deserializer)?;
-        #[allow(deprecated)]
-        Ok(Self {
-            user_id: repr.user_id,
-            presence: repr.presence,
-            last_active_ago: repr.last_active_ago,
-            #[allow(deprecated)]
-            status_msg: repr.status_msg.clone(),
+        let PresenceUpdateRepr {
+            user_id,
+            presence,
+            status_msg,
             #[cfg(feature = "unstable-msc4532")]
-            status: if repr.status == PresenceStatus::default() {
-                PresenceStatus::new(repr.status_msg)
+            status,
+            last_active_ago,
+            currently_active,
+            #[cfg(feature = "unstable-msc4495")]
+            recipients,
+            #[cfg(feature = "unstable-msc4495")]
+            stream_id,
+            #[cfg(feature = "unstable-msc4495")]
+            prev_id,
+        } = PresenceUpdateRepr::deserialize(deserializer)?;
+
+        Ok(Self {
+            user_id,
+            presence,
+            last_active_ago,
+            #[allow(deprecated)]
+            status_msg: status_msg.clone(),
+            #[cfg(feature = "unstable-msc4532")]
+            status: if status == PresenceStatus::default() {
+                PresenceStatus::new(status_msg)
             } else {
-                repr.status
+                status
             },
-            currently_active: repr.currently_active,
+            currently_active,
             #[cfg(feature = "unstable-msc4495")]
-            recipients: repr.recipients,
+            recipients,
             #[cfg(feature = "unstable-msc4495")]
-            stream_id: repr.stream_id,
+            stream_id,
             #[cfg(feature = "unstable-msc4495")]
-            prev_id: repr.prev_id,
+            prev_id,
         })
     }
 }
 
+#[allow(deprecated)]
 impl Serialize for PresenceUpdate {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
     {
+        let PresenceUpdate {
+            user_id,
+            presence,
+            #[allow(unused_variables)]
+            status_msg,
+            #[cfg(feature = "unstable-msc4532")]
+            status,
+            last_active_ago,
+            currently_active,
+            #[cfg(feature = "unstable-msc4495")]
+            recipients,
+            #[cfg(feature = "unstable-msc4495")]
+            stream_id,
+            #[cfg(feature = "unstable-msc4495")]
+            prev_id,
+        } = self;
+
         #[allow(deprecated)]
         PresenceUpdateRepr {
-            user_id: self.user_id.clone(),
-            presence: self.presence.clone(),
-            last_active_ago: self.last_active_ago,
+            user_id: user_id.clone(),
+            presence: presence.clone(),
+            last_active_ago: *last_active_ago,
+            currently_active: *currently_active,
             #[cfg(not(feature = "unstable-msc4532"))]
-            status_msg: self.status_msg.clone(),
+            status_msg: status_msg.clone(),
             #[cfg(feature = "unstable-msc4532")]
-            status_msg: self.status.msg.clone(),
+            status_msg: status.msg.clone(),
             #[cfg(feature = "unstable-msc4532")]
-            status: self.status.clone(),
-            currently_active: self.currently_active,
+            status: status.clone(),
             #[cfg(feature = "unstable-msc4495")]
-            recipients: self.recipients.clone(),
+            recipients: recipients.clone(),
             #[cfg(feature = "unstable-msc4495")]
-            stream_id: self.stream_id,
+            stream_id: *stream_id,
             #[cfg(feature = "unstable-msc4495")]
-            prev_id: self.prev_id,
+            prev_id: *prev_id,
         }
         .serialize(serializer)
     }
