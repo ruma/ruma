@@ -19,10 +19,18 @@ pub enum PresenceState {
     Offline,
 
     /// Connected to the service.
-    #[default]
+    #[cfg_attr(not(feature = "unstable-msc4532"), default)]
+    #[cfg_attr(
+        feature = "unstable-msc4532",
+        deprecated(note = "Deprecated when MSC4532 is enabled, use a revised state instead")
+    )]
     Online,
 
     /// Connected to the service but not available for chat.
+    #[cfg_attr(
+        feature = "unstable-msc4532",
+        deprecated(note = "Deprecated when MSC4532 is enabled, use a revised state instead")
+    )]
     Unavailable,
 
     /// The user is available to reply.
@@ -31,6 +39,7 @@ pub enum PresenceState {
     ///
     /// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
     #[cfg(feature = "unstable-msc4532")]
+    #[cfg_attr(feature = "unstable-msc4532", default)]
     Active,
 
     /// The user has a connected client and may reply (potentially unreachable).
@@ -53,6 +62,7 @@ pub enum PresenceState {
     _Custom(PrivOwnedStr),
 }
 
+#[cfg(feature = "unstable-msc4532")]
 impl PresenceState {
     /// If this [`PresenceState`] is a legacy (non-[MSC4532]) state, return the equivalent MSC4532
     /// state.
@@ -60,7 +70,7 @@ impl PresenceState {
     /// This uses the behavior map as defined in the proposal.
     ///
     /// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
-    #[cfg(feature = "unstable-msc4532")]
+    #[allow(deprecated)]
     pub fn as_msc4532_state(&self, currently_active: bool) -> Self {
         match (self, currently_active) {
             (Self::Online, true) => Self::Active,
@@ -76,7 +86,7 @@ impl PresenceState {
     /// This uses the behavior map as defined in the proposal.
     ///
     /// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
-    #[cfg(feature = "unstable-msc4532")]
+    #[allow(deprecated)]
     pub fn as_legacy_state(&self) -> Self {
         match self {
             Self::Active => Self::Online,
@@ -87,7 +97,7 @@ impl PresenceState {
     }
 
     /// Return a reasonable `currently_active` value for this [`PresenceState`].
-    #[cfg(feature = "unstable-msc4532")]
+    #[expect(deprecated)]
     pub fn currently_active(&self) -> bool {
         matches!(self, Self::Active | Self::Online)
     }
