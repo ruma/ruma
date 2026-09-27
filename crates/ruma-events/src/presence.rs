@@ -27,58 +27,6 @@ pub struct PresenceEvent {
     pub sender: OwnedUserId,
 }
 
-/// The over-the-wire format for [`PresenceEventContent`]. This exists to enable a custom
-/// (de)serialization implementation providing backwards-compatibility for the `status_msg`
-/// field when [MSC4532] is enabled.
-///
-/// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-struct PresenceEventRepr {
-    /// The current avatar URL for this user.
-    ///
-    /// If you activate the `compat-empty-string-null` feature, this field being an empty string in
-    /// JSON will result in `None` here during deserialization.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(
-        feature = "compat-empty-string-null",
-        serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
-    )]
-    pub avatar_url: Option<OwnedMxcUri>,
-
-    /// Whether or not the user is currently active.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub currently_active: Option<bool>,
-
-    /// The current display name for this user.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub displayname: Option<String>,
-
-    /// The last time since this user performed some action, in milliseconds.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_active_ago: Option<UInt>,
-
-    /// The presence state for this user.
-    pub presence: PresenceState,
-
-    /// An optional description to accompany the presence.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub status_msg: Option<String>,
-
-    /// Optional information to accompany the presence.
-    ///
-    /// This field uses the unstable prefix defined in [MSC4532].
-    ///
-    /// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
-    #[cfg(feature = "unstable-msc4532")]
-    #[serde(
-        skip_serializing_if = "ruma_common::serde::is_default",
-        rename = "org.continuwuity.presence_v2.msc4532.status",
-        default
-    )]
-    pub status: PresenceStatus,
-}
-
 /// Informs the room of members presence.
 ///
 /// This is the only type a `PresenceEvent` can contain as its `content` field.
@@ -123,6 +71,58 @@ pub struct PresenceEventContent {
     /// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
     #[cfg(feature = "unstable-msc4532")]
     pub status: PresenceStatus,
+}
+
+/// The over-the-wire format for [`PresenceEventContent`]. This exists to enable a custom
+/// (de)serialization implementation providing backwards-compatibility for the `status_msg`
+/// field when [MSC4532] is enabled.
+///
+/// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+struct PresenceEventRepr {
+    /// The current avatar URL for this user.
+    ///
+    /// If you activate the `compat-empty-string-null` feature, this field being an empty string in
+    /// JSON will result in `None` here during deserialization.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(
+        feature = "compat-empty-string-null",
+        serde(default, deserialize_with = "ruma_common::serde::empty_string_as_none")
+    )]
+    avatar_url: Option<OwnedMxcUri>,
+
+    /// Whether or not the user is currently active.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    currently_active: Option<bool>,
+
+    /// The current display name for this user.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    displayname: Option<String>,
+
+    /// The last time since this user performed some action, in milliseconds.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    last_active_ago: Option<UInt>,
+
+    /// The presence state for this user.
+    presence: PresenceState,
+
+    /// An optional description to accompany the presence.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    status_msg: Option<String>,
+
+    /// Optional information to accompany the presence.
+    ///
+    /// This field uses the unstable prefix defined in [MSC4532].
+    ///
+    /// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
+    #[cfg(feature = "unstable-msc4532")]
+    #[serde(
+        skip_serializing_if = "ruma_common::serde::is_default",
+        rename = "org.continuwuity.presence_v2.msc4532.status",
+        default
+    )]
+    status: PresenceStatus,
 }
 
 impl<'de> Deserialize<'de> for PresenceEventContent {
