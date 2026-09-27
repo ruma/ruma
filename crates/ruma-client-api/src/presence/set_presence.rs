@@ -115,17 +115,16 @@ pub mod v3 {
                 status,
             } = RequestBodyRepr::deserialize(deserializer)?;
 
+            #[cfg(feature = "unstable-msc4532")]
+            let status_msg =
+                if status == PresenceStatus::default() { status_msg } else { status.msg };
+
+            #[allow(deprecated)]
             Ok(Self {
                 presence,
-                #[allow(deprecated)]
                 status_msg: status_msg.clone(),
-                // If MSC4532 is enabled, utilize the legacy field if that's all we have
                 #[cfg(feature = "unstable-msc4532")]
-                status: if status == PresenceStatus::default() {
-                    PresenceStatus::new(status_msg)
-                } else {
-                    status
-                },
+                status: PresenceStatus::new(status_msg),
             })
         }
     }
