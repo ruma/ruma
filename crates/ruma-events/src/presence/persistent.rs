@@ -1,6 +1,6 @@
 //! Types for the `m.presence.persistent` account data key.
 //!
-//! This uses the unstable prefix defined in [MSC4532].
+//! This account data type is defined in [MSC4532].
 //!
 //! [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
 
@@ -22,6 +22,6 @@ pub struct PresencePersistentEventContent {
     pub state_override: Option<PresenceState>,
 
     /// The user's extensible status.
-    #[serde(skip_serializing_if = "ruma_common::serde::is_default")]
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
     pub status: PresenceStatus,
 }
