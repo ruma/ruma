@@ -445,6 +445,7 @@ pub mod v1 {
                 assert_to_canonical_json_eq!(data, presence_json);
             }
             #[cfg(feature = "unstable-msc4532")]
+            #[allow(deprecated)]
             {
                 let presence_json = json!({
                     "type": "m.presence",
