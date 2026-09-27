@@ -73,6 +73,12 @@ pub mod v3 {
         pub status: PresenceStatus,
 
         /// Whether or not the user is currently active.
+        #[cfg_attr(
+            feature = "unstable-msc4532",
+            deprecated(
+                note = "Deprecated when MSC4532 is enabled, use `PresenceState::currently_active` instead"
+            )
+        )]
         pub currently_active: Option<bool>,
 
         /// The length of time in milliseconds since an action was performed by the user.
@@ -96,9 +102,9 @@ pub mod v3 {
     impl Response {
         /// Creates a new `Response` with the given presence state.
         pub fn new(presence: PresenceState) -> Self {
+            #[allow(deprecated)]
             Self {
                 presence,
-                #[allow(deprecated)]
                 status_msg: None,
                 #[cfg(feature = "unstable-msc4532")]
                 status: PresenceStatus::default(),
@@ -157,8 +163,8 @@ pub mod v3 {
                 presence,
             } = ResponseBodyRepr::deserialize(deserializer)?;
 
+            #[allow(deprecated)]
             Ok(Self {
-                #[allow(deprecated)]
                 status_msg: status_msg.clone(),
                 // If MSC4532 is enabled, utilize the legacy field if that's all we have
                 #[cfg(feature = "unstable-msc4532")]
@@ -179,6 +185,7 @@ pub mod v3 {
         where
             S: Serializer,
         {
+            #[allow(deprecated)]
             ResponseBodyRepr {
                 // If MSC4532 is enabled, set the legacy field for backwards compatibility
                 #[cfg(not(feature = "unstable-msc4532"))]
