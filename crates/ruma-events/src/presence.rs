@@ -126,46 +126,69 @@ struct PresenceEventRepr {
 }
 
 impl<'de> Deserialize<'de> for PresenceEventContent {
+    #[allow(deprecated)]
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        let repr = PresenceEventRepr::deserialize(deserializer)?;
-        #[allow(deprecated)]
-        Ok(Self {
-            avatar_url: repr.avatar_url,
-            currently_active: repr.currently_active,
-            displayname: repr.displayname,
-            last_active_ago: repr.last_active_ago,
-            presence: repr.presence,
-            status_msg: repr.status_msg.clone(),
+        let PresenceEventRepr {
+            avatar_url,
+            currently_active,
+            displayname,
+            last_active_ago,
+            presence,
+            status_msg,
             #[cfg(feature = "unstable-msc4532")]
-            status: if repr.status == PresenceStatus::default() {
-                PresenceStatus::new(repr.status_msg)
+            status,
+        } = PresenceEventRepr::deserialize(deserializer)?;
+
+        Ok(Self {
+            avatar_url,
+            currently_active,
+            displayname,
+            last_active_ago,
+            presence,
+            status_msg: status_msg.clone(),
+            #[cfg(feature = "unstable-msc4532")]
+            status: if status == PresenceStatus::default() {
+                PresenceStatus::new(status_msg)
             } else {
-                repr.status
+                status
             },
         })
     }
 }
+
+#[allow(deprecated)]
 impl Serialize for PresenceEventContent {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
     {
-        #[allow(deprecated)]
+        let PresenceEventContent {
+            avatar_url,
+            currently_active,
+            displayname,
+            last_active_ago,
+            presence,
+            #[allow(unused_variables)]
+            status_msg,
+            #[cfg(feature = "unstable-msc4532")]
+            status,
+        } = self;
+
         PresenceEventRepr {
-            avatar_url: self.avatar_url.clone(),
-            currently_active: self.currently_active,
-            displayname: self.displayname.clone(),
-            last_active_ago: self.last_active_ago,
-            presence: self.presence.clone(),
+            avatar_url: avatar_url.clone(),
+            currently_active: *currently_active,
+            last_active_ago: *last_active_ago,
+            displayname: displayname.clone(),
+            presence: presence.clone(),
             #[cfg(not(feature = "unstable-msc4532"))]
-            status_msg: self.status_msg.clone(),
+            status_msg: status_msg.clone(),
             #[cfg(feature = "unstable-msc4532")]
-            status_msg: self.status.msg.clone(),
+            status_msg: status.msg.clone(),
             #[cfg(feature = "unstable-msc4532")]
-            status: self.status.clone(),
+            status: status.clone(),
         }
         .serialize(serializer)
     }
