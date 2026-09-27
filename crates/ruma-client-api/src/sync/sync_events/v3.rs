@@ -1230,7 +1230,10 @@ mod server_tests {
         assert_matches!(req.filter, None);
         assert_eq!(req.since, None);
         assert!(!req.full_state);
+        #[cfg(not(feature = "unstable-msc4532"))]
         assert_eq!(req.set_presence, PresenceState::Online);
+        #[cfg(feature = "unstable-msc4532")]
+        assert_eq!(req.set_presence, PresenceState::Active);
         assert_eq!(req.timeout, None);
     }
 
@@ -1257,7 +1260,10 @@ mod server_tests {
         assert_eq!(id, "EOKFFmdZYF");
         assert_eq!(req.since, None);
         assert!(!req.full_state);
+        #[cfg(not(feature = "unstable-msc4532"))]
         assert_eq!(req.set_presence, PresenceState::Online);
+        #[cfg(feature = "unstable-msc4532")]
+        assert_eq!(req.set_presence, PresenceState::Active);
         assert_eq!(req.timeout, Some(Duration::from_millis(0)));
     }
 

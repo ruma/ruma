@@ -212,6 +212,7 @@ impl PresenceEventContent {
 }
 
 #[cfg(test)]
+#[allow(deprecated)]
 mod tests {
     use js_int::uint;
     #[cfg(feature = "unstable-msc4532")]
@@ -285,7 +286,6 @@ mod tests {
         assert_eq!(ev.content.displayname, None);
         assert_eq!(ev.content.last_active_ago, Some(uint!(2_478_593)));
         assert_eq!(ev.content.presence, PresenceState::Online);
-        #[cfg(not(feature = "unstable-msc4532"))]
         assert_eq!(ev.content.status_msg.as_deref(), Some("Making cupcakes"));
         #[cfg(feature = "unstable-msc4532")]
         assert_eq!(ev.content.status.msg.as_deref(), Some("Making cupcakes"));
@@ -311,7 +311,6 @@ mod tests {
             assert_eq!(ev.content.displayname, None);
             assert_eq!(ev.content.last_active_ago, Some(uint!(2_478_593)));
             assert_eq!(ev.content.presence, PresenceState::Online);
-            #[cfg(not(feature = "unstable-msc4532"))]
             assert_eq!(ev.content.status_msg.as_deref(), Some("Making cupcakes"));
             #[cfg(feature = "unstable-msc4532")]
             assert_eq!(ev.content.status.msg.as_deref(), Some("Making cupcakes"));
