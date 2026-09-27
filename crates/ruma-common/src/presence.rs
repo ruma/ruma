@@ -40,6 +40,7 @@ pub enum PresenceState {
     /// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
     #[cfg(feature = "unstable-msc4532")]
     #[cfg_attr(feature = "unstable-msc4532", default)]
+    #[ruma_enum(rename = "org.continuwuity.presence_v2.msc4532.active")]
     Active,
 
     /// The user has a connected client and may reply (potentially unreachable).
@@ -48,6 +49,7 @@ pub enum PresenceState {
     ///
     /// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
     #[cfg(feature = "unstable-msc4532")]
+    #[ruma_enum(rename = "org.continuwuity.presence_v2.msc4532.idle")]
     Idle,
 
     /// The user is unavailable to reply (fully unreachable).
@@ -56,6 +58,7 @@ pub enum PresenceState {
     ///
     /// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
     #[cfg(feature = "unstable-msc4532")]
+    #[ruma_enum(rename = "org.continuwuity.presence_v2.msc4532.busy")]
     Busy,
 
     #[doc(hidden)]
