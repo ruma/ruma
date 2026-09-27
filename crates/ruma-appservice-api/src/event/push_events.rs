@@ -429,7 +429,7 @@ pub mod v1 {
                     "sender": user_id,
                     "content": {
                         "avatar_url": "mxc://localhost/wefuiwegh8742w",
-                        "currently_active": false,
+                        "currently_active": true,
                         "last_active_ago": 785,
                         "presence": "online",
                         "status_msg": "Making cupcakes",
@@ -439,7 +439,7 @@ pub mod v1 {
                 let data = from_json_value::<EphemeralData>(presence_json.clone()).unwrap();
                 assert_let!(EphemeralData::Presence(presence) = &data);
                 assert_eq!(presence.sender, user_id);
-                assert_eq!(presence.content.currently_active, Some(false));
+                assert_eq!(presence.content.currently_active, Some(true));
                 assert_eq!(presence.content.status_msg.as_deref(), Some("Making cupcakes"));
 
                 assert_to_canonical_json_eq!(data, presence_json);
@@ -452,7 +452,7 @@ pub mod v1 {
                     "sender": user_id,
                     "content": {
                         "avatar_url": "mxc://localhost/wefuiwegh8742w",
-                        "currently_active": false,
+                        "currently_active": true,
                         "last_active_ago": 785,
                         "presence": "online",
                         "status_msg": "Making cupcakes",
@@ -465,7 +465,7 @@ pub mod v1 {
                 let data = from_json_value::<EphemeralData>(presence_json.clone()).unwrap();
                 assert_let!(EphemeralData::Presence(presence) = &data);
                 assert_eq!(presence.sender, user_id);
-                assert_eq!(presence.content.currently_active, Some(false));
+                assert_eq!(presence.content.currently_active, Some(true));
                 assert_eq!(presence.content.status.msg.as_deref(), Some("Making cupcakes"));
 
                 assert_to_canonical_json_eq!(data, presence_json);
