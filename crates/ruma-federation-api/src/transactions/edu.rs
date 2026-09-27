@@ -211,7 +211,6 @@ pub struct PresenceUpdate {
         feature = "unstable-msc4532",
         deprecated(note = "Deprecated when MSC4532 is enabled, use `status` instead")
     )]
-    #[allow(dead_code)]
     pub status_msg: Option<String>,
 
     /// Optional status information to accompany the presence.
