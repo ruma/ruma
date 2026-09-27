@@ -36,7 +36,8 @@ pub mod v3 {
         #[ruma_api(path)]
         pub user_id: OwnedUserId,
 
-        /// Whether to use [MSC4532]'s revised presence states (if the server supports them).
+        /// Whether to use [MSC4532]'s revised presence states in responses (if the server supports
+        /// them).
         ///
         /// Defaults to `false`.
         ///

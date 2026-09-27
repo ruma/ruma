@@ -64,7 +64,8 @@ pub struct Request {
     #[ruma_api(query)]
     pub set_presence: PresenceState,
 
-    /// Whether to use [MSC4532]'s revised presence states (if the server supports them).
+    /// Whether to use [MSC4532]'s revised presence states in responses (if the server supports
+    /// them).
     ///
     /// Defaults to `false`.
     ///
