@@ -123,79 +123,6 @@ impl PresenceRecipientListUpdates {
     }
 }
 
-/// The over-the-wire format for [`PresenceUpdate`]. This exists to enable a custom
-/// (de)serialization implementation providing backwards-compatibility for the `status_msg`
-/// field when [MSC4532] is enabled.
-///
-/// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-pub struct PresenceUpdateRepr {
-    /// The user ID this presence EDU is for.
-    pub user_id: OwnedUserId,
-
-    /// The presence of the user.
-    pub presence: PresenceState,
-
-    /// An optional description to accompany the presence.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub status_msg: Option<String>,
-
-    /// Optional status information to accompany the presence.
-    ///
-    /// This field uses the unstable prefix defined in [MSC4532].
-    ///
-    /// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
-    #[cfg(feature = "unstable-msc4532")]
-    #[serde(
-        skip_serializing_if = "ruma_common::serde::is_default",
-        rename = "org.continuwuity.presence_v2.msc4532.status",
-        default
-    )]
-    pub status: PresenceStatus,
-
-    /// The number of milliseconds that have elapsed since the user last did something.
-    pub last_active_ago: UInt,
-
-    /// Whether or not the user is currently active.
-    ///
-    /// Defaults to false.
-    #[serde(default)]
-    pub currently_active: bool,
-
-    /// Changes to the user's presence recipient list since the last EDU was sent, if any.
-    ///
-    /// This field will only be present if `prev_id` is also present.
-    ///
-    /// This field uses the unstable prefix defined in [MSC4495].
-    ///
-    /// [MSC4495]: https://github.com/matrix-org/matrix-spec-proposals/pull/4495
-    #[cfg(feature = "unstable-msc4495")]
-    #[serde(default, skip_serializing_if = "PresenceRecipientListUpdates::is_empty")]
-    pub recipients: PresenceRecipientListUpdates,
-
-    /// The stream ID of the user's current presence recipient list.
-    ///
-    /// This field uses the unstable prefix defined in [MSC4495].
-    ///
-    /// [MSC4495]: https://github.com/matrix-org/matrix-spec-proposals/pull/4495
-    #[cfg(feature = "unstable-msc4495")]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub stream_id: Option<Int>,
-
-    /// The prior stream ID in the user's presence delta stream, if any.
-    ///
-    /// If this field does not match the most recently seen `stream_id`, the presence list should
-    /// be re-fetched.
-    ///
-    /// This field uses the unstable prefix defined in [MSC4495].
-    ///
-    /// [MSC4495]: https://github.com/matrix-org/matrix-spec-proposals/pull/4495
-    #[cfg(feature = "unstable-msc4495")]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub prev_id: Option<Int>,
-}
-
 /// An update to the presence of a user.
 #[derive(Clone, Debug)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
@@ -267,6 +194,79 @@ pub struct PresenceUpdate {
     /// [MSC4495]: https://github.com/matrix-org/matrix-spec-proposals/pull/4495
     #[cfg(feature = "unstable-msc4495")]
     pub prev_id: Option<Int>,
+}
+
+/// The over-the-wire format for [`PresenceUpdate`]. This exists to enable a custom
+/// (de)serialization implementation providing backwards-compatibility for the `status_msg`
+/// field when [MSC4532] is enabled.
+///
+/// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct PresenceUpdateRepr {
+    /// The user ID this presence EDU is for.
+    user_id: OwnedUserId,
+
+    /// The presence of the user.
+    presence: PresenceState,
+
+    /// An optional description to accompany the presence.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    status_msg: Option<String>,
+
+    /// Optional status information to accompany the presence.
+    ///
+    /// This field uses the unstable prefix defined in [MSC4532].
+    ///
+    /// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
+    #[cfg(feature = "unstable-msc4532")]
+    #[serde(
+        skip_serializing_if = "ruma_common::serde::is_default",
+        rename = "org.continuwuity.presence_v2.msc4532.status",
+        default
+    )]
+    status: PresenceStatus,
+
+    /// The number of milliseconds that have elapsed since the user last did something.
+    last_active_ago: UInt,
+
+    /// Whether or not the user is currently active.
+    ///
+    /// Defaults to false.
+    #[serde(default)]
+    currently_active: bool,
+
+    /// Changes to the user's presence recipient list since the last EDU was sent, if any.
+    ///
+    /// This field will only be present if `prev_id` is also present.
+    ///
+    /// This field uses the unstable prefix defined in [MSC4495].
+    ///
+    /// [MSC4495]: https://github.com/matrix-org/matrix-spec-proposals/pull/4495
+    #[cfg(feature = "unstable-msc4495")]
+    #[serde(default, skip_serializing_if = "PresenceRecipientListUpdates::is_empty")]
+    recipients: PresenceRecipientListUpdates,
+
+    /// The stream ID of the user's current presence recipient list.
+    ///
+    /// This field uses the unstable prefix defined in [MSC4495].
+    ///
+    /// [MSC4495]: https://github.com/matrix-org/matrix-spec-proposals/pull/4495
+    #[cfg(feature = "unstable-msc4495")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    stream_id: Option<Int>,
+
+    /// The prior stream ID in the user's presence delta stream, if any.
+    ///
+    /// If this field does not match the most recently seen `stream_id`, the presence list should
+    /// be re-fetched.
+    ///
+    /// This field uses the unstable prefix defined in [MSC4495].
+    ///
+    /// [MSC4495]: https://github.com/matrix-org/matrix-spec-proposals/pull/4495
+    #[cfg(feature = "unstable-msc4495")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    prev_id: Option<Int>,
 }
 
 impl<'de> Deserialize<'de> for PresenceUpdate {
