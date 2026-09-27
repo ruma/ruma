@@ -154,6 +154,7 @@ pub mod v3 {
         where
             D: Deserializer<'de>,
         {
+            #[allow(deprecated, unused_variables)]
             let ResponseBodyRepr {
                 status_msg,
                 #[cfg(feature = "unstable-msc4532")]
@@ -166,6 +167,9 @@ pub mod v3 {
             #[cfg(feature = "unstable-msc4532")]
             let status_msg =
                 if status == PresenceStatus::default() { status_msg } else { status.msg };
+
+            #[cfg(feature = "unstable-msc4532")]
+            let currently_active = Some(presence.currently_active());
 
             #[allow(deprecated)]
             Ok(Self {
@@ -201,9 +205,13 @@ pub mod v3 {
                 #[cfg(feature = "unstable-msc4532")]
                 status_msg: status.msg.clone(),
 
+                #[cfg(not(feature = "unstable-msc4532"))]
+                currently_active: *currently_active,
+                #[cfg(feature = "unstable-msc4532")]
+                currently_active: Some(presence.currently_active()),
+
                 #[cfg(feature = "unstable-msc4532")]
                 status: status.clone(),
-                currently_active: *currently_active,
                 last_active_ago: *last_active_ago,
                 presence: presence.clone(),
             }

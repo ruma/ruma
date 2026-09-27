@@ -126,7 +126,7 @@ struct PresenceEventRepr {
 }
 
 impl<'de> Deserialize<'de> for PresenceEventContent {
-    #[allow(deprecated)]
+    #[allow(deprecated, unused_variables)]
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -142,6 +142,11 @@ impl<'de> Deserialize<'de> for PresenceEventContent {
             status,
         } = PresenceEventRepr::deserialize(deserializer)?;
 
+        #[cfg(feature = "unstable-msc4532")]
+        let status_msg = if status == PresenceStatus::default() { status_msg } else { status.msg };
+        #[cfg(feature = "unstable-msc4532")]
+        let currently_active = Some(presence.currently_active());
+
         Ok(Self {
             avatar_url,
             currently_active,
@@ -150,16 +155,12 @@ impl<'de> Deserialize<'de> for PresenceEventContent {
             presence,
             status_msg: status_msg.clone(),
             #[cfg(feature = "unstable-msc4532")]
-            status: if status == PresenceStatus::default() {
-                PresenceStatus::new(status_msg)
-            } else {
-                status
-            },
+            status: PresenceStatus::new(status_msg),
         })
     }
 }
 
-#[allow(deprecated)]
+#[allow(deprecated, unused_variables)]
 impl Serialize for PresenceEventContent {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -178,17 +179,22 @@ impl Serialize for PresenceEventContent {
         } = self;
 
         PresenceEventRepr {
-            avatar_url: avatar_url.clone(),
+            #[cfg(not(feature = "unstable-msc4532"))]
             currently_active: *currently_active,
-            last_active_ago: *last_active_ago,
-            displayname: displayname.clone(),
-            presence: presence.clone(),
+            #[cfg(feature = "unstable-msc4532")]
+            currently_active: Some(presence.currently_active()),
+
             #[cfg(not(feature = "unstable-msc4532"))]
             status_msg: status_msg.clone(),
             #[cfg(feature = "unstable-msc4532")]
             status_msg: status.msg.clone(),
             #[cfg(feature = "unstable-msc4532")]
             status: status.clone(),
+
+            avatar_url: avatar_url.clone(),
+            last_active_ago: *last_active_ago,
+            displayname: displayname.clone(),
+            presence: presence.clone(),
         }
         .serialize(serializer)
     }
@@ -229,7 +235,7 @@ mod tests {
     fn serialization() {
         let content = PresenceEventContent {
             avatar_url: Some(owned_mxc_uri!("mxc://localhost/wefuiwegh8742w")),
-            currently_active: Some(false),
+            currently_active: Some(true),
             displayname: None,
             last_active_ago: Some(uint!(2_478_593)),
             presence: PresenceState::Online,
@@ -244,7 +250,7 @@ mod tests {
             content,
             json!({
                 "avatar_url": "mxc://localhost/wefuiwegh8742w",
-                "currently_active": false,
+                "currently_active": true,
                 "last_active_ago": 2_478_593,
                 "presence": "online",
                 "org.continuwuity.presence_v2.msc4532.status": {
@@ -258,7 +264,7 @@ mod tests {
             content,
             json!({
                 "avatar_url": "mxc://localhost/wefuiwegh8742w",
-                "currently_active": false,
+                "currently_active": true,
                 "last_active_ago": 2_478_593,
                 "presence": "online",
                 "status_msg": "Making cupcakes",
@@ -271,7 +277,7 @@ mod tests {
         let json = json!({
             "content": {
                 "avatar_url": "mxc://localhost/wefuiwegh8742w",
-                "currently_active": false,
+                "currently_active": true,
                 "last_active_ago": 2_478_593,
                 "presence": "online",
                 "status_msg": "Making cupcakes"
@@ -282,7 +288,7 @@ mod tests {
 
         let ev = from_json_value::<PresenceEvent>(json).unwrap();
         assert_variant_eq!(ev.content.avatar_url, Some("mxc://localhost/wefuiwegh8742w"));
-        assert_eq!(ev.content.currently_active, Some(false));
+        assert_eq!(ev.content.currently_active, Some(true));
         assert_eq!(ev.content.displayname, None);
         assert_eq!(ev.content.last_active_ago, Some(uint!(2_478_593)));
         assert_eq!(ev.content.presence, PresenceState::Online);
@@ -296,7 +302,7 @@ mod tests {
             let json = json!({
                 "content": {
                     "avatar_url": "",
-                    "currently_active": false,
+                    "currently_active": true,
                     "last_active_ago": 2_478_593,
                     "presence": "online",
                     "status_msg": "Making cupcakes"
@@ -307,7 +313,7 @@ mod tests {
 
             let ev = from_json_value::<PresenceEvent>(json).unwrap();
             assert_eq!(ev.content.avatar_url, None);
-            assert_eq!(ev.content.currently_active, Some(false));
+            assert_eq!(ev.content.currently_active, Some(true));
             assert_eq!(ev.content.displayname, None);
             assert_eq!(ev.content.last_active_ago, Some(uint!(2_478_593)));
             assert_eq!(ev.content.presence, PresenceState::Online);
