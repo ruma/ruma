@@ -298,6 +298,7 @@ impl<'de> Deserialize<'de> for PresenceUpdate {
         })
     }
 }
+
 impl Serialize for PresenceUpdate {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
