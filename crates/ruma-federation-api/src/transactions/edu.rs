@@ -222,11 +222,21 @@ pub struct PresenceUpdate {
     pub status: PresenceStatus,
 
     /// The number of milliseconds that have elapsed since the user last did something.
+    #[cfg_attr(
+        feature = "unstable-msc4532",
+        deprecated(note = "Federated last_active_ago is deprecated when MSC4532 is enabled")
+    )]
     pub last_active_ago: UInt,
 
     /// Whether or not the user is currently active.
     ///
     /// Defaults to false.
+    #[cfg_attr(
+        feature = "unstable-msc4532",
+        deprecated(
+            note = "Deprecated when MSC4532 is enabled, use `PresenceState::currently_active` instead"
+        )
+    )]
     pub currently_active: bool,
 
     /// Changes to the user's presence recipient list since the last EDU was sent, if any.
@@ -265,6 +275,7 @@ impl<'de> Deserialize<'de> for PresenceUpdate {
         D: de::Deserializer<'de>,
     {
         let repr = PresenceUpdateRepr::deserialize(deserializer)?;
+        #[allow(deprecated)]
         Ok(Self {
             user_id: repr.user_id,
             presence: repr.presence,
@@ -292,6 +303,7 @@ impl Serialize for PresenceUpdate {
     where
         S: serde::Serializer,
     {
+        #[allow(deprecated)]
         PresenceUpdateRepr {
             user_id: self.user_id.clone(),
             presence: self.presence.clone(),
@@ -317,11 +329,11 @@ impl Serialize for PresenceUpdate {
 impl PresenceUpdate {
     /// Creates a new `PresenceUpdate` with the given `user_id`, `presence` and `last_activity`.
     pub fn new(user_id: OwnedUserId, presence: PresenceState, last_activity: UInt) -> Self {
+        #[allow(deprecated)]
         Self {
             user_id,
             presence,
             last_active_ago: last_activity,
-            #[allow(deprecated)]
             status_msg: None,
             #[cfg(feature = "unstable-msc4532")]
             status: PresenceStatus::default(),
