@@ -185,19 +185,28 @@ pub mod v3 {
         where
             S: Serializer,
         {
-            #[allow(deprecated)]
+            #[allow(deprecated, unused_variables)]
+            let ResponseBody {
+                status_msg,
+                #[cfg(feature = "unstable-msc4532")]
+                status,
+                currently_active,
+                last_active_ago,
+                presence,
+            } = self;
+
             ResponseBodyRepr {
                 // If MSC4532 is enabled, set the legacy field for backwards compatibility
                 #[cfg(not(feature = "unstable-msc4532"))]
-                status_msg: self.status_msg.clone(),
+                status_msg: status_msg.clone(),
                 #[cfg(feature = "unstable-msc4532")]
-                status_msg: self.status.msg.clone(),
+                status_msg: status.msg.clone(),
 
                 #[cfg(feature = "unstable-msc4532")]
-                status: self.status.clone(),
-                currently_active: self.currently_active,
-                last_active_ago: self.last_active_ago,
-                presence: self.presence.clone(),
+                status: status.clone(),
+                currently_active: *currently_active,
+                last_active_ago: *last_active_ago,
+                presence: presence.clone(),
             }
             .serialize(serializer)
         }
