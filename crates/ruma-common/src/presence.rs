@@ -120,10 +120,6 @@ impl Default for &'_ PresenceState {
 }
 
 /// A user's extensible status.
-///
-/// This uses the unstable prefix defined in [MSC4532].
-///
-/// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
 #[cfg(feature = "unstable-msc4532")]
 #[derive(Clone, Debug, Default, PartialEq, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
@@ -134,7 +130,7 @@ pub struct PresenceStatus {
 
     /// Remaining content.
     #[serde(flatten)]
-    pub data: JsonObject,
+    data: JsonObject,
 }
 
 #[cfg(feature = "unstable-msc4532")]
