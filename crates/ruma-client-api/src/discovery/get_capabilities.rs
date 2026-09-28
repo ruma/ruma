@@ -548,8 +548,10 @@ pub mod v3 {
         }
 
         /// Returns whether all fields have their default value.
-        pub fn is_default(&self) -> bool {
-            self.allowed_scopes.is_empty()
+        fn is_default(&self) -> bool {
+            let Self { allowed_scopes } = self;
+
+            allowed_scopes.is_empty()
         }
     }
 }
