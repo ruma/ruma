@@ -58,6 +58,12 @@ pub struct Namespaces {
     /// Events which are sent in rooms with certain room IDs.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub rooms: Vec<Namespace>,
+
+    /// Urls that this appservice will be queried about.
+    #[cfg(feature = "unstable-msc4417")]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(rename = "uk.half-shot.msc4417.preview_urls")]
+    pub preview_urls: Vec<Namespace>,
 }
 
 impl Namespaces {
