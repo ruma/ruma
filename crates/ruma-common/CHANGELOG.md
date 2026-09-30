@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+Breaking changes:
+
+- `OAuthClientScope` now requires that custom values are valid OAuth scopes.
+  Consequently, its `From<str>` implementation has been replaced with a `TryFrom<str>`
+  implementation, and deserializing it is no longer infallible.
+
 Improvements:
 
 - The `(Owned)DirectUserIdentifier` types were imported from ruma-events. Converting between an
@@ -18,6 +24,9 @@ Improvements:
   to ease the transition for the expected change by allowing to migrate tests in advance. They are
   behind an unstable cargo feature because they are likely to be removed soon after the DST
   identifier type removal.
+- Add unstable support for [MSC4363] "OAuth step up authentication".
+
+[MSC4363]: https://github.com/matrix-org/matrix-spec-proposals/pull/4363
 
 ## 0.20.0
 

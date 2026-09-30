@@ -1,4 +1,5 @@
 use std::{
+    borrow::Cow,
     cmp::Ordering,
     collections::{BTreeMap, BTreeSet},
     fmt::Display,
@@ -6,12 +7,17 @@ use std::{
 };
 
 use http::Method;
-use ruma_macros::StringEnum;
+use ruma_macros::{
+    AsRefStr, AsStrAsRefStr, DebugAsRefStr, DisplayAsRefStr, EqAsRefStr, OrdAsRefStr,
+    SerializeAsRefStr, StringEnum,
+};
+use serde::{Deserialize, de};
 
 use super::{auth_scheme::AuthScheme, error::UnknownVersionError, path_builder::PathBuilder};
 use crate::{
     PrivOwnedStr, RoomVersionId,
     api::{auth_scheme::ClientScopedAuthScheme, error::IntoHttpError},
+    serde::deserialize_cow_str,
 };
 
 /// Convenient constructor for [`Metadata`] implementation.
@@ -865,25 +871,103 @@ pub enum FeatureFlag {
 /// This enum does _not_ include the [device ID scope], which isn't really a scope (as it doesn't
 /// grant access to anything) but instead a way to reserve a specific device ID.
 ///
+/// This type can hold any string which conforms to the format of an OAuth scope, as defined
+/// in [RFC 6749]. To build this with a custom value, convert it from a string with `::try_from()` /
+/// `.try_into()`. To check for values that are not available as a documented variant here, use its
+/// string representation, obtained through [`.as_str()`](Self::as_str()).
+///
 /// [device ID scope]: https://spec.matrix.org/v1.19/client-server-api/#device-id-allocation
-#[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/doc/string_enum.md"))]
-#[derive(Clone, StringEnum, Hash)]
+/// [RFC 6749]: https://datatracker.ietf.org/doc/html/rfc6749#section-3.3
+#[derive(
+    Clone,
+    Hash,
+    AsRefStr,
+    AsStrAsRefStr,
+    DisplayAsRefStr,
+    DebugAsRefStr,
+    SerializeAsRefStr,
+    EqAsRefStr,
+    OrdAsRefStr,
+)]
 #[non_exhaustive]
 pub enum OAuthClientScope {
     /// Full access to all endpoints of the client-server API, unless explicitly noted.
-    #[ruma_enum(
-        rename = "urn:matrix:client:api:*",
-        alias = "urn:matrix:org.matrix.msc2967.client:api:*"
-    )]
+    #[ruma_enum(rename = "urn:matrix:client:api:*")]
     ApiFullAccess,
 
     /// Access to the endpoints in the [Server Administration] module.
     ///
     /// [Server Administration]: https://spec.matrix.org/v1.19/client-server-api/#server-administration
-    #[cfg(feature = "unstable-msc4484")]
     #[ruma_enum(rename = "urn:matrix:client:cc.c10y.msc4484.server_administration")]
+    #[cfg(feature = "unstable-msc4484")]
     ServerAdministration,
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
+}
+
+impl TryFrom<Cow<'_, str>> for OAuthClientScope {
+    type Error = ruma_identifiers_validation::Error;
+
+    fn try_from(value: Cow<'_, str>) -> Result<Self, Self::Error> {
+        match value.as_ref() {
+            "urn:matrix:client:api:*" | "urn:matrix:org.matrix.msc2967.client:api:*" => {
+                Ok(Self::ApiFullAccess)
+            }
+            #[cfg(feature = "unstable-msc4484")]
+            "urn:matrix:client:cc.c10y.msc4484.server_administration" => {
+                Ok(Self::ServerAdministration)
+            }
+            _ => {
+                ruma_identifiers_validation::oauth_scope::validate(&value)?;
+                let inner: Box<str> = value.into();
+                Ok(Self::_Custom(PrivOwnedStr(inner)))
+            }
+        }
+    }
+}
+
+impl TryFrom<&str> for OAuthClientScope {
+    type Error = ruma_identifiers_validation::Error;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Self::try_from(Cow::Borrowed(value))
+    }
+}
+
+impl FromStr for OAuthClientScope {
+    type Err = ruma_identifiers_validation::Error;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        Self::try_from(Cow::Borrowed(value))
+    }
+}
+
+impl<'de> Deserialize<'de> for OAuthClientScope {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        OAuthClientScope::try_from(deserialize_cow_str(deserializer)?).map_err(de::Error::custom)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use ruma_identifiers_validation::Error;
+
+    use super::OAuthClientScope;
+
+    #[test]
+    fn parse_oauth_scope() {
+        OAuthClientScope::try_from("urn:example:hunter2").unwrap();
+        OAuthClientScope::try_from(
+            "urn:COMPLAINTS@ruma.dev:(([[{{<<'|~=.=~|'>>}}]])):+,*-./#$%&!^_`;:???????",
+        )
+        .unwrap();
+
+        assert_eq!(OAuthClientScope::try_from(""), Err(Error::Empty));
+        assert_eq!(OAuthClientScope::try_from("urn: :3"), Err(Error::InvalidCharacters));
+        assert_eq!(OAuthClientScope::try_from("urn:⚱️"), Err(Error::InvalidCharacters));
+    }
 }
