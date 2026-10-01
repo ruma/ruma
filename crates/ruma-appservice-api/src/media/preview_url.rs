@@ -22,7 +22,7 @@ pub mod unstable {
         rate_limited: true,
         authentication: HomeserverToken,
         history: {
-            unstable("uk.half-shot.msc4417.preview_urls") => "/_matrix/app/unstable/uk.half-shot.msc4417/preview_url",
+            unstable => "/_matrix/app/unstable/uk.half-shot.msc4417/preview_url",
         }
     }
 
@@ -35,6 +35,7 @@ pub mod unstable {
 
         /// UserID of the user requesting this preview.
         #[ruma_api(query)]
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub user_id: Option<OwnedUserId>,
     }
 
@@ -54,8 +55,8 @@ pub mod unstable {
 
     impl Request {
         /// Creates a new `Request` with the given URL.
-        pub fn new(url: String, user_id: Option<OwnedUserId>) -> Self {
-            Self { url, user_id }
+        pub fn new(url: String) -> Self {
+            Self { url, user_id: None }
         }
     }
 
