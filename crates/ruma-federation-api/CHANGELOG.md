@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+Improvements:
+
+- Add unstable support for the `rtc::livekit::get_token` endpoint from MSC4195, behind the
+  `unstable-msc4195` feature.
+
 ## 0.16.0
 
 Breaking changes:
