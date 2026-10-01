@@ -10,8 +10,12 @@ Bug fixes:
 Improvements:
 
 - Add unstable support for [MSC4540] "`m.admin` capability".
+- Add unstable support for the `rtc::livekit::get_token` and
+  `rtc::livekit::delegate_delayed_leave` endpoints from [MSC4195], behind the
+  `unstable-msc4195` feature.
 
 [MSC4540]: https://github.com/matrix-org/matrix-spec-proposals/pull/4540
+[MSC4195]: https://github.com/matrix-org/matrix-spec-proposals/pull/4195
 
 ## 0.25.0
 
