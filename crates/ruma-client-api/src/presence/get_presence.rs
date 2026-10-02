@@ -63,6 +63,8 @@ pub mod v3 {
             feature = "unstable-msc4532",
             deprecated(note = "Deprecated when MSC4532 is enabled, use `status` instead")
         )]
+        // required to prevent dead code warnings for the deprecated field
+        #[allow(dead_code)]
         pub status_msg: Option<String>,
 
         /// The status information for this user's presence.
