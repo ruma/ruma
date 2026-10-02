@@ -22,7 +22,7 @@ pub mod v2 {
         rate_limited: false,
         authentication: IdentityServiceToken,
         history: {
-            1.0 => "/_matrix/identity/v2/3pid/getValidated3pid/",
+            1.0 => "/_matrix/identity/v2/3pid/getValidated3pid",
         }
     }
 
