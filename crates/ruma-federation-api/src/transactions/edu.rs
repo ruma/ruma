@@ -5,6 +5,8 @@ use std::collections::BTreeMap;
 #[cfg(feature = "unstable-msc4495")]
 use js_int::Int;
 use js_int::UInt;
+#[cfg(feature = "unstable-msc4532")]
+use ruma_common::presence::PresenceStatus;
 use ruma_common::{
     OwnedDeviceId, OwnedEventId, OwnedRoomId, OwnedTransactionId, OwnedUserId,
     encryption::{CrossSigningKey, DeviceKeys},
@@ -122,7 +124,7 @@ impl PresenceRecipientListUpdates {
 }
 
 /// An update to the presence of a user.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct PresenceUpdate {
     /// The user ID this presence EDU is for.
@@ -132,16 +134,36 @@ pub struct PresenceUpdate {
     pub presence: PresenceState,
 
     /// An optional description to accompany the presence.
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(
+        feature = "unstable-msc4532",
+        deprecated(note = "Deprecated when MSC4532 is enabled, use `status` instead")
+    )]
     pub status_msg: Option<String>,
 
+    /// Optional status information to accompany the presence.
+    ///
+    /// This field uses the unstable prefix defined in [MSC4532].
+    ///
+    /// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
+    #[cfg(feature = "unstable-msc4532")]
+    pub status: PresenceStatus,
+
     /// The number of milliseconds that have elapsed since the user last did something.
+    #[cfg_attr(
+        feature = "unstable-msc4532",
+        deprecated(note = "Federated last_active_ago is deprecated when MSC4532 is enabled")
+    )]
     pub last_active_ago: UInt,
 
     /// Whether or not the user is currently active.
     ///
     /// Defaults to false.
-    #[serde(default)]
+    #[cfg_attr(
+        feature = "unstable-msc4532",
+        deprecated(
+            note = "Deprecated when MSC4532 is enabled, use `PresenceState::currently_active` instead"
+        )
+    )]
     pub currently_active: bool,
 
     /// Changes to the user's presence recipient list since the last EDU was sent, if any.
@@ -152,7 +174,6 @@ pub struct PresenceUpdate {
     ///
     /// [MSC4495]: https://github.com/matrix-org/matrix-spec-proposals/pull/4495
     #[cfg(feature = "unstable-msc4495")]
-    #[serde(default, skip_serializing_if = "PresenceRecipientListUpdates::is_empty")]
     pub recipients: PresenceRecipientListUpdates,
 
     /// The stream ID of the user's current presence recipient list.
@@ -161,7 +182,6 @@ pub struct PresenceUpdate {
     ///
     /// [MSC4495]: https://github.com/matrix-org/matrix-spec-proposals/pull/4495
     #[cfg(feature = "unstable-msc4495")]
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub stream_id: Option<Int>,
 
     /// The prior stream ID in the user's presence delta stream, if any.
@@ -173,18 +193,188 @@ pub struct PresenceUpdate {
     ///
     /// [MSC4495]: https://github.com/matrix-org/matrix-spec-proposals/pull/4495
     #[cfg(feature = "unstable-msc4495")]
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub prev_id: Option<Int>,
+}
+
+/// The over-the-wire format for [`PresenceUpdate`]. This exists to enable a custom
+/// (de)serialization implementation providing backwards-compatibility for the `status_msg`
+/// field when [MSC4532] is enabled.
+///
+/// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct PresenceUpdateRepr {
+    /// The user ID this presence EDU is for.
+    user_id: OwnedUserId,
+
+    /// The presence of the user.
+    presence: PresenceState,
+
+    /// An optional description to accompany the presence.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    status_msg: Option<String>,
+
+    /// Optional status information to accompany the presence.
+    ///
+    /// This field uses the unstable prefix defined in [MSC4532].
+    ///
+    /// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
+    #[cfg(feature = "unstable-msc4532")]
+    #[serde(
+        skip_serializing_if = "ruma_common::serde::is_default",
+        rename = "org.continuwuity.presence_v2.msc4532.status",
+        default
+    )]
+    status: PresenceStatus,
+
+    /// The number of milliseconds that have elapsed since the user last did something.
+    last_active_ago: UInt,
+
+    /// Whether or not the user is currently active.
+    ///
+    /// Defaults to false.
+    #[serde(default)]
+    currently_active: bool,
+
+    /// Changes to the user's presence recipient list since the last EDU was sent, if any.
+    ///
+    /// This field will only be present if `prev_id` is also present.
+    ///
+    /// This field uses the unstable prefix defined in [MSC4495].
+    ///
+    /// [MSC4495]: https://github.com/matrix-org/matrix-spec-proposals/pull/4495
+    #[cfg(feature = "unstable-msc4495")]
+    #[serde(default, skip_serializing_if = "PresenceRecipientListUpdates::is_empty")]
+    recipients: PresenceRecipientListUpdates,
+
+    /// The stream ID of the user's current presence recipient list.
+    ///
+    /// This field uses the unstable prefix defined in [MSC4495].
+    ///
+    /// [MSC4495]: https://github.com/matrix-org/matrix-spec-proposals/pull/4495
+    #[cfg(feature = "unstable-msc4495")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    stream_id: Option<Int>,
+
+    /// The prior stream ID in the user's presence delta stream, if any.
+    ///
+    /// If this field does not match the most recently seen `stream_id`, the presence list should
+    /// be re-fetched.
+    ///
+    /// This field uses the unstable prefix defined in [MSC4495].
+    ///
+    /// [MSC4495]: https://github.com/matrix-org/matrix-spec-proposals/pull/4495
+    #[cfg(feature = "unstable-msc4495")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    prev_id: Option<Int>,
+}
+
+#[allow(deprecated)]
+impl<'de> Deserialize<'de> for PresenceUpdate {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: de::Deserializer<'de>,
+    {
+        let PresenceUpdateRepr {
+            user_id,
+            presence,
+            status_msg,
+            #[cfg(feature = "unstable-msc4532")]
+            status,
+            last_active_ago,
+            currently_active,
+            #[cfg(feature = "unstable-msc4495")]
+            recipients,
+            #[cfg(feature = "unstable-msc4495")]
+            stream_id,
+            #[cfg(feature = "unstable-msc4495")]
+            prev_id,
+        } = PresenceUpdateRepr::deserialize(deserializer)?;
+
+        Ok(Self {
+            user_id,
+            presence,
+            last_active_ago,
+            #[allow(deprecated)]
+            status_msg: status_msg.clone(),
+            #[cfg(feature = "unstable-msc4532")]
+            status: if status == PresenceStatus::default() {
+                PresenceStatus::new(status_msg)
+            } else {
+                status
+            },
+            currently_active,
+            #[cfg(feature = "unstable-msc4495")]
+            recipients,
+            #[cfg(feature = "unstable-msc4495")]
+            stream_id,
+            #[cfg(feature = "unstable-msc4495")]
+            prev_id,
+        })
+    }
+}
+
+#[allow(deprecated)]
+impl Serialize for PresenceUpdate {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        #[allow(unused_variables)]
+        let PresenceUpdate {
+            user_id,
+            presence,
+            status_msg,
+            #[cfg(feature = "unstable-msc4532")]
+            status,
+            last_active_ago,
+            currently_active,
+            #[cfg(feature = "unstable-msc4495")]
+            recipients,
+            #[cfg(feature = "unstable-msc4495")]
+            stream_id,
+            #[cfg(feature = "unstable-msc4495")]
+            prev_id,
+        } = self;
+
+        #[cfg(feature = "unstable-msc4532")]
+        let currently_active = &presence.currently_active();
+
+        #[allow(deprecated)]
+        PresenceUpdateRepr {
+            #[cfg(not(feature = "unstable-msc4532"))]
+            status_msg: status_msg.clone(),
+            #[cfg(feature = "unstable-msc4532")]
+            status_msg: status.msg.clone(),
+            #[cfg(feature = "unstable-msc4532")]
+            status: status.clone(),
+
+            user_id: user_id.clone(),
+            presence: presence.clone(),
+            last_active_ago: *last_active_ago,
+            currently_active: *currently_active,
+            #[cfg(feature = "unstable-msc4495")]
+            recipients: recipients.clone(),
+            #[cfg(feature = "unstable-msc4495")]
+            stream_id: *stream_id,
+            #[cfg(feature = "unstable-msc4495")]
+            prev_id: *prev_id,
+        }
+        .serialize(serializer)
+    }
 }
 
 impl PresenceUpdate {
     /// Creates a new `PresenceUpdate` with the given `user_id`, `presence` and `last_activity`.
     pub fn new(user_id: OwnedUserId, presence: PresenceState, last_activity: UInt) -> Self {
+        #[allow(deprecated)]
         Self {
             user_id,
             presence,
             last_active_ago: last_activity,
             status_msg: None,
+            #[cfg(feature = "unstable-msc4532")]
+            status: PresenceStatus::default(),
             currently_active: false,
             #[cfg(feature = "unstable-msc4495")]
             recipients: PresenceRecipientListUpdates::default(),
@@ -616,7 +806,9 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn presence_edu() {
+        #[cfg(not(feature = "unstable-msc4532"))]
         let json = json!({
             "content": {
                 "push": [
@@ -631,6 +823,24 @@ mod tests {
             },
             "edu_type": "m.presence"
         });
+        #[cfg(feature = "unstable-msc4532")]
+        let json = json!({
+            "content": {
+                "push": [
+                    {
+                        "user_id": "@alice:example.com",
+                        "presence": "online",
+                        "currently_active": true,
+                        "last_active_ago": 1000,
+                        "status_msg": "Making cupcakes",
+                        "org.continuwuity.presence_v2.msc4532.status": {
+                            "msg": "Making cupcakes"
+                        }
+                    }
+                ]
+            },
+            "edu_type": "m.presence"
+        });
 
         let edu = serde_json::from_value::<Edu>(json.clone()).unwrap();
         assert_let!(Edu::Presence(content) = &edu);
@@ -640,7 +850,10 @@ mod tests {
         assert_eq!(presence_update.presence, PresenceState::Online);
         assert!(presence_update.currently_active);
         assert_eq!(presence_update.last_active_ago, uint!(1000));
+        #[cfg(not(feature = "unstable-msc4532"))]
         assert_eq!(presence_update.status_msg.as_deref(), Some("Making cupcakes"));
+        #[cfg(feature = "unstable-msc4532")]
+        assert_eq!(presence_update.status.msg.as_deref(), Some("Making cupcakes"));
         #[cfg(feature = "unstable-msc4495")]
         {
             assert!(presence_update.recipients.is_empty());
@@ -652,6 +865,7 @@ mod tests {
     }
 
     #[cfg(feature = "unstable-msc4495")]
+    #[allow(deprecated)]
     #[test]
     fn msc4495_presence_edu() {
         use js_int::int;
@@ -666,7 +880,6 @@ mod tests {
                         "presence": "online",
                         "currently_active": true,
                         "last_active_ago": 1000,
-                        "status_msg": "Making cupcakes",
                         "stream_id": 321,
                         "prev_id": 123,
                         "recipients": {
@@ -687,7 +900,6 @@ mod tests {
         assert_eq!(presence_update.presence, PresenceState::Online);
         assert!(presence_update.currently_active);
         assert_eq!(presence_update.last_active_ago, uint!(1000));
-        assert_eq!(presence_update.status_msg.as_deref(), Some("Making cupcakes"));
         assert_eq!(presence_update.stream_id, Some(int!(321)));
         assert_eq!(presence_update.prev_id, Some(int!(123)));
         assert_let!(PresenceRecipientListUpdates { add, delete } = &presence_update.recipients);
