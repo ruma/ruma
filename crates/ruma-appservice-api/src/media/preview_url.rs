@@ -19,11 +19,9 @@ pub mod unstable {
 
     metadata! {
         method: GET,
-        rate_limited: true,
+        rate_limited: false,
         authentication: HomeserverToken,
-        history: {
-            unstable => "/_matrix/app/unstable/uk.half-shot.msc4417/preview_url",
-        }
+        path: "/_matrix/app/unstable/uk.half-shot.msc4417/preview_url"
     }
 
     /// Request type for the `preview_url` endpoint.
