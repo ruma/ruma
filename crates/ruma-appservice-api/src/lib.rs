@@ -17,6 +17,8 @@ use ruma_common::api::auth_scheme::{
 use serde::{Deserialize, Serialize};
 
 pub mod event;
+#[cfg(feature = "unstable-msc4417")]
+pub mod media;
 pub mod ping;
 pub mod query;
 pub mod thirdparty;
@@ -58,6 +60,12 @@ pub struct Namespaces {
     /// Events which are sent in rooms with certain room IDs.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub rooms: Vec<Namespace>,
+
+    /// URLs that this appservice will be queried about.
+    #[cfg(feature = "unstable-msc4417")]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(rename = "uk.half-shot.msc4417.preview_urls")]
+    pub preview_urls: Vec<Namespace>,
 }
 
 impl Namespaces {
