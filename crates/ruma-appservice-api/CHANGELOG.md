@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add unstable support for [MSC4417] "URL Previews via Appservices".
+
+[MSC4417]: https://github.com/matrix-org/matrix-spec-proposals/pull/4417
+
 ## 0.17.0
 
 Breaking changes:

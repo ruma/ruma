@@ -20,6 +20,7 @@ server = []
 
 unstable-msc3202 = []
 unstable-msc4203 = []
+unstable-msc4417 = []
 
 [dependencies]
 http = { workspace = true }
