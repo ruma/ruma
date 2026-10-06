@@ -86,8 +86,8 @@ pub struct RoomState {
     #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
     pub members_omitted: bool,
 
-    /// The full set of authorization events that make up the state of the room,
-    /// and their authorization events, recursively.
+    /// All events in the auth chain for the new join event, as well as those in the auth chains
+    /// for any events returned in `state`.
     ///
     /// If the request had `omit_members` set to `true`, then any events that are returned in
     /// `state` may be omitted from `auth_chain`, whether or not membership events are omitted
@@ -104,7 +104,8 @@ pub struct RoomState {
     /// The signed copy of the membership event sent to other servers by the
     /// resident server, including the resident server's signature.
     ///
-    /// Required if the room version supports restricted join rules.
+    /// Required if the room is restricted and the joining user is authorised by one of the
+    /// conditions.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub event: Option<Box<RawJsonValue>>,
 

@@ -30,7 +30,7 @@ pub mod v2 {
     /// Response type for the `get_server_keys` endpoint.
     #[response]
     pub struct Response {
-        /// Queried server key, signed by the notary server.
+        /// The homeserver's published signing keys.
         #[ruma_api(body)]
         pub server_key: Raw<ServerSigningKeys>,
     }
