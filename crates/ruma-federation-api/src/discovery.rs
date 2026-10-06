@@ -49,7 +49,7 @@ impl OldVerifyKey {
     }
 }
 
-/// Queried server key, signed by the notary server.
+/// A homeserver's published signing keys.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct ServerSigningKeys {
