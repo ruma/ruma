@@ -8,6 +8,11 @@ Breaking changes:
   Consequently, its `From<str>` implementation has been replaced with a `TryFrom<str>`
   implementation, and deserializing it is no longer infallible.
 
+Bug fixes:
+
+- `AnyKeyName` is now `#[repr(transparent)]`. Its `from_borrowed_unchecked` implementation
+  transmutes `&str` into `&AnyKeyName`, which was undefined behavior without this attribute.
+
 Improvements:
 
 - The `(Owned)DirectUserIdentifier` types were imported from ruma-events. Converting between an
