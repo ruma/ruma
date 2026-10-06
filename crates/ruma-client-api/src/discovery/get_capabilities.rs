@@ -205,6 +205,8 @@ pub mod v3 {
                     Some(Cow::Owned(serialize(&self.forget_forced_upon_leave)))
                 }
                 "m.account_moderation" => Some(Cow::Owned(serialize(&self.account_moderation))),
+                #[cfg(feature = "unstable-msc4540")]
+                "org.continuwuity.msc4540.admin" => Some(Cow::Owned(serialize(&self.admin))),
                 _ => self.custom_capabilities.get(capability).map(Cow::Borrowed),
             }
         }
@@ -233,6 +235,8 @@ pub mod v3 {
                 "m.account_moderation" => {
                     self.account_moderation = from_json_value(value)?;
                 }
+                #[cfg(feature = "unstable-msc4540")]
+                "org.continuwuity.msc4540.admin" => self.admin = from_json_value(value)?,
                 _ => {
                     self.custom_capabilities.insert(capability.to_owned(), value);
                 }
