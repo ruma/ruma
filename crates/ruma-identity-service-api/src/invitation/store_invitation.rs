@@ -48,7 +48,7 @@ pub mod v2 {
 
         /// The Matrix room alias for the room to which the user is invited.
         ///
-        /// This should be retrieved from the `m.room.canonical` state event.
+        /// This should be retrieved from the `m.room.canonical_alias` state event.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub room_alias: Option<OwnedRoomAliasId>,
 
@@ -80,7 +80,7 @@ pub mod v2 {
         #[serde(skip_serializing_if = "Option::is_none")]
         pub sender_display_name: Option<String>,
 
-        /// The Content URI for the avater of the user ID initiating the invite.
+        /// The Content URI for the avatar of the user ID initiating the invite.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub sender_avatar_url: Option<OwnedMxcUri>,
     }
