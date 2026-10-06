@@ -188,7 +188,7 @@ impl From<RegistrationInit> for Registration {
 }
 
 /// Authentication is required, and can only be performed by a homeserver sending a request to an
-/// appservice, by including a homeserver access token in the `Authentication` http header, or an
+/// appservice, by including a homeserver access token in the `Authorization` http header, or an
 /// `access_token` query parameter.
 ///
 /// Using the query parameter is deprecated since Matrix 1.4.
