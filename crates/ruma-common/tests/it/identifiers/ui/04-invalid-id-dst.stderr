@@ -1,0 +1,29 @@
+error: IDs must be `#[repr(transparent)]` over `str`
+ --> tests/it/identifiers/ui/04-invalid-id-dst.rs:5:16
+  |
+5 |     pub struct NotTransparentId(str);
+  |                ^^^^^^^^^^^^^^^^
+
+error: IDs must be `#[repr(transparent)]` over `str`
+  --> tests/it/identifiers/ui/04-invalid-id-dst.rs:11:16
+   |
+11 |     pub struct InactiveCfgTransparentId(str);
+   |                ^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: Only tuple structs with a `str` as the last field are supported
+  --> tests/it/identifiers/ui/04-invalid-id-dst.rs:21:14
+   |
+21 |     #[derive(ruma_macros::IdDst)]
+   |              ^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the derive macro `ruma_macros::IdDst` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0539]: malformed `repr` attribute input
+  --> tests/it/identifiers/ui/04-invalid-id-dst.rs:16:7
+   |
+16 |     #[repr(transparent, align = 8)]
+   |       ^^^^^^^^^^^^^^^^^^^^^^^^---^
+   |                               |
+   |                               expected this to be a list
+   |
+   = note: for more information, visit <https://doc.rust-lang.org/reference/type-layout.html#representations>
