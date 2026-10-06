@@ -1,4 +1,4 @@
-//! POST /_matrix/client/*/account/3pid/delete
+//! `POST /_matrix/client/*/account/3pid/delete`
 //!
 //! Delete a 3PID from a user's account on an identity server.
 
