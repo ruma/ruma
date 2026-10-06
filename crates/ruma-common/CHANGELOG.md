@@ -7,6 +7,8 @@ Breaking changes:
 - `OAuthClientScope` now requires that custom values are valid OAuth scopes.
   Consequently, its `From<str>` implementation has been replaced with a `TryFrom<str>`
   implementation, and deserializing it is no longer infallible.
+- The `IdDst` derive macro now requires the type to be `#[repr(transparent)]`, because the generated
+  code transmutes `&str` into a reference to the type, which is only sound with this representation.
 
 Bug fixes:
 

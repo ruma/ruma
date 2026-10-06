@@ -461,6 +461,10 @@ pub fn derive_from_event_to_enum(input: TokenStream) -> TokenStream {
 /// * `PartialEq` implementations for testing equality with string types and owned and borrowed
 ///   types.
 ///
+/// The type must be a tuple struct with `str` as its last field, and it must be
+/// `#[repr(transparent)]`, because the generated code converts `&str` to the borrowed type with
+/// a transmute.
+///
 /// # Attributes
 ///
 /// * `#[ruma_id(validate = PATH)]`: the path to a function to validate the string during parsing
@@ -475,6 +479,7 @@ pub fn derive_from_event_to_enum(input: TokenStream) -> TokenStream {
 /// # // HACK: This is "ignore" because of cyclical dependency drama.
 /// use ruma_macros::IdDst;
 ///
+/// #[repr(transparent)]
 /// #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
 /// #[ruma_id(validate = ruma_identifiers_validation::user_id::validate, smallvec_inline_bytes = 40)]
 /// pub struct UserId(str);
