@@ -269,8 +269,9 @@ pub struct CustomTweak {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::{assert_let, assert_matches};
-    use serde_json::{Value as JsonValue, from_value as from_json_value, json};
+    use assert_matches::assert_matches;
+    use serde_json::{from_value as from_json_value, json};
+    use strass::{assert_let, assert_variant_eq};
 
     use super::{Action, HighlightTweakValue, SoundTweakValue, Tweak};
     use crate::{assert_to_canonical_json_eq, push::action::CustomActionData};
@@ -330,9 +331,8 @@ mod tests {
             "set_tweak": "sound",
             "value": "default"
         });
-        assert_matches!(
-            from_json_value::<Action>(json_data),
-            Ok(Action::SetTweak(Tweak::Sound(value)))
+        assert_let!(
+            Ok(Action::SetTweak(Tweak::Sound(value))) = from_json_value::<Action>(json_data)
         );
         assert_eq!(value, SoundTweakValue::Default);
 
@@ -340,9 +340,8 @@ mod tests {
             "set_tweak": "sound",
             "value": "custom"
         });
-        assert_matches!(
-            from_json_value::<Action>(json_data),
-            Ok(Action::SetTweak(Tweak::Sound(value)))
+        assert_let!(
+            Ok(Action::SetTweak(Tweak::Sound(value))) = from_json_value::<Action>(json_data)
         );
         assert_eq!(value.as_str(), "custom");
     }
@@ -383,8 +382,7 @@ mod tests {
         // String action.
         let json = json!("dev.local.action");
         let action = from_json_value::<Action>(json.clone()).unwrap();
-        assert_let!(CustomActionData::String(value) = &*action.data());
-        assert_eq!(value, "dev.local.action");
+        assert_variant_eq!(&*action.data(), CustomActionData::String("dev.local.action"));
         assert_to_canonical_json_eq!(action, json);
 
         // Object action.
@@ -392,8 +390,7 @@ mod tests {
         let action = from_json_value::<Action>(json.clone()).unwrap();
         assert_let!(CustomActionData::Object(value) = &*action.data());
         assert_eq!(value.len(), 1);
-        assert_let!(Some(JsonValue::String(s)) = value.get("dev.local.action"));
-        assert_eq!(s, "rainbow");
+        assert_eq!(value["dev.local.action"], "rainbow");
         assert_to_canonical_json_eq!(action, json);
     }
 }

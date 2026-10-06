@@ -2,7 +2,10 @@
 //!
 //! [send-to-device]: https://spec.matrix.org/v1.19/client-server-api/#send-to-device-messaging
 
-use std::fmt::{Display, Formatter, Result as FmtResult};
+use std::{
+    fmt::{Display, Formatter, Result as FmtResult},
+    str::FromStr,
+};
 
 use serde::{
     Deserialize, Deserializer, Serialize, Serializer,
@@ -48,6 +51,14 @@ impl TryFrom<&str> for DeviceIdOrAllDevices {
         } else {
             Ok(DeviceIdOrAllDevices::DeviceId(device_id_or_all_devices.into()))
         }
+    }
+}
+
+impl FromStr for DeviceIdOrAllDevices {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        s.try_into()
     }
 }
 

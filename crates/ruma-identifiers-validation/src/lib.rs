@@ -1,12 +1,15 @@
 #![doc(html_favicon_url = "https://ruma.dev/favicon.ico")]
 #![doc(html_logo_url = "https://ruma.dev/images/logo.png")]
 
+#[cfg(feature = "unstable-msc4363")]
+pub mod acr;
 pub mod base64_public_key;
 pub mod client_secret;
 pub mod error;
 pub mod event_id;
 pub mod key_id;
 pub mod mxc_uri;
+pub mod oauth_scope;
 pub mod room_alias_id;
 pub mod room_id;
 pub mod room_id_or_alias_id;

@@ -67,13 +67,10 @@ impl From<RedactedStateRoomEncryptedEventContent>
 
 #[cfg(test)]
 mod tests {
-
-    use assert_matches2::assert_matches;
     use js_int::uint;
-    use ruma_common::{
-        MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, room_id, user_id,
-    };
+    use ruma_common::canonical_json::assert_to_canonical_json_eq;
     use serde_json::{from_value as from_json_value, json};
+    use strass::assert_let;
 
     use crate::{
         AnyStateEvent, StateEvent,
@@ -120,7 +117,7 @@ mod tests {
 
         let content: StateRoomEncryptedEventContent = from_json_value(json_data).unwrap();
 
-        assert_matches!(content.scheme, EncryptedEventScheme::MegolmV1AesSha2(scheme));
+        assert_let!(EncryptedEventScheme::MegolmV1AesSha2(scheme) = content.scheme);
         assert_eq!(scheme.ciphertext, "ciphertext");
         assert_eq!(scheme.sender_key, None);
         assert_eq!(scheme.device_id, None);
@@ -145,17 +142,17 @@ mod tests {
         });
         let event = from_json_value::<AnyStateEvent>(json_data).unwrap();
 
-        assert_matches!(event, AnyStateEvent::RoomEncrypted(StateEvent::Original(ev)));
+        assert_let!(AnyStateEvent::RoomEncrypted(StateEvent::Original(ev)) = event);
 
-        assert_matches!(ev.content.scheme, EncryptedEventScheme::MegolmV1AesSha2(scheme));
+        assert_let!(EncryptedEventScheme::MegolmV1AesSha2(scheme) = ev.content.scheme);
         assert_eq!(scheme.ciphertext, "ciphertext");
         assert_eq!(scheme.sender_key, None);
         assert_eq!(scheme.device_id, None);
         assert_eq!(scheme.session_id, "session_id");
 
-        assert_eq!(ev.sender, user_id!("@example:example.com"));
-        assert_eq!(ev.room_id, room_id!("!roomid:example.com"));
-        assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1_234_567_890)));
+        assert_eq!(ev.sender, "@example:example.com");
+        assert_eq!(ev.room_id, "!roomid:example.com");
+        assert_eq!(ev.origin_server_ts.0, uint!(1_234_567_890));
         assert_eq!(ev.state_key, "");
     }
 }

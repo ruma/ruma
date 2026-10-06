@@ -297,7 +297,7 @@ impl From<Option<RoomType>> for RoomTypeFilter {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::assert_matches;
+    use assert_matches::assert_matches;
     use serde_json::{from_value as from_json_value, json};
 
     use super::{Filter, RoomNetwork, RoomTypeFilter};
@@ -372,7 +372,7 @@ mod tests {
     fn deserialize_include_all_networks_and_third_party_exclusivity() {
         let json = json!({ "include_all_networks": true, "third_party_instance_id": "freenode" });
         assert_eq!(
-            from_json_value::<RoomNetwork>(json).unwrap_err().to_string().as_str(),
+            from_json_value::<RoomNetwork>(json).unwrap_err().to_string(),
             "`include_all_networks = true` and `third_party_instance_id` are mutually exclusive."
         );
     }

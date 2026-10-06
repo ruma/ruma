@@ -6,7 +6,7 @@
 use std::borrow::Cow;
 
 use bytes::BufMut;
-use http::{header::CONTENT_TYPE, method::Method};
+use http::method::Method;
 use ruma_common::{
     OwnedRoomAliasId, OwnedRoomId,
     api::{
@@ -111,6 +111,10 @@ pub struct RequestBody {
 impl OutgoingBody for RequestBody {
     type Error = serde_json::Error;
 
+    fn content_type(&self) -> Option<http::HeaderValue> {
+        Some(ruma_common::http_headers::APPLICATION_JSON)
+    }
+
     fn try_into_buf<T: Default + BufMut + AsRef<[u8]>>(self) -> serde_json::Result<T> {
         json_to_buf(&self)
     }
@@ -134,11 +138,6 @@ impl OutgoingResponse for Response {
     type Body = EmptyBody<false>;
 
     fn try_into_http_response_inner(self) -> Result<http::Response<Self::Body>, IntoHttpError> {
-        let response = http::Response::builder()
-            .header(CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
-            .body(EmptyBody)
-            .unwrap();
-
-        Ok(response)
+        Ok(http::Response::new(EmptyBody))
     }
 }

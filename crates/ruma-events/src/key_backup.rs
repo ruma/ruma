@@ -25,9 +25,9 @@ impl KeyBackupEventContent {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::assert_matches;
     use ruma_common::canonical_json::assert_to_canonical_json_eq;
     use serde_json::{from_value as from_json_value, json};
+    use strass::assert_let;
 
     use super::KeyBackupEventContent;
     use crate::AnyGlobalAccountDataEvent;
@@ -62,9 +62,9 @@ mod tests {
             "type": "m.key_backup",
         });
 
-        assert_matches!(
-            from_json_value::<AnyGlobalAccountDataEvent>(json_false),
-            Ok(AnyGlobalAccountDataEvent::KeyBackup(ev_false))
+        assert_let!(
+            Ok(AnyGlobalAccountDataEvent::KeyBackup(ev_false)) =
+                from_json_value::<AnyGlobalAccountDataEvent>(json_false)
         );
 
         assert!(!ev_false.content.enabled);
@@ -76,9 +76,9 @@ mod tests {
             "type": "m.key_backup",
         });
 
-        assert_matches!(
-            from_json_value::<AnyGlobalAccountDataEvent>(json_true),
-            Ok(AnyGlobalAccountDataEvent::KeyBackup(ev_true))
+        assert_let!(
+            Ok(AnyGlobalAccountDataEvent::KeyBackup(ev_true)) =
+                from_json_value::<AnyGlobalAccountDataEvent>(json_true)
         );
 
         assert!(ev_true.content.enabled);

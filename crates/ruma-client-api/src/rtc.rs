@@ -7,6 +7,8 @@ use std::borrow::Cow;
 use ruma_common::serde::JsonObject;
 use serde::{Deserialize, Deserializer, Serialize};
 
+#[cfg(feature = "unstable-msc4195")]
+pub mod livekit;
 pub mod transports;
 
 /// Information about a specific MatrixRTC transport.
@@ -157,22 +159,21 @@ pub struct CustomRtcTransport {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::assert_matches;
     use serde_json::{
         Value as JsonValue, from_value as from_json_value, json, to_value as to_json_value,
     };
+    use strass::assert_let;
 
     use super::RtcTransport;
 
     #[test]
     fn serialize_roundtrip_custom_rtc_transport() {
         let transport_type = "local.custom.transport";
-        assert_matches!(
-            json!({
+        assert_let!(
+            JsonValue::Object(transport_data) = json!({
                 "foo": "bar",
                 "baz": true,
-            }),
-            JsonValue::Object(transport_data)
+            })
         );
         let transport = RtcTransport::new(transport_type, transport_data.clone()).unwrap();
         let json = json!({

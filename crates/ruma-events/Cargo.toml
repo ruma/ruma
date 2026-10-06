@@ -1,6 +1,6 @@
 [package]
 name = "ruma-events"
-version = "0.34.0"
+version = "0.35.0"
 description = "Serializable types for the events in the Matrix specification."
 homepage = "https://ruma.dev/"
 keywords = ["matrix", "chat", "messaging", "ruma"]
@@ -60,6 +60,7 @@ unstable-msc4385 = []
 unstable-msc4471 = []
 unstable-msc4494 = []
 unstable-msc4495 = []
+unstable-msc4546 = []
 unstable-uniffi = ["dep:uniffi"]
 
 # Allow some mandatory fields to be missing, defaulting them to an empty string
@@ -111,9 +112,10 @@ zeroize = { workspace = true }
 criterion = { workspace = true, optional = true }
 
 [dev-dependencies]
-assert_matches2 = { workspace = true }
+assert_matches = { workspace = true }
 assign = { workspace = true }
 maplit = { workspace = true }
+strass = { workspace = true }
 trybuild = "1.0.71"
 
 [[bench]]

@@ -17,18 +17,18 @@ use super::{MatrixToUri, MatrixUri, OwnedEventId, matrix_uri::UriAction, server_
 /// [room alias ID]: https://spec.matrix.org/v1.19/appendices/#room-aliases
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
-#[ruma_id(validate = ruma_identifiers_validation::room_alias_id::validate)]
+#[ruma_id(validate = ruma_identifiers_validation::room_alias_id::validate, smallvec_inline_bytes = 48)]
 pub struct RoomAliasId(str);
 
 impl RoomAliasId {
     /// Returns the room's alias.
     pub fn alias(&self) -> &str {
-        &self.as_str()[1..self.colon_idx()]
+        super::find_localpart(self.as_str())
     }
 
     /// Returns the server name of the room alias ID.
     pub fn server_name(&self) -> &ServerName {
-        ServerName::from_borrowed_unchecked(&self.as_str()[self.colon_idx() + 1..])
+        super::find_server_name_unchecked(self.as_str()).expect("room alias should contain a colon")
     }
 
     /// Create a `matrix.to` URI for this room alias ID.
@@ -57,10 +57,6 @@ impl RoomAliasId {
     #[deprecated = "Use `RoomId::matrix_event_uri` instead."]
     pub fn matrix_event_uri(&self, ev_id: impl Into<OwnedEventId>) -> MatrixUri {
         MatrixUri::new((self.to_owned(), ev_id.into()).into(), Vec::new(), None)
-    }
-
-    fn colon_idx(&self) -> usize {
-        self.as_str().find(':').unwrap()
     }
 }
 
@@ -102,7 +98,7 @@ mod tests {
         assert_eq!(
             serde_json::from_str::<OwnedRoomAliasId>(r##""#ruma:example.com""##)
                 .expect("Failed to convert JSON to RoomAliasId"),
-            <&RoomAliasId>::try_from("#ruma:example.com").expect("Failed to create RoomAliasId.")
+            "#ruma:example.com"
         );
     }
 

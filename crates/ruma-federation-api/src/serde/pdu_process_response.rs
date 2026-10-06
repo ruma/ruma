@@ -70,7 +70,6 @@ where
 
 #[cfg(all(test, feature = "client"))]
 mod tests_client {
-    use ruma_common::event_id;
     use serde_json::json;
 
     use super::deserialize;
@@ -82,9 +81,8 @@ mod tests_client {
         });
 
         let response = deserialize(json).unwrap();
-        let event_id = event_id!("$someevent:matrix.org");
 
-        let event_response = response.get(event_id).unwrap().clone().unwrap_err();
+        let event_response = response.get("$someevent:matrix.org").unwrap().clone().unwrap_err();
         assert_eq!(event_response, "Some processing error.");
     }
 
@@ -95,9 +93,8 @@ mod tests_client {
         });
 
         let response = deserialize(json).unwrap();
-        let event_id = event_id!("$someevent:matrix.org");
 
-        response.get(event_id).unwrap().as_ref().unwrap();
+        response.get("$someevent:matrix.org").unwrap().as_ref().unwrap();
     }
 
     #[test]
@@ -107,9 +104,8 @@ mod tests_client {
         });
 
         let response = deserialize(json).unwrap();
-        let event_id = event_id!("$someevent:matrix.org");
 
-        let event_response = response.get(event_id).unwrap().clone().unwrap_err();
+        let event_response = response.get("$someevent:matrix.org").unwrap().clone().unwrap_err();
         assert_eq!(event_response, "");
     }
 
@@ -119,7 +115,7 @@ mod tests_client {
             "$someevent:matrix.org": {}
         });
         let response = deserialize(json).unwrap();
-        response.get(event_id!("$someevent:matrix.org")).unwrap().as_ref().unwrap();
+        response.get("$someevent:matrix.org").unwrap().as_ref().unwrap();
     }
 }
 

@@ -325,8 +325,15 @@ pub trait OutgoingRequestExt: OutgoingRequest {
         authentication_input: <Self::Authentication as auth_scheme::AuthScheme>::Input<'_>,
         path_builder_input: <Self::PathBuilder as path_builder::PathBuilder>::Input<'_>,
     ) -> Result<http::Request<T>, IntoHttpError> {
-        let (parts, body) =
+        let (mut parts, body) =
             self.try_into_http_request_inner(base_url, path_builder_input)?.into_parts();
+
+        if let Some(content_type) = body.content_type()
+            && !parts.headers.contains_key(&http::header::CONTENT_TYPE)
+        {
+            parts.headers.insert(http::header::CONTENT_TYPE, content_type);
+        }
+
         let mut request =
             http::Request::from_parts(parts, body.try_into_buf().map_err(Into::into)?);
 
@@ -473,7 +480,14 @@ pub trait OutgoingResponseExt: OutgoingResponse {
     fn try_into_http_response<T: Default + BufMut + AsRef<[u8]>>(
         self,
     ) -> Result<http::Response<T>, IntoHttpError> {
-        let (parts, body) = self.try_into_http_response_inner()?.into_parts();
+        let (mut parts, body) = self.try_into_http_response_inner()?.into_parts();
+
+        if let Some(content_type) = body.content_type()
+            && !parts.headers.contains_key(&http::header::CONTENT_TYPE)
+        {
+            parts.headers.insert(http::header::CONTENT_TYPE, content_type);
+        }
+
         Ok(http::Response::from_parts(parts, body.try_into_buf().map_err(Into::into)?))
     }
 }

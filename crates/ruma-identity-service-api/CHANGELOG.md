@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+Bug fixes:
+
+- The `authentication::get_account_information::v2` endpoint uses the `GET`
+  method instead of `POST`, as defined in the specification.
+- Remove the trailing slash from the path of the
+  `association::check_3pid_validity::v2` endpoint, as defined in the specification.
+
+## 0.16.0
+
 Breaking changes:
 
 - Export nothing from the crate if neither the `client` nor the `server` feature is active, because

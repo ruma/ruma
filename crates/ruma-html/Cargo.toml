@@ -1,6 +1,6 @@
 [package]
 name = "ruma-html"
-version = "0.8.0"
+version = "0.9.0"
 description = "Opinionated HTML parsing and manipulating."
 homepage = "https://ruma.dev/"
 keywords = ["matrix", "ruma", "html", "parser"]
@@ -25,7 +25,8 @@ tracing = { workspace = true, features = ["attributes"] }
 wildmatch = { workspace = true }
 
 [dev-dependencies]
-assert_matches2 = { workspace = true }
+assert_matches = { workspace = true }
+strass = { workspace = true }
 
 [lints]
 workspace = true

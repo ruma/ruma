@@ -81,11 +81,11 @@ pub enum StreamCancelCode {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::assert_matches;
     use ruma_common::{
         canonical_json::assert_to_canonical_json_eq, owned_device_id, owned_event_id, owned_room_id,
     };
     use serde_json::{from_value as from_json_value, json};
+    use strass::assert_let;
 
     use super::{StreamCancelCode, ToDeviceStreamCancelEventContent};
     use crate::{AnyToDeviceEvent, ToDeviceEvent};
@@ -170,7 +170,7 @@ mod tests {
         });
 
         let event = from_json_value::<AnyToDeviceEvent>(event).unwrap();
-        assert_matches!(event, AnyToDeviceEvent::StreamCancel(ToDeviceEvent { content, .. }));
+        assert_let!(AnyToDeviceEvent::StreamCancel(ToDeviceEvent { content, .. }) = event);
         assert_eq!(content.code, StreamCancelCode::UserCancelled);
     }
 
@@ -188,7 +188,7 @@ mod tests {
         });
 
         let event = from_json_value::<AnyToDeviceEvent>(event).unwrap();
-        assert_matches!(event, AnyToDeviceEvent::StreamCancel(ToDeviceEvent { content, .. }));
+        assert_let!(AnyToDeviceEvent::StreamCancel(ToDeviceEvent { content, .. }) = event);
         assert_eq!(content.code, StreamCancelCode::UserCancelled);
     }
 }

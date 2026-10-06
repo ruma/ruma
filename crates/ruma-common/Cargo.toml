@@ -1,6 +1,6 @@
 [package]
 name = "ruma-common"
-version = "0.19.0"
+version = "0.20.0"
 description = "Common types for other ruma crates."
 homepage = "https://ruma.dev/"
 keywords = ["matrix", "chat", "messaging", "ruma"]
@@ -30,6 +30,8 @@ api = ["dep:date_header", "dep:http", "dep:konst"]
 js = ["getrandom?/wasm_js", "uuid?/js"]
 rand = ["dep:rand", "dep:getrandom", "dep:uuid"]
 
+# Enable `*_ref!` macros that allow to get a `&'static` identifier.
+unstable-identifier-ref-macros = []
 unstable-msc2870 = []
 unstable-msc3417 = []
 unstable-msc3768 = []
@@ -44,6 +46,8 @@ unstable-msc4186 = []
 unstable-msc4262 = []
 # Thread subscriptions.
 unstable-msc4306 = []
+# OAuth step up authentication
+unstable-msc4363 = ["ruma-identifiers-validation/unstable-msc4363"]
 # Secure out-of-band channel for QR code sign in
 unstable-msc4388 = []
 # M_SENDER_IGNORED
@@ -92,9 +96,11 @@ ruma-macros = { workspace = true }
 serde = { workspace = true }
 serde_html_form = { workspace = true }
 serde_json = { workspace = true, features = ["raw_value"] }
+smallvec = { version = "1.15.2", features = ["const_generics", "union"], optional = true }
 thiserror = { workspace = true }
 time = "0.3.47"
 tracing = { workspace = true, features = ["attributes"] }
+triomphe = { version = "0.1.16", default-features = false, features = ["std"], optional = true }
 url = { workspace = true }
 uuid = { version = "1.0.0", optional = true, features = ["v4"] }
 web-time = { workspace = true }
@@ -102,11 +108,12 @@ wildmatch = { workspace = true }
 zeroize = { workspace = true }
 
 [dev-dependencies]
-assert_matches2 = { workspace = true }
+assert_matches = { workspace = true }
 assign = { workspace = true }
 macro_rules_attribute = "0.2.2"
 maplit = { workspace = true }
 smol-macros = "0.1.1"
+strass = { workspace = true }
 trybuild = "1.0.71"
 
 [lints]

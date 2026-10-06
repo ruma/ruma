@@ -1,12 +1,12 @@
 //! Matrix room identifiers.
 
 use ruma_macros::IdDst;
+use tracing::warn;
 
 use super::{
     IdParseError, MatrixToUri, MatrixUri, OwnedEventId, OwnedServerName, ServerName,
     matrix_uri::UriAction,
 };
-use crate::RoomOrAliasId;
 
 /// A Matrix [room ID].
 ///
@@ -21,7 +21,7 @@ use crate::RoomOrAliasId;
 /// [room ID]: https://spec.matrix.org/v1.19/appendices/#room-ids
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
-#[ruma_id(validate = ruma_identifiers_validation::room_id::validate)]
+#[ruma_id(validate = ruma_identifiers_validation::room_id::validate, smallvec_inline_bytes = 48)]
 pub struct RoomId(str);
 
 impl RoomId {
@@ -75,7 +75,7 @@ impl RoomId {
     ///
     /// [`RoomIdFormatVersion::V1`]: crate::room_version_rules::RoomIdFormatVersion::V1
     pub fn server_name(&self) -> Option<&ServerName> {
-        <&RoomOrAliasId>::from(self).server_name()
+        find_server_name(self.as_str())
     }
 
     /// Create a `matrix.to` URI for this room ID.
@@ -239,6 +239,24 @@ impl RoomId {
     }
 }
 
+/// Find the server name from the given room ID string and return it as a `ServerName`.
+///
+/// This function expects the server name to be the part of the string after the first colon, and
+/// this part of the string is validated.
+///
+/// Returns `None` if there is no colon in the string or if the server name is invalid. If the
+/// server name is invalid a warning is logged.
+pub(super) fn find_server_name(s: &str) -> Option<&ServerName> {
+    let server_name = super::find_server_name_str(s)?;
+
+    server_name
+        .try_into()
+        .inspect_err(|e| {
+            warn!(server_name, "Room ID contains colon but no valid server name afterwards: {e}",);
+        })
+        .ok()
+}
+
 #[cfg(test)]
 mod tests {
     use super::{OwnedRoomId, RoomId};
@@ -284,7 +302,7 @@ mod tests {
         assert_eq!(
             serde_json::from_str::<OwnedRoomId>(r#""!29fhd83h92h0:example.com""#)
                 .expect("Failed to convert JSON to RoomId"),
-            <&RoomId>::try_from("!29fhd83h92h0:example.com").expect("Failed to create RoomId.")
+            "!29fhd83h92h0:example.com"
         );
     }
 
@@ -348,7 +366,7 @@ mod tests {
     #[test]
     fn zeroize() {
         let room_id = <&RoomId>::try_from("!room_id").expect("Failed to create RoomId.").to_owned();
-        assert_eq!(room_id.as_str(), "!room_id");
+        assert_eq!(room_id, "!room_id");
 
         room_id.zeroize();
     }

@@ -1,3 +1,5 @@
+#[cfg(feature = "unstable-msc4363")]
+use std::collections::BTreeSet;
 use std::str::FromStr;
 
 use as_variant::as_variant;
@@ -12,6 +14,8 @@ use web_time::{Duration, SystemTime};
 #[cfg(feature = "unstable-msc4406")]
 use crate::OwnedUserId;
 use crate::PrivOwnedStr;
+#[cfg(feature = "unstable-msc4363")]
+use crate::{OwnedAcr, api::OAuthClientScope};
 
 /// An enum for the error kind.
 ///
@@ -135,6 +139,15 @@ pub enum ErrorKind {
     /// The client attempted to join a room that has a version the server does not support.
     IncompatibleRoomVersion(IncompatibleRoomVersionErrorData),
 
+    /// `M_INSUFFICIENT_USER_AUTHENTICATION`
+    ///
+    /// The client needs to reauthenticate with the OAuth authorization server to use
+    /// this endpoint. ([MSC4363])
+    ///
+    /// [MSC4363]: https://github.com/matrix-org/matrix-spec-proposals/pull/4363
+    #[cfg(feature = "unstable-msc4363")]
+    InsufficientUserAuthentication(Box<InsufficientUserAuthenticationErrorData>),
+
     /// `M_INVALID_PARAM`
     ///
     /// A parameter that was specified has the wrong value. For example, the server expected an
@@ -158,6 +171,13 @@ pub enum ErrorKind {
     /// The invite was interdicted by moderation tools or configured access controls without having
     /// been witnessed by the invitee.
     InviteBlocked,
+
+    /// `M_KEY_TOO_LARGE`
+    ///
+    /// The [profile] key in the request exceeds the maximum allowed length of 255 bytes.
+    ///
+    /// [profile]: https://spec.matrix.org/v1.19/client-server-api/#profiles
+    KeyTooLarge,
 
     /// `M_LIMIT_EXCEEDED`
     ///
@@ -203,6 +223,14 @@ pub enum ErrorKind {
     /// An `mxc:` URI generated with the `POST /_matrix/media/*/create` endpoint was used and the
     /// content is not yet available.
     NotYetUploaded,
+
+    /// `M_PROFILE_TOO_LARGE`
+    ///
+    /// Storing the value in the request would make the [profile] exceed its maximum allowed size
+    /// of 64 KiB.
+    ///
+    /// [profile]: https://spec.matrix.org/v1.19/client-server-api/#profiles
+    ProfileTooLarge,
 
     /// `M_RESOURCE_LIMIT_EXCEEDED`
     ///
@@ -316,6 +344,14 @@ pub enum ErrorKind {
     /// An unknown error has occurred.
     Unknown,
 
+    /// `M_UNKNOWN_DEVICE`
+    ///
+    /// The device ID supplied by the application service does not belong to the user ID during
+    /// [identity assertion].
+    ///
+    /// [identity assertion]: https://spec.matrix.org/v1.19/application-service-api/#identity-assertion
+    UnknownDevice,
+
     /// `M_UNKNOWN_POS`
     ///
     /// The sliding sync ([MSC4186]) connection was expired by the server.
@@ -426,10 +462,15 @@ impl ErrorKind {
             ErrorKind::Forbidden => ErrorCode::Forbidden,
             ErrorKind::GuestAccessForbidden => ErrorCode::GuestAccessForbidden,
             ErrorKind::IncompatibleRoomVersion(_) => ErrorCode::IncompatibleRoomVersion,
+            #[cfg(feature = "unstable-msc4363")]
+            ErrorKind::InsufficientUserAuthentication(_) => {
+                ErrorCode::InsufficientUserAuthentication
+            }
             ErrorKind::InvalidParam => ErrorCode::InvalidParam,
             ErrorKind::InvalidRoomState => ErrorCode::InvalidRoomState,
             ErrorKind::InvalidUsername => ErrorCode::InvalidUsername,
             ErrorKind::InviteBlocked => ErrorCode::InviteBlocked,
+            ErrorKind::KeyTooLarge => ErrorCode::KeyTooLarge,
             ErrorKind::LimitExceeded(_) => ErrorCode::LimitExceeded,
             ErrorKind::MissingParam => ErrorCode::MissingParam,
             ErrorKind::MissingToken => ErrorCode::MissingToken,
@@ -438,6 +479,7 @@ impl ErrorKind {
             ErrorKind::NotInThread => ErrorCode::NotInThread,
             ErrorKind::NotJson => ErrorCode::NotJson,
             ErrorKind::NotYetUploaded => ErrorCode::NotYetUploaded,
+            ErrorKind::ProfileTooLarge => ErrorCode::ProfileTooLarge,
             ErrorKind::ResourceLimitExceeded(_) => ErrorCode::ResourceLimitExceeded,
             ErrorKind::RoomInUse => ErrorCode::RoomInUse,
             #[cfg(feature = "unstable-msc4406")]
@@ -456,6 +498,7 @@ impl ErrorKind {
             ErrorKind::Unactionable => ErrorCode::Unactionable,
             ErrorKind::Unauthorized => ErrorCode::Unauthorized,
             ErrorKind::Unknown => ErrorCode::Unknown,
+            ErrorKind::UnknownDevice => ErrorCode::UnknownDevice,
             #[cfg(feature = "unstable-msc4186")]
             ErrorKind::UnknownPos => ErrorCode::UnknownPos,
             ErrorKind::UnknownToken(_) => ErrorCode::UnknownToken,
@@ -509,6 +552,30 @@ impl IncompatibleRoomVersionErrorData {
     /// Construct a new `IncompatibleRoomVersionErrorData` with the given room version.
     pub fn new(room_version: RoomVersionId) -> Self {
         Self { room_version }
+    }
+}
+
+/// Data for the `M_INSUFFICIENT_USER_AUTHENTICATION` [`ErrorKind`].
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+#[cfg(feature = "unstable-msc4363")]
+pub struct InsufficientUserAuthenticationErrorData {
+    /// The ACR values to supply to the auth server.
+    pub acr_values: Vec<OwnedAcr>,
+
+    /// The maximum number of seconds since the last authentication
+    /// until authentication must be performed again.
+    pub max_age: Option<Duration>,
+
+    /// The scopes required to access the resource.
+    pub scope: BTreeSet<OAuthClientScope>,
+}
+
+#[cfg(feature = "unstable-msc4363")]
+impl InsufficientUserAuthenticationErrorData {
+    /// Construct a new empty `InsufficientUserAuthenticationErrorData`.
+    pub fn new() -> Self {
+        Self::default()
     }
 }
 
@@ -804,6 +871,16 @@ pub enum ErrorCode {
     /// The client attempted to join a room that has a version the server does not support.
     IncompatibleRoomVersion,
 
+    /// `M_INSUFFICIENT_USER_AUTHENTICATION`
+    ///
+    /// The client needs to reauthenticate with the OAuth authorization server to use
+    /// this endpoint. ([MSC4363])
+    ///
+    /// [MSC4363]: https://github.com/matrix-org/matrix-spec-proposals/pull/4363
+    #[cfg(feature = "unstable-msc4363")]
+    #[ruma_enum(alias = "org.matrix.msc4363.M_INSUFFICIENT_USER_AUTHENTICATION")]
+    InsufficientUserAuthentication,
+
     /// `M_INVALID_PARAM`
     ///
     /// A parameter that was specified has the wrong value. For example, the server expected an
@@ -830,6 +907,13 @@ pub enum ErrorCode {
     /// Unstable prefix intentionally shared with MSC4155 for compatibility.
     #[ruma_enum(alias = "ORG.MATRIX.MSC4155.INVITE_BLOCKED")]
     InviteBlocked,
+
+    /// `M_KEY_TOO_LARGE`
+    ///
+    /// The [profile] key in the request exceeds the maximum allowed length of 255 bytes.
+    ///
+    /// [profile]: https://spec.matrix.org/v1.19/client-server-api/#profiles
+    KeyTooLarge,
 
     /// `M_LIMIT_EXCEEDED`
     ///
@@ -876,6 +960,14 @@ pub enum ErrorCode {
     /// An `mxc:` URI generated with the `POST /_matrix/media/*/create` endpoint was used and the
     /// content is not yet available.
     NotYetUploaded,
+
+    /// `M_PROFILE_TOO_LARGE`
+    ///
+    /// Storing the value in the request would make the [profile] exceed its maximum allowed size
+    /// of 64 KiB.
+    ///
+    /// [profile]: https://spec.matrix.org/v1.19/client-server-api/#profiles
+    ProfileTooLarge,
 
     /// `M_RESOURCE_LIMIT_EXCEEDED`
     ///
@@ -990,6 +1082,14 @@ pub enum ErrorCode {
     ///
     /// An unknown error has occurred.
     Unknown,
+
+    /// `M_UNKNOWN_DEVICE`
+    ///
+    /// The device ID supplied by the application service does not belong to the user ID during
+    /// [identity assertion].
+    ///
+    /// [identity assertion]: https://spec.matrix.org/v1.19/application-service-api/#identity-assertion
+    UnknownDevice,
 
     /// `M_UNKNOWN_POS`
     ///

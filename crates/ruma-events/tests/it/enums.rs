@@ -1,4 +1,4 @@
-use assert_matches2::{assert_let, assert_matches};
+use assert_matches::assert_matches;
 use js_int::int;
 use ruma_common::serde::test::serde_json_eq;
 use ruma_events::{
@@ -15,6 +15,7 @@ use ruma_events::{
     },
 };
 use serde_json::{Value as JsonValue, from_value as from_json_value, json};
+use strass::assert_let;
 
 fn message_event() -> JsonValue {
     json!({
@@ -85,14 +86,13 @@ fn power_event_sync_deserialization() {
         }
     });
 
-    assert_matches!(
-        from_json_value::<AnySyncTimelineEvent>(json_data),
+    assert_let!(
         Ok(AnySyncTimelineEvent::State(AnySyncStateEvent::RoomPowerLevels(
             SyncStateEvent::Original(OriginalSyncStateEvent {
                 content: RoomPowerLevelsEventContent { ban, .. },
                 ..
-            },)
-        ),))
+            })
+        ))) = from_json_value::<AnySyncTimelineEvent>(json_data)
     );
     assert_eq!(ban, int!(50));
 }
@@ -101,20 +101,19 @@ fn power_event_sync_deserialization() {
 fn message_event_sync_deserialization() {
     let json_data = message_event_sync();
 
-    assert_matches!(
-        from_json_value::<AnySyncTimelineEvent>(json_data),
-        Ok(AnySyncTimelineEvent::MessageLike(event))
+    assert_let!(
+        Ok(AnySyncTimelineEvent::MessageLike(event)) =
+            from_json_value::<AnySyncTimelineEvent>(json_data)
     );
     assert!(!event.is_redacted());
 
-    assert_matches!(
-        event,
+    assert_let!(
         AnySyncMessageLikeEvent::RoomMessage(SyncMessageLikeEvent::Original(
             OriginalSyncMessageLikeEvent {
                 content: RoomMessageEventContent { msgtype: MessageType::Text(text_content), .. },
                 ..
             },
-        ))
+        )) = event
     );
     assert_eq!(text_content.body, "baba");
     let formatted = text_content.formatted.unwrap();
@@ -163,18 +162,16 @@ fn room_name_event_sync_deserialization() {
 fn message_event_deserialization() {
     let json_data = message_event();
 
-    assert_matches!(
-        from_json_value::<AnyTimelineEvent>(json_data),
-        Ok(AnyTimelineEvent::MessageLike(event))
+    assert_let!(
+        Ok(AnyTimelineEvent::MessageLike(event)) = from_json_value::<AnyTimelineEvent>(json_data)
     );
     assert!(!event.is_redacted());
 
-    assert_matches!(
-        event,
+    assert_let!(
         AnyMessageLikeEvent::RoomMessage(MessageLikeEvent::Original(OriginalMessageLikeEvent {
             content: RoomMessageEventContent { msgtype: MessageType::Text(text_content), .. },
             ..
-        }))
+        })) = event
     );
     assert_eq!(text_content.body, "baba");
     let formatted = text_content.formatted.unwrap();
@@ -249,9 +246,8 @@ fn custom_state_event_deserialization() {
         "type": "m.made.up",
     });
 
-    assert_matches!(
-        from_json_value::<AnyTimelineEvent>(redacted),
-        Ok(AnyTimelineEvent::State(state_ev))
+    assert_let!(
+        Ok(AnyTimelineEvent::State(state_ev)) = from_json_value::<AnyTimelineEvent>(redacted)
     );
     assert!(!state_ev.is_redacted());
     assert_eq!(state_ev.event_id(), "$h29iv0s8:example.com");
@@ -269,9 +265,9 @@ fn ephemeral_event_deserialization() {
         "type": "m.typing"
     });
 
-    assert_matches!(
-        from_json_value::<AnySyncEphemeralRoomEvent>(json_data),
-        Ok(AnySyncEphemeralRoomEvent::Typing(typing))
+    assert_let!(
+        Ok(AnySyncEphemeralRoomEvent::Typing(typing)) =
+            from_json_value::<AnySyncEphemeralRoomEvent>(json_data)
     );
     assert_eq!(typing.content.user_ids.len(), 2);
 }

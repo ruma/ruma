@@ -1,6 +1,5 @@
 #![cfg(feature = "unstable-msc3551")]
 
-use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{
     MilliSecondsSinceUnixEpoch,
@@ -16,6 +15,7 @@ use ruma_events::{
     room::{EncryptedFileHash, V2EncryptedFileInfo, message::Relation},
 };
 use serde_json::{from_value as from_json_value, json};
+use strass::assert_let;
 
 #[test]
 fn plain_content_serialization() {
@@ -191,9 +191,9 @@ fn message_event_deserialization() {
         "type": "org.matrix.msc1767.file",
     });
 
-    assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data),
-        Ok(AnyMessageLikeEvent::File(MessageLikeEvent::Original(message_event)))
+    assert_let!(
+        Ok(AnyMessageLikeEvent::File(MessageLikeEvent::Original(message_event))) =
+            from_json_value::<AnyMessageLikeEvent>(json_data)
     );
     assert_eq!(message_event.event_id, "$event:notareal.hs");
     let content = message_event.content;

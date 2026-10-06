@@ -10,9 +10,9 @@ rust-version = "1.89"
 
 [workspace.dependencies]
 as_variant = "1.2.0"
-assert_matches2 = "0.1.0"
+assert_matches = "1.5.0"
 assign = "1.1.1"
-base64 = "0.22.0"
+base64 = "0.23.0"
 bytes = "1.11.1"
 criterion = "0.8.2"
 http = "1.1.0"
@@ -22,26 +22,27 @@ js_option = "0.2.0"
 language-tags = { version = "0.3.2", features = ["serde"] }
 maplit = "1.0.2"
 rand = "0.10.1"
-ruma-appservice-api = { version = "0.16.0", path = "crates/ruma-appservice-api" }
-ruma-client-api = { version = "0.24.0", path = "crates/ruma-client-api" }
-ruma-common = { version = "0.19.0", path = "crates/ruma-common" }
-ruma-events = { version = "0.34.0", path = "crates/ruma-events" }
-ruma-federation-api = { version = "0.15.0", path = "crates/ruma-federation-api" }
-ruma-html = { version = "0.8.0", path = "crates/ruma-html" }
+ruma-appservice-api = { version = "0.17.0", path = "crates/ruma-appservice-api" }
+ruma-client-api = { version = "0.25.0", path = "crates/ruma-client-api" }
+ruma-common = { version = "0.20.0", path = "crates/ruma-common" }
+ruma-events = { version = "0.35.0", path = "crates/ruma-events" }
+ruma-federation-api = { version = "0.16.0", path = "crates/ruma-federation-api" }
+ruma-html = { version = "0.9.0", path = "crates/ruma-html" }
 ruma-identifiers-validation = { version = "0.12.1", path = "crates/ruma-identifiers-validation" }
-ruma-identity-service-api = { version = "0.15.0", path = "crates/ruma-identity-service-api" }
-ruma-macros = { version = "=0.19.0", path = "crates/ruma-macros" }
-ruma-push-gateway-api = { version = "0.15.0", path = "crates/ruma-push-gateway-api" }
-ruma-signatures = { version = "0.21.0", path = "crates/ruma-signatures" }
-ruma-state-res = { version = "0.17.0", path = "crates/ruma-state-res" }
+ruma-identity-service-api = { version = "0.16.0", path = "crates/ruma-identity-service-api" }
+ruma-macros = { version = "=0.20.0", path = "crates/ruma-macros" }
+ruma-push-gateway-api = { version = "0.16.0", path = "crates/ruma-push-gateway-api" }
+ruma-signatures = { version = "0.22.0", path = "crates/ruma-signatures" }
+ruma-state-res = { version = "0.18.0", path = "crates/ruma-state-res" }
 serde = { version = "1.0.164", features = ["derive"] }
 serde_html_form = "0.4.0"
 serde_json = "1.0.87"
 similar = "2.6.0"
+strass = "0.2.0"
 thiserror = "2.0.0"
 toml = { version = "1.1.0", default-features = false, features = ["parse", "serde"] }
 tracing = { version = "0.1.37", default-features = false, features = ["std"] }
-uniffi = { git = "https://github.com/mozilla/uniffi-rs.git", rev = "e5f4821410bea19e71984ea5e06a7bc8b11ed9e5", version = "0.31.0", default-features = false, features = ["wasm-unstable-single-threaded"] }
+uniffi = { version = "0.32.0", default-features = false, features = ["wasm-unstable-single-threaded"] }
 url = { version = "2.5.0" }
 web-time = "1.1.0"
 wildmatch = "2.6.1"
@@ -52,7 +53,7 @@ rust_2018_idioms = { level = "warn", priority = -1 }
 semicolon_in_expressions_from_macros = "warn"
 unexpected_cfgs = { level = "warn", check-cfg = [
     # used by the IdDst macro
-    'cfg(ruma_identifiers_storage, values("Arc"))',
+    'cfg(ruma_identifiers_storage, values("Arc", "SmallVec", "ThinArc"))',
     # set all types as exhaustive
     'cfg(ruma_unstable_exhaustive_types)',
 ] }

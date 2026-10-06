@@ -1,6 +1,6 @@
-use assert_matches2::assert_matches;
 use ruma_events::AnyInitialStateEvent;
 use serde_json::json;
+use strass::assert_let;
 
 #[test]
 fn deserialize_initial_state_event() {
@@ -9,6 +9,6 @@ fn deserialize_initial_state_event() {
         "content": { "name": "foo" }
     }))
     .unwrap();
-    assert_matches!(ev, AnyInitialStateEvent::RoomName(ev));
+    assert_let!(AnyInitialStateEvent::RoomName(ev) = ev);
     assert_eq!(ev.content.name, "foo");
 }

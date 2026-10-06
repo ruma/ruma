@@ -16,7 +16,7 @@ pub mod v2 {
     use crate::IdentityServiceToken;
 
     metadata! {
-        method: POST,
+        method: GET,
         rate_limited: false,
         authentication: IdentityServiceToken,
         history: {

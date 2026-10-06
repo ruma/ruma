@@ -1,8 +1,8 @@
-use assert_matches2::assert_let;
 use ruma_common::api::{EndpointError, OutgoingResponseExt as _};
 use serde_json::{
     Value as JsonValue, from_slice as from_json_slice, from_value as from_json_value, json,
 };
+use strass::assert_let;
 use web_time::{Duration, UNIX_EPOCH};
 
 use super::{
@@ -294,7 +294,6 @@ fn deserialize_custom_error_kind() {
 
     assert_eq!(deserialized.kind.errcode().as_str(), "LOCAL_DEV_ERROR");
     let json_data = deserialized.kind.custom_json_data().unwrap();
-    assert_let!(Some(JsonValue::String(foo)) = json_data.get("foo"));
-    assert_eq!(foo, "bar");
+    assert_eq!(json_data["foo"], "bar");
     assert_eq!(deserialized.message, "You are using the homeserver in local dev mode.");
 }

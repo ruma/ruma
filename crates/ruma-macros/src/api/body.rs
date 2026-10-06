@@ -8,12 +8,17 @@ pub(crate) fn expand_derive_outgoing_body_json(input: DeriveInput) -> TokenStrea
     let ruma_common = RumaCommon::new();
     let bytes = ruma_common.reexported(RumaCommonReexport::Bytes);
     let serde_json = ruma_common.reexported(RumaCommonReexport::SerdeJson);
+    let http = ruma_common.reexported(RumaCommonReexport::Http);
     let ident = input.ident;
 
     quote! {
         #[automatically_derived]
         impl #ruma_common::api::OutgoingBody for #ident {
             type Error = #serde_json::Error;
+
+            fn content_type(&self) -> ::std::option::Option<#http::HeaderValue> {
+                ::std::option::Option::Some(#ruma_common::http_headers::APPLICATION_JSON)
+            }
 
             fn try_into_buf<T>(self) -> #serde_json::Result<T>
             where

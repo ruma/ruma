@@ -16,6 +16,7 @@ type Result<T, E = MxcUriError> = std::result::Result<T, E>;
 /// [MXC URI]: https://spec.matrix.org/v1.19/client-server-api/#matrix-content-mxc-uris
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
+#[ruma_id(smallvec_inline_bytes = 60)]
 pub struct MxcUri(str);
 
 impl MxcUri {
@@ -63,16 +64,14 @@ mod tests {
     use ruma_identifiers_validation::error::MxcUriError;
 
     use super::{MxcUri, OwnedMxcUri};
+    use crate::server_name;
 
     #[test]
     fn parse_mxc_uri() {
         let mxc = <&MxcUri>::from("mxc://127.0.0.1/asd32asdfasdsd");
 
         assert!(mxc.is_valid());
-        assert_eq!(
-            mxc.parts(),
-            Ok(("127.0.0.1".try_into().expect("Failed to create ServerName"), "asd32asdfasdsd"))
-        );
+        assert_eq!(mxc.parts(), Ok((server_name!("127.0.0.1"), "asd32asdfasdsd")));
     }
 
     #[test]
@@ -102,11 +101,8 @@ mod tests {
         let mxc = serde_json::from_str::<OwnedMxcUri>(r#""mxc://server/1234id""#)
             .expect("Failed to convert JSON to MxcUri");
 
-        assert_eq!(mxc.as_str(), "mxc://server/1234id");
+        assert_eq!(mxc, "mxc://server/1234id");
         assert!(mxc.is_valid());
-        assert_eq!(
-            mxc.parts(),
-            Ok(("server".try_into().expect("Failed to create ServerName"), "1234id"))
-        );
+        assert_eq!(mxc.parts(), Ok((server_name!("server"), "1234id")));
     }
 }

@@ -9,7 +9,7 @@ use ruma_common::{
     server_name,
 };
 use ruma_federation_api::{
-    authentication::{ServerSignatures, ServerSignaturesInput},
+    authentication::{ServerSignatures, XMatrixSigningInput},
     transactions::send_transaction_message,
 };
 use ruma_signatures::{Ed25519KeyPair, PublicKeyMap, PublicKeySet};
@@ -32,7 +32,7 @@ fn server_signatures_roundtrip() {
     let http_request = request
         .try_into_http_request::<Vec<u8>>(
             "https://destination.local",
-            ServerSignaturesInput::new(origin.clone(), destination.clone(), &key_pair),
+            XMatrixSigningInput::new(origin.clone(), destination.clone(), &key_pair),
             (),
         )
         .unwrap();
@@ -53,9 +53,9 @@ fn server_signatures_roundtrip() {
 
     // With invalid destination.
     xmatrix
-        .verify_request(&http_request, server_name!("invalid.local"), &public_key_map)
+        .verify_http_request(&http_request, server_name!("invalid.local"), &public_key_map)
         .unwrap_err();
 
     // With valid destination.
-    xmatrix.verify_request(&http_request, &destination, &public_key_map).unwrap();
+    xmatrix.verify_http_request(&http_request, &destination, &public_key_map).unwrap();
 }

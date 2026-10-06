@@ -1,4 +1,4 @@
-use assert_matches2::{assert_let, assert_matches};
+use assert_matches::assert_matches;
 use ruma_common::{
     canonical_json::assert_to_canonical_json_eq,
     owned_device_id, owned_event_id, owned_mxc_uri,
@@ -15,6 +15,7 @@ use ruma_events::{
     },
 };
 use serde_json::{Value as JsonValue, from_value as from_json_value, json};
+use strass::assert_let;
 
 fn encrypted_scheme() -> EncryptedEventScheme {
     EncryptedEventScheme::MegolmV1AesSha2(
@@ -644,8 +645,7 @@ fn custom_encrypted_file_serialization_roundtrip() {
     assert_eq!(file.info.version(), "local.dev.custom");
     let data = &*file.info.data();
     assert_eq!(data.len(), 1);
-    assert_let!(Some(JsonValue::String(value)) = data.get("foo"));
-    assert_eq!(value, "bar");
+    assert_eq!(data["foo"], "bar");
 
     assert_to_canonical_json_eq!(file, json);
 }

@@ -114,7 +114,7 @@ pub mod v1 {
 
 #[cfg(all(test, feature = "server"))]
 mod tests {
-    use ruma_common::{api::IncomingRequestExt as _, room_id};
+    use ruma_common::api::IncomingRequestExt as _;
 
     use super::v1::{IncludeThreads, Request};
 
@@ -130,7 +130,7 @@ mod tests {
 
         let req = Request::try_from_http_request(http_req, &["!room:example.com"]).unwrap();
 
-        assert_eq!(req.room_id, room_id!("!room:example.com"));
+        assert_eq!(req.room_id, "!room:example.com");
         assert_eq!(req.from, None);
         assert_eq!(req.limit, None);
         assert_eq!(req.include, IncludeThreads::All);
@@ -147,7 +147,7 @@ mod tests {
 
         let req = Request::try_from_http_request(http_req, &["!room:example.com"]).unwrap();
 
-        assert_eq!(req.room_id, room_id!("!room:example.com"));
+        assert_eq!(req.room_id, "!room:example.com");
         assert_eq!(req.include, IncludeThreads::Participated);
     }
 }

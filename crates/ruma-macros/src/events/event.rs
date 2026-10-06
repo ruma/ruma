@@ -191,12 +191,20 @@ impl Event {
         let where_clause = if is_content_generic {
             let predicate = parse_quote! { C: #ruma_events::EventContentFromType };
 
-            let where_clause = if let Some(mut where_clause) = where_clause.cloned() {
+            let mut where_clause = if let Some(mut where_clause) = where_clause.cloned() {
                 where_clause.predicates.push(predicate);
                 where_clause
             } else {
                 parse_quote! { where #predicate }
             };
+
+            if matches!(self.kind, EventKind::State)
+                && matches!(self.variation, EventVariation::Original | EventVariation::OriginalSync)
+            {
+                where_clause
+                    .predicates
+                    .push(parse_quote! { C::Unsigned: #serde::de::DeserializeOwned });
+            }
 
             Some(Cow::Owned(where_clause))
         } else {

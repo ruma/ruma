@@ -66,6 +66,10 @@ pub mod v3 {
     impl ruma_common::api::OutgoingBody for RequestBody {
         type Error = serde_json::Error;
 
+        fn content_type(&self) -> Option<http::HeaderValue> {
+            Some(ruma_common::http_headers::APPLICATION_JSON)
+        }
+
         fn try_into_buf<T: Default + bytes::BufMut + AsRef<[u8]>>(self) -> serde_json::Result<T> {
             match self.0 {
                 NewPushRule::Override(r) | NewPushRule::Underride(r) => {
@@ -104,23 +108,19 @@ pub mod v3 {
         ) -> Result<http::Request<RequestBody>, ruma_common::api::error::IntoHttpError> {
             use ruma_common::api::Metadata;
 
-            let query_string = serde_html_form::to_string(RequestQuery {
-                before: self.before,
-                after: self.after,
-            })?;
+            let Self { rule, before, after } = self;
+
+            let query_string = serde_html_form::to_string(RequestQuery { before, after })?;
 
             let url = Self::make_endpoint_url(
                 considering,
                 base_url,
-                &[&self.rule.kind(), &self.rule.rule_id()],
+                &[&rule.kind(), &rule.rule_id()],
                 &query_string,
             )?;
 
-            let http_request = http::Request::builder()
-                .method(Self::METHOD)
-                .uri(url)
-                .header(http::header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
-                .body(RequestBody(self.rule))?;
+            let http_request =
+                http::Request::builder().method(Self::METHOD).uri(url).body(RequestBody(rule))?;
 
             Ok(http_request)
         }

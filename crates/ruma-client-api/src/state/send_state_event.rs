@@ -147,10 +147,20 @@ pub mod v3 {
         ) -> Result<http::Request<RequestBody>, ruma_common::api::error::IntoHttpError> {
             use ruma_common::api::Metadata;
 
-            let query_string = serde_html_form::to_string(RequestQuery {
-                timestamp: self.timestamp,
+            let Self {
+                room_id,
+                event_type,
+                state_key,
+                body,
+                timestamp,
                 #[cfg(feature = "unstable-msc4354")]
-                sticky_duration_ms: self.sticky_duration_ms,
+                sticky_duration_ms,
+            } = self;
+
+            let query_string = serde_html_form::to_string(RequestQuery {
+                timestamp,
+                #[cfg(feature = "unstable-msc4354")]
+                sticky_duration_ms,
             })?;
 
             let http_request = http::Request::builder()
@@ -158,11 +168,10 @@ pub mod v3 {
                 .uri(Self::make_endpoint_url(
                     considering,
                     base_url,
-                    &[&self.room_id, &self.event_type, &self.state_key],
+                    &[&room_id, &event_type, &state_key],
                     &query_string,
                 )?)
-                .header(http::header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
-                .body(RequestBody(self.body))?;
+                .body(RequestBody(body))?;
 
             Ok(http_request)
         }
@@ -199,8 +208,11 @@ pub mod v3 {
                     (a, b, "".into())
                 };
 
-            let request_query: RequestQuery =
-                serde_html_form::from_str(request.uri().query().unwrap_or(""))?;
+            let RequestQuery {
+                timestamp,
+                #[cfg(feature = "unstable-msc4354")]
+                sticky_duration_ms,
+            } = serde_html_form::from_str(request.uri().query().unwrap_or(""))?;
 
             let body: Raw<AnyStateEventContent> = ruma_common::serde::deserialize_raw_object(
                 &mut serde_json::Deserializer::from_slice(request.into_body()),
@@ -211,9 +223,9 @@ pub mod v3 {
                 event_type,
                 state_key,
                 body,
-                timestamp: request_query.timestamp,
+                timestamp,
                 #[cfg(feature = "unstable-msc4354")]
-                sticky_duration_ms: request_query.sticky_duration_ms,
+                sticky_duration_ms,
             })
         }
     }
@@ -311,7 +323,7 @@ mod tests {
 
 #[cfg(all(test, feature = "server", feature = "unstable-msc4354"))]
 mod server_tests {
-    use ruma_common::{api::IncomingRequestExt as _, owned_room_id};
+    use ruma_common::api::IncomingRequestExt as _;
 
     use super::v3::Request;
 
@@ -329,7 +341,7 @@ mod server_tests {
             Request::try_from_http_request(request, &["!roomid:example.org", "m.room.name", ""])
                 .unwrap();
 
-        assert_eq!(request.room_id, owned_room_id!("!roomid:example.org"));
+        assert_eq!(request.room_id, "!roomid:example.org");
         assert_eq!(request.sticky_duration_ms.map(|duration| duration.get()), Some(123_456));
     }
 }

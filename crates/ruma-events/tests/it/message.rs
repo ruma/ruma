@@ -1,6 +1,5 @@
 #![cfg(feature = "unstable-msc1767")]
 
-use assert_matches2::assert_matches;
 use assign::assign;
 use js_int::uint;
 use ruma_common::{
@@ -16,6 +15,7 @@ use ruma_events::{
     room::message::Relation,
 };
 use serde_json::{from_value as from_json_value, json};
+use strass::assert_let;
 
 #[test]
 fn html_content_serialization() {
@@ -226,7 +226,7 @@ fn reply_content_deserialization() {
     assert_eq!(content.text.find_plain(), Some("> <@test:example.com> test\n\ntest reply"));
     assert_eq!(content.text.find_html(), None);
 
-    assert_matches!(content.relates_to, Some(Relation::Reply(reply)));
+    assert_let!(Some(Relation::Reply(reply)) = content.relates_to);
     assert_eq!(reply.in_reply_to.event_id, "$15827405538098VGFWH:example.com");
 }
 
@@ -246,7 +246,7 @@ fn thread_content_deserialization() {
     assert_eq!(content.text.find_plain(), Some("Test in thread"));
     assert_eq!(content.text.find_html(), None);
 
-    assert_matches!(content.relates_to, Some(Relation::Thread(thread)));
+    assert_let!(Some(Relation::Thread(thread)) = content.relates_to);
     assert_eq!(thread.event_id, "$15827405538098VGFWH:example.com");
 }
 
@@ -265,9 +265,9 @@ fn message_event_deserialization() {
         "type": "org.matrix.msc1767.message",
     });
 
-    assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data),
-        Ok(AnyMessageLikeEvent::Message(MessageLikeEvent::Original(message_event)))
+    assert_let!(
+        Ok(AnyMessageLikeEvent::Message(MessageLikeEvent::Original(message_event))) =
+            from_json_value::<AnyMessageLikeEvent>(json_data)
     );
     assert_eq!(message_event.event_id, "$event:notareal.hs");
     assert_eq!(message_event.content.text.find_plain(), Some("Hello, World!"));
@@ -310,9 +310,9 @@ fn emote_event_deserialization() {
         "type": "org.matrix.msc1767.emote",
     });
 
-    assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data),
-        Ok(AnyMessageLikeEvent::Emote(MessageLikeEvent::Original(message_event)))
+    assert_let!(
+        Ok(AnyMessageLikeEvent::Emote(MessageLikeEvent::Original(message_event))) =
+            from_json_value::<AnyMessageLikeEvent>(json_data)
     );
 
     assert_eq!(message_event.event_id, "$event:notareal.hs");

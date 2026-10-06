@@ -19,10 +19,10 @@ use super::{
 /// use ruma_common::{Base64PublicKeyOrDeviceId, OwnedBase64PublicKeyOrDeviceId};
 ///
 /// let ref_id: &Base64PublicKeyOrDeviceId = "abcdefghi".into();
-/// assert_eq!(ref_id.as_str(), "abcdefghi");
+/// assert_eq!(ref_id, "abcdefghi");
 ///
 /// let owned_id: OwnedBase64PublicKeyOrDeviceId = "ijklmnop".into();
-/// assert_eq!(owned_id.as_str(), "ijklmnop");
+/// assert_eq!(owned_id, "ijklmnop");
 /// ```
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
@@ -74,7 +74,7 @@ mod tests {
         let device_id: OwnedDeviceId = "MYDEVICE".into();
         let mixed: OwnedBase64PublicKeyOrDeviceId = device_id.into();
 
-        assert_eq!(mixed.as_str(), "MYDEVICE");
+        assert_eq!(mixed, "MYDEVICE");
     }
 
     #[test]
@@ -83,6 +83,6 @@ mod tests {
             "base64+master+public+key".try_into().unwrap();
         let mixed: OwnedBase64PublicKeyOrDeviceId = base64_public_key.into();
 
-        assert_eq!(mixed.as_str(), "base64+master+public+key");
+        assert_eq!(mixed, "base64+master+public+key");
     }
 }

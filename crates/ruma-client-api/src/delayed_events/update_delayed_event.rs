@@ -108,13 +108,10 @@ pub mod unstable_v2 {
 
             assert_eq!(
                 "https://homeserver.tld/_matrix/client/unstable/org.matrix.msc4140/delayed_events/1234/cancel",
-                parts.uri.to_string()
+                parts.uri
             );
-            assert_eq!("POST", parts.method.to_string());
-            assert_eq!(
-                json!({}),
-                serde_json::from_str::<JsonValue>(std::str::from_utf8(&body).unwrap()).unwrap()
-            );
+            assert_eq!("POST", parts.method);
+            assert_eq!(json!({}), serde_json::from_slice::<JsonValue>(&body).unwrap());
         }
     }
 
@@ -142,7 +139,7 @@ pub mod unstable_v2 {
             )
             .unwrap();
 
-            assert_eq!(req.delay_id, "a_delay_id".to_owned());
+            assert_eq!(req.delay_id, "a_delay_id");
             assert_eq!(req.action, UpdateAction::Send);
         }
     }

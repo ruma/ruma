@@ -236,12 +236,13 @@ impl From<EncryptedSessionDataInit> for EncryptedSessionData {
 mod tests {
     use std::borrow::Cow;
 
-    use assert_matches2::{assert_let, assert_matches};
+    use assert_matches::assert_matches;
     use ruma_common::{
         SigningKeyAlgorithm, SigningKeyId, canonical_json::assert_to_canonical_json_eq,
         owned_user_id, serde::Base64,
     };
     use serde_json::{Value as JsonValue, from_value as from_json_value, json};
+    use strass::assert_let;
 
     use super::{BackupAlgorithm, MegolmBackupV1Curve25519AesSha2AuthData};
 
@@ -272,8 +273,7 @@ mod tests {
             Ok(BackupAlgorithm::MegolmBackupV1Curve25519AesSha2(auth_data)) = from_json_value(json)
         );
         assert_eq!(auth_data.public_key.as_bytes(), b"abcdef");
-        let user_signatures =
-            auth_data.signatures.get(&owned_user_id!("@alice:example.org")).unwrap();
+        let user_signatures = auth_data.signatures.get("@alice:example.org").unwrap();
 
         let mut user_signatures_iter = user_signatures.iter();
         let (key_id, signature) = user_signatures_iter.next().unwrap();
@@ -298,11 +298,9 @@ mod tests {
         assert_eq!(backup_algorithm.algorithm(), "local.dev.unknown_algorithm");
         assert_let!(Cow::Borrowed(auth_data) = backup_algorithm.auth_data());
 
-        assert_let!(Some(JsonValue::String(foo)) = auth_data.get("foo"));
-        assert_eq!(foo, "bar");
+        assert_eq!(auth_data["foo"], "bar");
         assert_let!(Some(JsonValue::Object(signatures)) = auth_data.get("signatures"));
-        assert_let!(Some(JsonValue::String(signature)) = signatures.get("ed25519:DEVICEID"));
-        assert_eq!(signature, "signature");
+        assert_eq!(signatures["ed25519:DEVICEID"], "signature");
 
         assert_to_canonical_json_eq!(backup_algorithm, json);
     }

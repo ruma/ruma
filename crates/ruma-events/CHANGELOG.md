@@ -2,6 +2,30 @@
 
 ## Unreleased
 
+Breaking changes:
+
+- The `DeserializeOwned` bound on the `StaticStateEventContent::Unsigned` associated type is only
+  required when using the `Deserialize` implementation of `Original(Sync)StateEvent`.
+- The `shared_history` field of `ToDeviceForwardedRoomKeyEventContent` was removed, since it is
+  not part of the Matrix spec.
+
+Bug fixes:
+
+- The `shared_history` field of `ToDeviceRoomKeyEventContent` is serialized as `shared_history`
+  rather than `m.shared_history`, to match the Matrix spec.
+
+Improvements:
+
+- Add unstable support for [MSC4546] (Circles) behind the `unstable-msc4546` feature flag.
+
+[MSC4546]: https://github.com/matrix-org/matrix-spec-proposals/pull/4546
+
+## 0.35.0
+
+Bug fixes:
+
+- Avoid creating empty formatted body fields when editing plain text message events.
+
 Improvements:
 
 - The `unstable-msc4268` and `unstable-msc3061` features were removed and
@@ -36,12 +60,6 @@ Improvements:
 [MSC1763]: https://github.com/matrix-org/matrix-spec-proposals/pull/1763
 [MSC4495]: https://github.com/matrix-org/matrix-spec-proposals/pull/4495
 [MSC4494]: https://github.com/matrix-org/matrix-spec-proposals/pull/4494
-
-Bug fixes:
-
-- Avoid creating empty formatted body fields when editing plain text message events.
-- Prevent custom event content types used by `_Custom` event variants from implementing
-  `EventContentFromType`.
 
 ## 0.34.0
 

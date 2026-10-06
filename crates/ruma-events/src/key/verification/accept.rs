@@ -197,13 +197,14 @@ impl From<SasV1ContentInit> for SasV1Content {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::{assert_let, assert_matches};
+    use assert_matches::assert_matches;
     use ruma_common::{
         canonical_json::assert_to_canonical_json_eq,
         event_id,
         serde::{Base64, Raw},
     };
-    use serde_json::{Value as JsonValue, from_value as from_json_value, json};
+    use serde_json::{from_value as from_json_value, json};
+    use strass::assert_let;
 
     use super::{
         AcceptMethod, HashAlgorithm, KeyAgreementProtocol, KeyVerificationAcceptEventContent,
@@ -284,7 +285,7 @@ mod tests {
         let content = from_json_value::<ToDeviceKeyVerificationAcceptEventContent>(json).unwrap();
         assert_eq!(content.transaction_id, "456");
 
-        assert_matches!(content.method, AcceptMethod::SasV1(sas));
+        assert_let!(AcceptMethod::SasV1(sas) = content.method);
         assert_eq!(sas.commitment.encode(), "aGVsbG8");
         assert_eq!(sas.hash, HashAlgorithm::Sha256);
         assert_eq!(sas.key_agreement_protocol, KeyAgreementProtocol::Curve25519);
@@ -309,7 +310,7 @@ mod tests {
         assert_eq!(ev.content.transaction_id, "456");
         assert_eq!(ev.sender, "@example:localhost");
 
-        assert_matches!(ev.content.method, AcceptMethod::SasV1(sas));
+        assert_let!(AcceptMethod::SasV1(sas) = ev.content.method);
         assert_eq!(sas.commitment.encode(), "aGVsbG8");
         assert_eq!(sas.hash, HashAlgorithm::Sha256);
         assert_eq!(sas.key_agreement_protocol, KeyAgreementProtocol::Curve25519);
@@ -335,7 +336,7 @@ mod tests {
         let content = from_json_value::<KeyVerificationAcceptEventContent>(json).unwrap();
         assert_eq!(content.relates_to.event_id, "$1598361704261elfgc:localhost");
 
-        assert_matches!(content.method, AcceptMethod::SasV1(sas));
+        assert_let!(AcceptMethod::SasV1(sas) = content.method);
         assert_eq!(sas.commitment.encode(), "aGVsbG8");
         assert_eq!(sas.hash, HashAlgorithm::Sha256);
         assert_eq!(sas.key_agreement_protocol, KeyAgreementProtocol::Curve25519);
@@ -378,8 +379,7 @@ mod tests {
         assert_eq!(content.transaction_id, "456");
         let data = &*content.method.data();
         assert_eq!(data.len(), 1);
-        assert_let!(Some(JsonValue::String(value)) = data.get("test"));
-        assert_eq!(value, "field");
+        assert_eq!(data["test"], "field");
 
         assert_to_canonical_json_eq!(content, json);
     }

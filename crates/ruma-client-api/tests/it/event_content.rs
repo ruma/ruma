@@ -1,6 +1,6 @@
 #![cfg(feature = "server")]
 
-use assert_matches2::assert_matches;
+use assert_matches::assert_matches;
 use ruma_client_api::{message::send_message_event, state::send_state_event};
 use ruma_common::api::{
     IncomingRequestExt as _,

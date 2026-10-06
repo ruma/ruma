@@ -211,11 +211,12 @@ where
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::assert_matches;
+    use assert_matches::assert_matches;
     use ruma_common::{
         MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, owned_event_id,
     };
     use serde_json::{from_value as from_json_value, json};
+    use strass::assert_variant_eq;
 
     use super::{Receipt, ReceiptThread};
 
@@ -253,8 +254,7 @@ mod tests {
 
         let receipt = from_json_value::<Receipt>(json!({ "thread_id": "$abcdef76543" })).unwrap();
         assert_eq!(receipt.ts, None);
-        assert_matches!(receipt.thread, ReceiptThread::Thread(event_id));
-        assert_eq!(event_id, "$abcdef76543");
+        assert_variant_eq!(receipt.thread, ReceiptThread::Thread("$abcdef76543"));
 
         let receipt = from_json_value::<Receipt>(json!({ "ts": 1_664_702_144_365_u64 })).unwrap();
         assert_eq!(

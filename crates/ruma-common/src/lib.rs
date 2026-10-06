@@ -13,6 +13,16 @@ compile_error!(
     "ruma_common's `client` and `server` Cargo features only exist as a workaround are not meant to be disabled"
 );
 
+#[cfg(all(ruma_identifiers_storage = "ThinArc", not(feature = "triomphe")))]
+compile_error!(
+    "the `ThinArc` value for the `ruma_identifiers_storage` compile-time setting requires ruma-common's `triomphe` cargo feature"
+);
+
+#[cfg(all(ruma_identifiers_storage = "SmallVec", not(feature = "smallvec")))]
+compile_error!(
+    "the `SmallVec` value for the `ruma_identifiers_storage` compile-time setting requires ruma-common's `smallvec` cargo feature"
+);
+
 // Hack to allow both ruma-common itself and external crates (or tests) to use procedural macros
 // that expect `ruma_common` to exist in the prelude.
 extern crate self as ruma_common;
@@ -62,4 +72,8 @@ pub mod exports {
     pub use serde;
     pub use serde_html_form;
     pub use serde_json;
+    #[cfg(feature = "smallvec")]
+    pub use smallvec;
+    #[cfg(feature = "triomphe")]
+    pub use triomphe;
 }

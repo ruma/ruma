@@ -95,7 +95,7 @@ pub mod v3 {
                 .unwrap();
 
             assert_eq!(
-                req.uri().to_string(),
+                req.uri(),
                 "https://homeserver.tld/_matrix/client/v3/login/sso/redirect/provider?redirectUrl=https%3A%2F%2Fexample.com%2Fsso"
             );
         }

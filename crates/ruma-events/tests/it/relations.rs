@@ -1,7 +1,5 @@
-use assert_matches2::{assert_let, assert_matches};
+use assert_matches::assert_matches;
 use assign::assign;
-#[cfg(feature = "unstable-msc3381")]
-use ruma_common::event_id;
 use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_event_id, serde::Raw};
 #[cfg(feature = "unstable-msc3381")]
 use ruma_events::poll::{
@@ -22,6 +20,7 @@ use ruma_events::{
     room::message::{MessageType, Relation, RoomMessageEventContent},
 };
 use serde_json::{Value as JsonValue, from_value as from_json_value, json};
+use strass::assert_let;
 
 #[test]
 fn reply_deserialize() {
@@ -35,13 +34,12 @@ fn reply_deserialize() {
         },
     });
 
-    assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json),
+    assert_let!(
         Ok(RoomMessageEventContent {
             msgtype: MessageType::Text(_),
             relates_to: Some(Relation::Reply(reply)),
             ..
-        })
+        }) = from_json_value::<RoomMessageEventContent>(json)
     );
     assert_eq!(reply.in_reply_to.event_id, "$1598361704261elfgc:localhost");
 }
@@ -76,9 +74,9 @@ fn reply_serialization_roundtrip() {
     let json_content = Raw::new(&content).unwrap();
     let deser_content = json_content.deserialize().unwrap();
 
-    assert_matches!(deser_content.msgtype, MessageType::Text(deser_msg));
+    assert_let!(MessageType::Text(deser_msg) = deser_content.msgtype);
     assert_eq!(deser_msg.body, body);
-    assert_matches!(content.relates_to.unwrap(), Relation::Reply(reply));
+    assert_let!(Relation::Reply(reply) = content.relates_to.unwrap());
     assert_eq!(reply.in_reply_to.event_id, event_id);
 }
 
@@ -128,16 +126,15 @@ fn replacement_deserialize() {
         },
     });
 
-    assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json),
+    assert_let!(
         Ok(RoomMessageEventContent {
             msgtype: MessageType::Text(_),
             relates_to: Some(Relation::Replacement(replacement)),
             ..
-        })
+        }) = from_json_value::<RoomMessageEventContent>(json)
     );
     assert_eq!(replacement.event_id, "$1598361704261elfgc");
-    assert_matches!(replacement.new_content.msgtype, MessageType::Text(text));
+    assert_let!(MessageType::Text(text) = replacement.new_content.msgtype);
     assert_eq!(text.body, "Hello! My name is bar");
 }
 
@@ -155,11 +152,11 @@ fn replacement_serialization_roundtrip() {
     let json_content = Raw::new(&content).unwrap();
     let deser_content = json_content.deserialize().unwrap();
 
-    assert_matches!(deser_content.msgtype, MessageType::Text(deser_msg));
+    assert_let!(MessageType::Text(deser_msg) = deser_content.msgtype);
     assert_eq!(deser_msg.body, body);
-    assert_matches!(content.relates_to.unwrap(), Relation::Replacement(deser_replacement));
+    assert_let!(Relation::Replacement(deser_replacement) = content.relates_to.unwrap());
     assert_eq!(deser_replacement.event_id, replacement.event_id);
-    assert_matches!(deser_replacement.new_content.msgtype, MessageType::Text(deser_new_msg));
+    assert_let!(MessageType::Text(deser_new_msg) = deser_replacement.new_content.msgtype);
     assert_eq!(deser_new_msg.body, new_body);
 }
 
@@ -235,13 +232,12 @@ fn thread_stable_deserialize() {
         },
     });
 
-    assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json),
+    assert_let!(
         Ok(RoomMessageEventContent {
             msgtype: MessageType::Text(_),
             relates_to: Some(Relation::Thread(thread)),
             ..
-        })
+        }) = from_json_value::<RoomMessageEventContent>(json)
     );
     assert_eq!(thread.event_id, "$1598361704261elfgc");
     assert_matches!(thread.in_reply_to, None);
@@ -262,13 +258,12 @@ fn thread_stable_reply_deserialize() {
         },
     });
 
-    assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json),
+    assert_let!(
         Ok(RoomMessageEventContent {
             msgtype: MessageType::Text(_),
             relates_to: Some(Relation::Thread(thread)),
             ..
-        })
+        }) = from_json_value::<RoomMessageEventContent>(json)
     );
     assert_eq!(thread.event_id, "$1598361704261elfgc");
     assert_eq!(thread.in_reply_to.unwrap().event_id, "$latesteventid");
@@ -289,13 +284,12 @@ fn thread_unstable_deserialize() {
         },
     });
 
-    assert_matches!(
-        from_json_value::<RoomMessageEventContent>(json),
+    assert_let!(
         Ok(RoomMessageEventContent {
             msgtype: MessageType::Text(_),
             relates_to: Some(Relation::Thread(thread)),
             ..
-        })
+        }) = from_json_value::<RoomMessageEventContent>(json)
     );
     assert_eq!(thread.event_id, "$1598361704261elfgc");
     assert_eq!(thread.in_reply_to.unwrap().event_id, "$latesteventid");
@@ -313,9 +307,9 @@ fn thread_serialization_roundtrip() {
     let json_content = Raw::new(&content).unwrap();
     let deser_content = json_content.deserialize().unwrap();
 
-    assert_matches!(deser_content.msgtype, MessageType::Text(deser_msg));
+    assert_let!(MessageType::Text(deser_msg) = deser_content.msgtype);
     assert_eq!(deser_msg.body, body);
-    assert_matches!(content.relates_to.unwrap(), Relation::Thread(deser_thread));
+    assert_let!(Relation::Thread(deser_thread) = content.relates_to.unwrap());
     assert_eq!(deser_thread.event_id, thread.event_id);
     assert_eq!(deser_thread.in_reply_to.unwrap().event_id, thread.in_reply_to.unwrap().event_id);
     assert_eq!(deser_thread.is_falling_back, thread.is_falling_back);
@@ -366,11 +360,11 @@ fn unstable_poll_start_event_return_relations() {
         })),
     );
     assert_let!(Some(encrypted::Relation::Thread(thread)) = event_content.relation());
-    assert_eq!(thread.event_id, event_id!("$thread_root_id"));
+    assert_eq!(thread.event_id, "$thread_root_id");
     assert!(thread.is_falling_back);
 
     assert_let!(Some(in_reply_to) = thread.in_reply_to);
-    assert_eq!(in_reply_to.event_id, event_id!("$prev_event_id"));
+    assert_eq!(in_reply_to.event_id, "$prev_event_id");
 }
 
 #[cfg(feature = "unstable-msc3381")]
@@ -394,9 +388,9 @@ fn stable_poll_start_event_return_relations() {
         }));
 
     assert_let!(Some(encrypted::Relation::Thread(thread)) = event_content.relation());
-    assert_eq!(thread.event_id, event_id!("$thread_root_id"));
+    assert_eq!(thread.event_id, "$thread_root_id");
     assert!(thread.is_falling_back);
 
     assert_let!(Some(in_reply_to) = thread.in_reply_to);
-    assert_eq!(in_reply_to.event_id, event_id!("$prev_event_id"));
+    assert_eq!(in_reply_to.event_id, "$prev_event_id");
 }

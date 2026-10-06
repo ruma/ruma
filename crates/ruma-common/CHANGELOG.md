@@ -4,6 +4,34 @@
 
 Breaking changes:
 
+- `OAuthClientScope` now requires that custom values are valid OAuth scopes.
+  Consequently, its `From<str>` implementation has been replaced with a `TryFrom<str>`
+  implementation, and deserializing it is no longer infallible.
+
+Improvements:
+
+- The `(Owned)DirectUserIdentifier` types were imported from ruma-events. Converting between an
+  `OwnedDirectUserIdentifier` and an `OwnedUserId` does not perform an allocation anymore.
+- Implement `From<&OwnedId> for OwnedId` and `From<&OwnedId> for String` for owned identifier types
+  generated with the `IdDst` derive macro.
+- Add the `KeyTooLarge`, `ProfileTooLarge` and `UnknownDevice` variants to `ErrorKind` and
+  `ErrorCode`, for the `M_KEY_TOO_LARGE` and `M_PROFILE_TOO_LARGE` error codes of the profile
+  endpoints (added in Matrix 1.16) and the `M_UNKNOWN_DEVICE` error code of identity assertion
+  (added in Matrix 1.17).
+- Add `{id}_ref!` macros for identifier types. They are currently equivalent to the `{id}!` macros,
+  however there is a plan to remove identifier DST types, so these other macros' return type will
+  change while the new macros are guaranteed to keep returning a static reference. They should allow
+  to ease the transition for the expected change by allowing to migrate tests in advance. They are
+  behind an unstable cargo feature because they are likely to be removed soon after the DST
+  identifier type removal.
+- Add unstable support for [MSC4363] "OAuth step up authentication".
+
+[MSC4363]: https://github.com/matrix-org/matrix-spec-proposals/pull/4363
+
+## 0.20.0
+
+Breaking changes:
+
 - `OutgoingRequest::try_into_http_request` has been moved to a new `OutgoingRequestExt` trait
   that is automatically implemented for any `T: OutgoingRequest`
   - Implementors of `OutgoingRequest` now instead have to provide the new `type Body`
@@ -27,6 +55,8 @@ Breaking changes:
     response type.
   - The generic parameter was removed from `try_from_http_response`, the body of the response is a
     `&[u8]`.
+- Remove `Metadata::empty_request_body()`. It is now unused and the types implementing
+  `OutgoingBody` should be used instead.
 
 Bug fixes:
 
@@ -51,6 +81,14 @@ Improvements:
 - Add `required_client_scopes` function to `Metadata` and accompanying `required_client_scopes` syntax
   to `metadata!` macro, to allow request structs to define what OAuth 2.0 scopes they require.
 - Add unstable support for [MSC4484] "Server Administration OAuth Scope".
+- `ruma_identifiers_storage` supports new values:
+  - `ThinArc` uses `triomphe::ThinArc<(), u8>` as internal representation for the owned identifier
+    types, and requires the `triomphe` cargo feature.
+  - `SmallVec` uses `smallvec::SmallVec<[u8; N]>` as internal representation for the owned identifier
+    types, and requires the `smallvec` cargo feature.
+- In the `http_headers` module, add:
+  - `TEXT_PLAIN` for the `text/plain` media type.
+  - `TEXT_HTML_UTF8` for the `text/html; charset=utf-8` media type.
 
 [MSC4438]: https://github.com/matrix-org/matrix-spec-proposals/pull/4438
 [MSC4484]: https://github.com/matrix-org/matrix-spec-proposals/pull/4484

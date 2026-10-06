@@ -84,34 +84,33 @@ pub mod v3 {
 
             use crate::profile::field_existed_before_extended_profiles;
 
-            let field = self.value.field_name();
+            let Self {
+                user_id,
+                value,
+                #[cfg(feature = "unstable-msc4466")]
+                propagate_to,
+            } = self;
+
+            let field = value.field_name();
 
             let query_string = serde_html_form::to_string(RequestQuery {
                 #[cfg(feature = "unstable-msc4466")]
-                propagate_to: self.propagate_to,
+                propagate_to,
             })?;
 
             let url = if field_existed_before_extended_profiles(&field) {
-                Self::make_endpoint_url(
-                    considering,
-                    base_url,
-                    &[&self.user_id, &field],
-                    &query_string,
-                )?
+                Self::make_endpoint_url(considering, base_url, &[&user_id, &field], &query_string)?
             } else {
                 crate::profile::EXTENDED_PROFILE_FIELD_HISTORY.make_endpoint_url(
                     considering,
                     base_url,
-                    &[&self.user_id, &field],
+                    &[&user_id, &field],
                     &query_string,
                 )?
             };
 
-            let http_request = http::Request::builder()
-                .method(Self::METHOD)
-                .uri(url)
-                .header(http::header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
-                .body(RequestBody(self.value))?;
+            let http_request =
+                http::Request::builder().method(Self::METHOD).uri(url).body(RequestBody(value))?;
 
             Ok(http_request)
         }
@@ -241,7 +240,7 @@ mod tests_client {
             "/_matrix/client/v3/profile/@alice:localhost/avatar_url"
         );
         assert_eq!(
-            from_json_slice::<JsonValue>(http_request.body().as_ref()).unwrap(),
+            from_json_slice::<JsonValue>(http_request.body()).unwrap(),
             json!({
                 "avatar_url": "mxc://localhost/abcdef",
             })
@@ -274,7 +273,7 @@ mod tests_client {
             "/_matrix/client/unstable/uk.tcpip.msc4133/profile/@alice:localhost/dev.ruma.custom_field"
         );
         assert_eq!(
-            from_json_slice::<JsonValue>(http_request.body().as_ref()).unwrap(),
+            from_json_slice::<JsonValue>(http_request.body()).unwrap(),
             json!({
                 "dev.ruma.custom_field": true,
             })
@@ -300,7 +299,7 @@ mod tests_client {
             "/_matrix/client/v3/profile/@alice:localhost/dev.ruma.custom_field"
         );
         assert_eq!(
-            from_json_slice::<JsonValue>(http_request.body().as_ref()).unwrap(),
+            from_json_slice::<JsonValue>(http_request.body()).unwrap(),
             json!({
                 "dev.ruma.custom_field": true,
             })
@@ -314,9 +313,9 @@ mod tests_client {
 
 #[cfg(all(test, feature = "server"))]
 mod tests_server {
-    use assert_matches2::assert_let;
     use ruma_common::{api::IncomingRequestExt as _, profile::ProfileFieldValue};
     use serde_json::{json, to_vec as to_json_vec};
+    use strass::assert_variant_eq;
 
     use super::v3::Request;
 
@@ -338,8 +337,7 @@ mod tests_server {
         .unwrap();
 
         assert_eq!(request.user_id, "@alice:localhost");
-        assert_let!(ProfileFieldValue::DisplayName(display_name) = request.value);
-        assert_eq!(display_name, "Alice");
+        assert_variant_eq!(request.value, ProfileFieldValue::DisplayName("Alice"));
     }
 
     #[test]

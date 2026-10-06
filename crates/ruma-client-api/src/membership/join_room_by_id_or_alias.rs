@@ -94,6 +94,8 @@ pub mod v3 {
         ) -> Result<http::Request<RequestBody>, ruma_common::api::error::IntoHttpError> {
             use ruma_common::api::Metadata;
 
+            let Self { room_id_or_alias, third_party_signed, reason, via } = self;
+
             // Only send `server_name` if the `via` parameter is not supported by the server.
             // `via` was introduced in Matrix 1.12.
             let server_name = if considering
@@ -104,25 +106,20 @@ pub mod v3 {
             {
                 vec![]
             } else {
-                self.via.clone()
+                via.clone()
             };
 
-            let query_string =
-                serde_html_form::to_string(RequestQuery { server_name, via: self.via })?;
+            let query_string = serde_html_form::to_string(RequestQuery { server_name, via })?;
 
             let http_request = http::Request::builder()
                 .method(Self::METHOD)
                 .uri(Self::make_endpoint_url(
                     considering,
                     base_url,
-                    &[&self.room_id_or_alias],
+                    &[&room_id_or_alias],
                     &query_string,
                 )?)
-                .header(http::header::CONTENT_TYPE, ruma_common::http_headers::APPLICATION_JSON)
-                .body(RequestBody {
-                    third_party_signed: self.third_party_signed,
-                    reason: self.reason,
-                })?;
+                .body(RequestBody { third_party_signed, reason })?;
 
             Ok(http_request)
         }
@@ -143,22 +140,14 @@ pub mod v3 {
                     serde::de::value::Error,
                 >::new(path_args.iter().copied()))?;
 
-            let request_query: RequestQuery =
+            let RequestQuery { via, server_name } =
                 serde_html_form::from_str(request.uri().query().unwrap_or(""))?;
-            let via = if request_query.via.is_empty() {
-                request_query.server_name
-            } else {
-                request_query.via
-            };
+            let via = if via.is_empty() { server_name } else { via };
 
-            let body: RequestBody = serde_json::from_slice(request.body())?;
+            let RequestBody { third_party_signed, reason } =
+                serde_json::from_slice(request.body())?;
 
-            Ok(Self {
-                room_id_or_alias,
-                reason: body.reason,
-                third_party_signed: body.third_party_signed,
-                via,
-            })
+            Ok(Self { room_id_or_alias, reason, third_party_signed, via })
         }
     }
 
@@ -238,7 +227,7 @@ pub mod v3 {
 
     #[cfg(all(test, feature = "server"))]
     mod tests_server {
-        use ruma_common::{api::IncomingRequestExt as _, owned_server_name};
+        use ruma_common::api::IncomingRequestExt as _;
 
         use super::Request;
 
@@ -268,8 +257,8 @@ pub mod v3 {
             .unwrap();
 
             assert_eq!(req.room_id_or_alias, "!foo:b.ar");
-            assert_eq!(req.reason, Some("Let me in already!".to_owned()));
-            assert_eq!(req.via, vec![owned_server_name!("f.oo")]);
+            assert_eq!(req.reason.as_deref(), Some("Let me in already!"));
+            assert_eq!(req.via, &["f.oo"]);
         }
 
         #[test]
@@ -285,8 +274,8 @@ pub mod v3 {
             .unwrap();
 
             assert_eq!(req.room_id_or_alias, "!foo:b.ar");
-            assert_eq!(req.reason, Some("Let me in already!".to_owned()));
-            assert_eq!(req.via, vec![owned_server_name!("f.oo")]);
+            assert_eq!(req.reason.as_deref(), Some("Let me in already!"));
+            assert_eq!(req.via, &["f.oo"]);
         }
 
         #[test]
@@ -302,8 +291,8 @@ pub mod v3 {
             .unwrap();
 
             assert_eq!(req.room_id_or_alias, "!foo:b.ar");
-            assert_eq!(req.reason, Some("Let me in already!".to_owned()));
-            assert_eq!(req.via, vec![owned_server_name!("f.oo")]);
+            assert_eq!(req.reason.as_deref(), Some("Let me in already!"));
+            assert_eq!(req.via, &["f.oo"]);
         }
     }
 }

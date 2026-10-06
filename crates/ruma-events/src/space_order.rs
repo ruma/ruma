@@ -29,9 +29,9 @@ impl SpaceOrderEventContent {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::assert_matches;
     use ruma_common::{SpaceChildOrder, canonical_json::assert_to_canonical_json_eq};
     use serde_json::{from_value as from_json_value, json};
+    use strass::assert_let;
 
     use super::SpaceOrderEventContent;
     use crate::{AnyRoomAccountDataEvent, RoomAccountDataEvent};
@@ -46,9 +46,9 @@ mod tests {
         });
         let unstable_space_order_account_data =
             from_json_value::<AnyRoomAccountDataEvent>(raw_unstable_space_order).unwrap();
-        assert_matches!(
-            unstable_space_order_account_data,
-            AnyRoomAccountDataEvent::SpaceOrder(unstable_space_order)
+        assert_let!(
+            AnyRoomAccountDataEvent::SpaceOrder(unstable_space_order) =
+                unstable_space_order_account_data
         );
         assert_eq!(unstable_space_order.content.order, SpaceChildOrder::parse("a").unwrap());
 
@@ -60,7 +60,7 @@ mod tests {
         });
         let space_order_account_data =
             from_json_value::<AnyRoomAccountDataEvent>(raw_space_order).unwrap();
-        assert_matches!(space_order_account_data, AnyRoomAccountDataEvent::SpaceOrder(space_order));
+        assert_let!(AnyRoomAccountDataEvent::SpaceOrder(space_order) = space_order_account_data);
         assert_eq!(space_order.content.order, SpaceChildOrder::parse("b").unwrap());
     }
 

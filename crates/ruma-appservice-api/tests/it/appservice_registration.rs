@@ -1,5 +1,5 @@
-use assert_matches2::assert_let;
 use ruma_appservice_api::Registration;
+use strass::assert_let;
 
 #[test]
 fn registration_deserialization() {

@@ -23,7 +23,7 @@ impl Request {
         let query_serialize = self.query.expand_serialize(ruma_common);
         let query_fields = self.query.expand_fields();
 
-        let headers_serialize = self.headers.expand_serialize(KIND, &self.body, ruma_common, &http);
+        let headers_serialize = self.headers.expand_serialize(KIND, &http);
         let headers_fields = self.headers.expand_fields();
 
         let body_type = self.body.type_name(KIND, ruma_common, ident);

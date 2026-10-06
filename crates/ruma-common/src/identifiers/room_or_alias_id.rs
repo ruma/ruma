@@ -3,7 +3,6 @@
 use std::hint::unreachable_unchecked;
 
 use ruma_macros::IdDst;
-use tracing::warn;
 
 use super::{OwnedRoomAliasId, OwnedRoomId, RoomAliasId, RoomId, server_name::ServerName};
 
@@ -31,26 +30,15 @@ use super::{OwnedRoomAliasId, OwnedRoomId, RoomAliasId, RoomId, server_name::Ser
 /// [room alias ID]: https://spec.matrix.org/v1.19/appendices/#room-aliases
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
-#[ruma_id(validate = ruma_identifiers_validation::room_id_or_alias_id::validate)]
+#[ruma_id(validate = ruma_identifiers_validation::room_id_or_alias_id::validate, smallvec_inline_bytes = 48)]
 pub struct RoomOrAliasId(str);
 
 impl RoomOrAliasId {
     /// Returns the server name of the room (alias) ID.
     pub fn server_name(&self) -> Option<&ServerName> {
-        let colon_idx = self.as_str().find(':')?;
-        let server_name = &self.as_str()[colon_idx + 1..];
-        match server_name.try_into() {
-            Ok(parsed) => Some(parsed),
-            // Room aliases are verified to contain a server name at parse time
-            Err(e) => {
-                warn!(
-                    target: "ruma_common::identifiers::room_id",
-                    server_name,
-                    "Room ID contains colon but no valid server name afterwards: {e}",
-                );
-                None
-            }
-        }
+        // We can use the room ID function because the server name in a room alias is already
+        // validated.
+        super::room_id::find_server_name(self.as_str())
     }
 
     /// Whether this is a room id (starts with `'!'`)
@@ -218,7 +206,7 @@ mod tests {
         assert_eq!(
             serde_json::from_str::<OwnedRoomOrAliasId>(r##""#ruma:example.com""##)
                 .expect("Failed to convert JSON to RoomAliasId"),
-            <&RoomOrAliasId>::try_from("#ruma:example.com").expect("Failed to create RoomAliasId.")
+            "#ruma:example.com"
         );
     }
 
@@ -227,8 +215,7 @@ mod tests {
         assert_eq!(
             serde_json::from_str::<OwnedRoomOrAliasId>(r#""!29fhd83h92h0:example.com""#)
                 .expect("Failed to convert JSON to RoomId"),
-            <&RoomOrAliasId>::try_from("!29fhd83h92h0:example.com")
-                .expect("Failed to create RoomAliasId.")
+            "!29fhd83h92h0:example.com"
         );
     }
 }

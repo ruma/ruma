@@ -1,5 +1,7 @@
 //! Endpoints for managing message retention periods
 
+use std::str::FromStr;
+
 use ruma_common::{
     OwnedRoomId,
     serde::{DisplayAsRefStr, SerializeAsRefStr},
@@ -62,6 +64,14 @@ impl TryFrom<&str> for RoomIdOrAllRooms {
                     .map_err(|_| "The Room identifier needs to be a valid room id or *")?,
             ))
         }
+    }
+}
+
+impl FromStr for RoomIdOrAllRooms {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        s.try_into()
     }
 }
 

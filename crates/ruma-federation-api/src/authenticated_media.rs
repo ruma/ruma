@@ -96,8 +96,10 @@ impl MultipartMixedBoundary {
     }
 
     /// Get the value of the `Content-Type` HTTP header for this boundary.
-    fn content_type(&self) -> String {
+    fn content_type(&self) -> http::HeaderValue {
         format!("{MULTIPART_MIXED}; boundary={}", self.0)
+            .try_into()
+            .expect("content type should only contain visible ASCII characters")
     }
 
     /// Write this boundary as a separator between parts of the body.
@@ -170,20 +172,15 @@ impl ResponseBody {
     fn new(metadata: ContentMetadata, content: FileOrLocation) -> Self {
         Self { metadata, content, boundary: MultipartMixedBoundary::new() }
     }
-
-    /// Convert this `ResponseBody` into an `http::Response<ResponseBody>`.
-    fn try_into_http_response(
-        self,
-    ) -> Result<http::Response<Self>, ruma_common::api::error::IntoHttpError> {
-        let content_type = self.boundary.content_type();
-
-        Ok(http::Response::builder().header(http::header::CONTENT_TYPE, content_type).body(self)?)
-    }
 }
 
 #[cfg(feature = "server")]
 impl OutgoingBody for ResponseBody {
     type Error = ruma_common::api::error::IntoHttpError;
+
+    fn content_type(&self) -> Option<http::HeaderValue> {
+        Some(self.boundary.content_type())
+    }
 
     fn try_into_buf<T: Default + bytes::BufMut>(self) -> Result<T, Self::Error> {
         use std::io::Write as _;
@@ -385,11 +382,11 @@ fn parse_multipart_body_part(
 
 #[cfg(all(test, feature = "client", feature = "server"))]
 mod tests {
-    use assert_matches2::assert_matches;
     use ruma_common::{
         api::OutgoingBody,
         http_headers::{ContentDisposition, ContentDispositionType},
     };
+    use strass::assert_let;
 
     use super::{Content, ContentMetadata, FileOrLocation, ResponseBody};
 
@@ -407,17 +404,19 @@ mod tests {
             content_disposition: Some(content_disposition.clone()),
         });
 
-        let (parts, body) = ResponseBody::new(outgoing_metadata, outgoing_content)
-            .try_into_http_response()
-            .unwrap()
-            .into_parts();
+        let body = ResponseBody::new(outgoing_metadata, outgoing_content);
+        let multipart_content_type = body.content_type().unwrap();
         let body = body.try_into_buf::<Vec<u8>>().unwrap();
-        let response = http::Response::from_parts(parts, body.as_slice());
+
+        let response = http::Response::builder()
+            .header(http::header::CONTENT_TYPE, multipart_content_type)
+            .body(body.as_slice())
+            .unwrap();
 
         let ResponseBody { content: incoming_content, .. } =
             ResponseBody::try_from_http_response(response).unwrap();
 
-        assert_matches!(incoming_content, FileOrLocation::File(incoming_content));
+        assert_let!(FileOrLocation::File(incoming_content) = incoming_content);
         assert_eq!(incoming_content.file, file);
         assert_eq!(incoming_content.content_type.unwrap(), content_type);
         assert_eq!(incoming_content.content_disposition, Some(content_disposition));
@@ -437,17 +436,19 @@ mod tests {
             content_disposition: Some(content_disposition.clone()),
         });
 
-        let (parts, body) = ResponseBody::new(outgoing_metadata, outgoing_content)
-            .try_into_http_response()
-            .unwrap()
-            .into_parts();
+        let body = ResponseBody::new(outgoing_metadata, outgoing_content);
+        let multipart_content_type = body.content_type().unwrap();
         let body = body.try_into_buf::<Vec<u8>>().unwrap();
-        let response = http::Response::from_parts(parts, body.as_slice());
+
+        let response = http::Response::builder()
+            .header(http::header::CONTENT_TYPE, multipart_content_type)
+            .body(body.as_slice())
+            .unwrap();
 
         let ResponseBody { content: incoming_content, .. } =
             ResponseBody::try_from_http_response(response).unwrap();
 
-        assert_matches!(incoming_content, FileOrLocation::File(incoming_content));
+        assert_let!(FileOrLocation::File(incoming_content) = incoming_content);
         assert_eq!(incoming_content.file, file);
         assert_eq!(incoming_content.content_type.unwrap(), content_type);
         assert_eq!(incoming_content.content_disposition, Some(content_disposition));
@@ -460,17 +461,19 @@ mod tests {
         let outgoing_metadata = ContentMetadata::new();
         let outgoing_content = FileOrLocation::Location(location.to_owned());
 
-        let (parts, body) = ResponseBody::new(outgoing_metadata, outgoing_content)
-            .try_into_http_response()
-            .unwrap()
-            .into_parts();
+        let body = ResponseBody::new(outgoing_metadata, outgoing_content);
+        let multipart_content_type = body.content_type().unwrap();
         let body = body.try_into_buf::<Vec<u8>>().unwrap();
-        let response = http::Response::from_parts(parts, body.as_slice());
+
+        let response = http::Response::builder()
+            .header(http::header::CONTENT_TYPE, multipart_content_type)
+            .body(body.as_slice())
+            .unwrap();
 
         let ResponseBody { content: incoming_content, .. } =
             ResponseBody::try_from_http_response(response).unwrap();
 
-        assert_matches!(incoming_content, FileOrLocation::Location(incoming_location));
+        assert_let!(FileOrLocation::Location(incoming_location) = incoming_content);
         assert_eq!(incoming_location, location);
     }
 
@@ -543,7 +546,7 @@ mod tests {
 
         let ResponseBody { content, .. } = ResponseBody::try_from_http_response(response).unwrap();
 
-        assert_matches!(content, FileOrLocation::File(file_content));
+        assert_let!(FileOrLocation::File(file_content) = content);
         assert_eq!(file_content.file, b"some plain text");
         assert_eq!(file_content.content_type.unwrap(), "text/plain");
         assert_eq!(file_content.content_disposition, None);
@@ -557,7 +560,7 @@ mod tests {
 
         let ResponseBody { content, .. } = ResponseBody::try_from_http_response(response).unwrap();
 
-        assert_matches!(content, FileOrLocation::File(file_content));
+        assert_let!(FileOrLocation::File(file_content) = content);
         assert_eq!(file_content.file, b"some plain text");
         assert_eq!(file_content.content_type.unwrap(), "text/plain");
         let content_disposition = file_content.content_disposition.unwrap();
@@ -573,7 +576,7 @@ mod tests {
 
         let ResponseBody { content, .. } = ResponseBody::try_from_http_response(response).unwrap();
 
-        assert_matches!(content, FileOrLocation::File(file_content));
+        assert_let!(FileOrLocation::File(file_content) = content);
         assert_eq!(file_content.file, b"some plain text");
         assert_eq!(file_content.content_type.unwrap(), "text/plain");
         assert_eq!(file_content.content_disposition, None);
@@ -587,7 +590,7 @@ mod tests {
 
         let ResponseBody { content, .. } = ResponseBody::try_from_http_response(response).unwrap();
 
-        assert_matches!(content, FileOrLocation::File(file_content));
+        assert_let!(FileOrLocation::File(file_content) = content);
         assert_eq!(file_content.file, b"some plain text");
         assert_eq!(file_content.content_type.unwrap(), "text/plain");
         assert_eq!(file_content.content_disposition, None);
@@ -601,7 +604,7 @@ mod tests {
 
         let ResponseBody { content, .. } = ResponseBody::try_from_http_response(response).unwrap();
 
-        assert_matches!(content, FileOrLocation::File(file_content));
+        assert_let!(FileOrLocation::File(file_content) = content);
         assert_eq!(file_content.file, b"some plain text");
         assert_eq!(file_content.content_type, None);
         assert_eq!(file_content.content_disposition, None);
@@ -617,7 +620,7 @@ mod tests {
 
         let ResponseBody { content, .. } = ResponseBody::try_from_http_response(response).unwrap();
 
-        assert_matches!(content, FileOrLocation::File(file_content));
+        assert_let!(FileOrLocation::File(file_content) = content);
         assert_eq!(file_content.file, b"some plain text");
         assert_eq!(file_content.content_type, None);
         assert_eq!(file_content.content_disposition, None);
@@ -631,7 +634,7 @@ mod tests {
 
         let ResponseBody { content, .. } = ResponseBody::try_from_http_response(response).unwrap();
 
-        assert_matches!(content, FileOrLocation::File(file_content));
+        assert_let!(FileOrLocation::File(file_content) = content);
         assert_eq!(file_content.file, b"some plain text");
         assert_eq!(file_content.content_type, None);
         assert_eq!(file_content.content_disposition, None);
@@ -645,7 +648,7 @@ mod tests {
 
         let ResponseBody { content, .. } = ResponseBody::try_from_http_response(response).unwrap();
 
-        assert_matches!(content, FileOrLocation::File(file_content));
+        assert_let!(FileOrLocation::File(file_content) = content);
         assert_eq!(file_content.file, b"some plain text");
         assert_eq!(file_content.content_type.unwrap(), "text/plain");
         let content_disposition = file_content.content_disposition.unwrap();

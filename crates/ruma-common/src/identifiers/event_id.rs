@@ -55,7 +55,7 @@ use super::{IdParseError, ServerName};
 /// [room versions]: https://spec.matrix.org/v1.19/rooms/
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
-#[ruma_id(validate = ruma_identifiers_validation::event_id::validate)]
+#[ruma_id(validate = ruma_identifiers_validation::event_id::validate, smallvec_inline_bytes = 48)]
 pub struct EventId(str);
 
 impl EventId {
@@ -103,19 +103,14 @@ impl EventId {
     /// "localpart" that precedes the homeserver. For later formats, this is the entire ID without
     /// the leading `$` sigil.
     pub fn localpart(&self) -> &str {
-        let idx = self.colon_idx().unwrap_or_else(|| self.as_str().len());
-        &self.as_str()[1..idx]
+        super::find_localpart(self.as_str())
     }
 
     /// Returns the server name of the event ID.
     ///
     /// Only applicable to events in the original format as used by Matrix room versions 1 and 2.
     pub fn server_name(&self) -> Option<&ServerName> {
-        self.colon_idx().map(|idx| ServerName::from_borrowed_unchecked(&self.as_str()[idx + 1..]))
-    }
-
-    fn colon_idx(&self) -> Option<usize> {
-        self.as_str().find(':')
+        super::find_server_name_unchecked(self.as_str())
     }
 }
 
@@ -205,7 +200,7 @@ mod tests {
         assert_eq!(
             serde_json::from_str::<OwnedEventId>(r#""$39hvsi03hlne:example.com""#)
                 .expect("Failed to convert JSON to EventId"),
-            <&EventId>::try_from("$39hvsi03hlne:example.com").expect("Failed to create EventId.")
+            "$39hvsi03hlne:example.com"
         );
     }
 
@@ -216,8 +211,7 @@ mod tests {
                 r#""$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk""#
             )
             .expect("Failed to convert JSON to EventId"),
-            <&EventId>::try_from("$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk")
-                .expect("Failed to create EventId.")
+            "$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk"
         );
     }
 
@@ -228,8 +222,7 @@ mod tests {
                 r#""$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg""#
             )
             .expect("Failed to convert JSON to EventId"),
-            <&EventId>::try_from("$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg")
-                .expect("Failed to create EventId.")
+            "$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg"
         );
     }
 

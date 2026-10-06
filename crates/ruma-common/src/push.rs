@@ -1036,13 +1036,14 @@ pub enum RemovePushRuleError {
 mod tests {
     use std::{collections::BTreeMap, sync::LazyLock};
 
-    use assert_matches2::{assert_let, assert_matches};
+    use assert_matches::assert_matches;
     use js_int::{int, uint};
     use macro_rules_attribute::apply;
     use serde_json::{
         Value as JsonValue, from_value as from_json_value, json, value::RawValue as RawJsonValue,
     };
     use smol_macros::test;
+    use strass::assert_let;
 
     use super::{
         AnyPushRule, ConditionalPushRule, PatternedPushRule, Ruleset, SimplePushRule,
@@ -1686,9 +1687,9 @@ mod tests {
         set.content.insert(content);
 
         let test_set = set.clone();
-        assert_matches!(
-            test_set.get_actions(&message, &CONTEXT_ONE_TO_ONE).await,
-            [Action::SetTweak(Tweak::Sound(sound))]
+        assert_let!(
+            [Action::SetTweak(Tweak::Sound(sound))] =
+                test_set.get_actions(&message, &CONTEXT_ONE_TO_ONE).await
         );
         assert_eq!(sound.as_str(), "content");
 
@@ -1711,9 +1712,9 @@ mod tests {
         };
         set.override_.insert(three_conditions);
 
-        assert_matches!(
-            set.get_actions(&message, &CONTEXT_ONE_TO_ONE).await,
-            [Action::SetTweak(Tweak::Sound(sound))]
+        assert_let!(
+            [Action::SetTweak(Tweak::Sound(sound))] =
+                set.get_actions(&message, &CONTEXT_ONE_TO_ONE).await
         );
         assert_eq!(sound.as_str(), "content");
 
@@ -1729,9 +1730,9 @@ mod tests {
         )
         .unwrap();
 
-        assert_matches!(
-            set.get_actions(&new_message, &CONTEXT_ONE_TO_ONE).await,
-            [Action::SetTweak(Tweak::Sound(sound))]
+        assert_let!(
+            [Action::SetTweak(Tweak::Sound(sound))] =
+                set.get_actions(&new_message, &CONTEXT_ONE_TO_ONE).await
         );
         assert_eq!(sound.as_str(), "three");
     }

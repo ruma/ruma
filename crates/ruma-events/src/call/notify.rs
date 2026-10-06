@@ -68,6 +68,7 @@ impl From<Application> for ApplicationType {
 mod tests {
     use ruma_common::canonical_json::assert_to_canonical_json_eq;
     use serde_json::{from_value as from_json_value, json};
+    use strass::assert_let;
 
     use crate::{
         Mentions,
@@ -122,7 +123,6 @@ mod tests {
     fn notify_event_deserialization() {
         use std::collections::BTreeSet;
 
-        use assert_matches2::assert_matches;
         use ruma_common::owned_user_id;
 
         use crate::{AnyMessageLikeEvent, MessageLikeEvent};
@@ -145,9 +145,8 @@ mod tests {
         });
 
         let event = from_json_value::<AnyMessageLikeEvent>(json_data).unwrap();
-        assert_matches!(
-            event,
-            AnyMessageLikeEvent::CallNotify(MessageLikeEvent::Original(message_event))
+        assert_let!(
+            AnyMessageLikeEvent::CallNotify(MessageLikeEvent::Original(message_event)) = event
         );
         let content = message_event.content;
         assert_eq!(content.call_id, "abcdef");

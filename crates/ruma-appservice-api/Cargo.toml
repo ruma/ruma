@@ -7,7 +7,7 @@ license = "MIT"
 name = "ruma-appservice-api"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma"
-version = "0.16.0"
+version = "0.17.0"
 edition = "2024"
 rust-version = { workspace = true }
 
@@ -20,6 +20,7 @@ server = []
 
 unstable-msc3202 = []
 unstable-msc4203 = []
+unstable-msc4417 = []
 
 [dependencies]
 http = { workspace = true }
@@ -30,8 +31,8 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 
 [dev-dependencies]
-assert_matches2 = { workspace = true }
 serde_yaml = "0.9.14"
+strass = { workspace = true }
 
 [lints]
 workspace = true

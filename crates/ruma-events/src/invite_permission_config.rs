@@ -108,9 +108,9 @@ impl From<InvitePermissionConfigEventContent> for UnstableInvitePermissionConfig
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::assert_matches;
     use ruma_common::canonical_json::assert_to_canonical_json_eq;
     use serde_json::{from_value as from_json_value, json};
+    use strass::assert_let;
 
     #[cfg(feature = "unstable-msc4380")]
     use super::UnstableInvitePermissionConfigEventContent;
@@ -140,9 +140,9 @@ mod tests {
             "type": "org.matrix.msc4380.invite_permission_config",
         });
 
-        assert_matches!(
-            from_json_value::<AnyGlobalAccountDataEvent>(json),
-            Ok(AnyGlobalAccountDataEvent::UnstableInvitePermissionConfig(ev))
+        assert_let!(
+            Ok(AnyGlobalAccountDataEvent::UnstableInvitePermissionConfig(ev)) =
+                from_json_value::<AnyGlobalAccountDataEvent>(json)
         );
         assert!(ev.content.block_all);
     }
@@ -169,9 +169,9 @@ mod tests {
             },
             "type": "m.invite_permission_config",
         });
-        assert_matches!(
-            from_json_value::<AnyGlobalAccountDataEvent>(json),
-            Ok(AnyGlobalAccountDataEvent::InvitePermissionConfig(ev))
+        assert_let!(
+            Ok(AnyGlobalAccountDataEvent::InvitePermissionConfig(ev)) =
+                from_json_value::<AnyGlobalAccountDataEvent>(json)
         );
         assert_eq!(ev.content.default_action, Some(InvitePermissionAction::Block));
 
@@ -179,9 +179,9 @@ mod tests {
             "content": {},
             "type": "m.invite_permission_config",
         });
-        assert_matches!(
-            from_json_value::<AnyGlobalAccountDataEvent>(json),
-            Ok(AnyGlobalAccountDataEvent::InvitePermissionConfig(ev))
+        assert_let!(
+            Ok(AnyGlobalAccountDataEvent::InvitePermissionConfig(ev)) =
+                from_json_value::<AnyGlobalAccountDataEvent>(json)
         );
         assert_eq!(ev.content.default_action, None);
     }

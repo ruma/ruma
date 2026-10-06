@@ -281,7 +281,7 @@ impl IdDst {
 
                 fn try_from(s: #box_str) -> ::std::result::Result<Self, Self::Error> {
                     #validate(&s)?;
-                    ::std::result::Result::Ok(#owned_ident::from_box_str_unchecked(s))
+                    ::std::result::Result::Ok(Self::from_box_str_unchecked(s))
                 }
             }
 
@@ -291,7 +291,7 @@ impl IdDst {
 
                 fn try_from(s: #string) -> ::std::result::Result<Self, Self::Error> {
                     #validate(&s)?;
-                    ::std::result::Result::Ok(#owned_ident::from_string_unchecked(s))
+                    ::std::result::Result::Ok(Self::from_string_unchecked(s))
                 }
             }
 
@@ -333,7 +333,6 @@ impl IdDst {
         }
 
         let ident = &self.ident;
-        let owned_ident = &self.owned_id.ident;
         let impl_generics = &self.impl_generics;
         let generic_params = &self.generics.params;
 
@@ -359,21 +358,21 @@ impl IdDst {
             #[automatically_derived]
             impl #impl_generics ::std::convert::From<&#str> for #owned_id {
                 fn from(s: &#str) -> Self {
-                    #owned_ident::from_str_unchecked(s)
+                    Self::from_str_unchecked(s)
                 }
             }
 
             #[automatically_derived]
             impl #impl_generics ::std::convert::From<#box_str> for #owned_id {
                 fn from(s: #box_str) -> Self {
-                    #owned_ident::from_box_str_unchecked(s)
+                    Self::from_box_str_unchecked(s)
                 }
             }
 
             #[automatically_derived]
             impl #impl_generics ::std::convert::From<#string> for #owned_id {
                 fn from(s: #string) -> Self {
-                    #owned_ident::from_string_unchecked(s)
+                    Self::from_string_unchecked(s)
                 }
             }
 
@@ -510,19 +509,33 @@ struct Types {
 
     /// `[u8]`.
     bytes: syn::Type,
+
+    /// `triomphe::ThinArc<(), u8>`.
+    thin_arc_bytes: syn::Type,
+
+    /// `smallvec::SmallVec<[u8; N]`.
+    small_vec_bytes: syn::Type,
 }
 
 impl Types {
-    fn new() -> Self {
+    fn new(ruma_common: &RumaCommon, owned_id: &OwnedId) -> Self {
         let str = parse_quote! { ::std::primitive::str };
+        let byte = quote! { ::std::primitive::u8 };
         let cow = parse_quote! { ::std::borrow::Cow };
+
+        let triomphe = ruma_common.reexported(RumaCommonReexport::Triomphe);
+        let smallvec = ruma_common.reexported(RumaCommonReexport::Smallvec);
+
+        let smallvec_inline_bytes = owned_id.smallvec_inline_bytes;
 
         Self {
             box_str: parse_quote! { ::std::boxed::Box<#str> },
             arc_str: parse_quote! { ::std::sync::Arc<#str> },
             string: parse_quote! { ::std::string::String },
             cow_str: parse_quote! { #cow<'a, #str> },
-            bytes: parse_quote! { [::std::primitive::u8] },
+            bytes: parse_quote! { [#byte] },
+            thin_arc_bytes: parse_quote! { #triomphe::ThinArc<(), #byte> },
+            small_vec_bytes: parse_quote! { #smallvec::SmallVec<[#byte; #smallvec_inline_bytes]> },
             str,
             cow,
         }

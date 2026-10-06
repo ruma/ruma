@@ -9,7 +9,7 @@ impl Response {
     pub fn expand_outgoing(&self, ruma_common: &RumaCommon) -> TokenStream {
         let http = ruma_common.reexported(RumaCommonReexport::Http);
 
-        let headers_serialize = self.headers.expand_serialize(KIND, &self.body, ruma_common, &http);
+        let headers_serialize = self.headers.expand_serialize(KIND, &http);
         let headers_fields = self.headers.expand_fields();
 
         let body_type = self.body.type_name(KIND, ruma_common, &self.ident);

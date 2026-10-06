@@ -2,7 +2,6 @@
 
 use std::time::Duration;
 
-use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{
     MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, owned_event_id,
@@ -17,6 +16,7 @@ use ruma_events::{
     voice::{VoiceAudioDetailsContentBlock, VoiceEventContent},
 };
 use serde_json::{from_value as from_json_value, json};
+use strass::assert_let;
 
 #[test]
 fn event_serialization() {
@@ -87,9 +87,9 @@ fn message_event_deserialization() {
         "type": "org.matrix.msc3245.voice.v2",
     });
 
-    assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data),
-        Ok(AnyMessageLikeEvent::Voice(MessageLikeEvent::Original(ev)))
+    assert_let!(
+        Ok(AnyMessageLikeEvent::Voice(MessageLikeEvent::Original(ev))) =
+            from_json_value::<AnyMessageLikeEvent>(json_data)
     );
     assert_eq!(ev.event_id, "$event:notareal.hs");
     assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(134_829_848)));

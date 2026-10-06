@@ -390,13 +390,12 @@ pub struct CustomEdu {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::assert_matches;
+    use assert_matches::assert_matches;
     use js_int::uint;
-    use ruma_common::{
-        canonical_json::assert_to_canonical_json_eq, presence::PresenceState, room_id, user_id,
-    };
+    use ruma_common::{canonical_json::assert_to_canonical_json_eq, presence::PresenceState};
     use ruma_events::ToDeviceEventType;
     use serde_json::json;
+    use strass::assert_let;
 
     use super::{DeviceListUpdateContent, Edu, ReceiptContent};
 
@@ -431,8 +430,7 @@ mod tests {
         });
 
         let edu = serde_json::from_value::<Edu>(json.clone()).unwrap();
-        assert_matches!(
-            &edu,
+        assert_let!(
             Edu::DeviceListUpdate(DeviceListUpdateContent {
                 user_id,
                 device_id,
@@ -441,7 +439,7 @@ mod tests {
                 prev_id,
                 deleted,
                 keys,
-            })
+            }) = &edu
         );
 
         assert_eq!(user_id, "@john:example.com");
@@ -467,8 +465,7 @@ mod tests {
         });
 
         let edu = serde_json::from_value::<Edu>(json.clone()).unwrap();
-        assert_matches!(
-            &edu,
+        assert_let!(
             Edu::DeviceListUpdate(DeviceListUpdateContent {
                 user_id,
                 device_id,
@@ -477,7 +474,7 @@ mod tests {
                 prev_id,
                 deleted,
                 keys,
-            })
+            }) = &edu
         );
 
         assert_eq!(user_id, "@john:example.com");
@@ -512,8 +509,8 @@ mod tests {
         });
 
         let edu = serde_json::from_value::<Edu>(json.clone()).unwrap();
-        assert_matches!(&edu, Edu::Receipt(ReceiptContent { receipts }));
-        assert!(receipts.get(room_id!("!some_room:example.org")).is_some());
+        assert_let!(Edu::Receipt(ReceiptContent { receipts }) = &edu);
+        assert!(receipts.get("!some_room:example.org").is_some());
 
         assert_eq!(serde_json::to_value(&edu).unwrap(), json);
     }
@@ -530,7 +527,7 @@ mod tests {
         });
 
         let edu = serde_json::from_value::<Edu>(json.clone()).unwrap();
-        assert_matches!(&edu, Edu::Typing(content));
+        assert_let!(Edu::Typing(content) = &edu);
         assert_eq!(content.room_id, "!somewhere:matrix.org");
         assert_eq!(content.user_id, "@john:matrix.org");
         assert!(content.typing);
@@ -560,11 +557,11 @@ mod tests {
         });
 
         let edu = serde_json::from_value::<Edu>(json.clone()).unwrap();
-        assert_matches!(&edu, Edu::DirectToDevice(content));
+        assert_let!(Edu::DirectToDevice(content) = &edu);
         assert_eq!(content.sender, "@john:example.com");
         assert_eq!(content.ev_type, ToDeviceEventType::RoomKeyRequest);
         assert_eq!(content.message_id, "hiezohf6Hoo7kaev");
-        assert!(content.messages.get(user_id!("@alice:example.org")).is_some());
+        assert!(content.messages.contains_key("@alice:example.org"));
 
         assert_eq!(serde_json::to_value(&edu).unwrap(), json);
     }
@@ -610,7 +607,7 @@ mod tests {
         });
 
         let edu = serde_json::from_value::<Edu>(json.clone()).unwrap();
-        assert_matches!(&edu, Edu::SigningKeyUpdate(content));
+        assert_let!(Edu::SigningKeyUpdate(content) = &edu);
         assert_eq!(content.user_id, "@alice:example.com");
         assert!(content.master_key.is_some());
         assert!(content.self_signing_key.is_some());
@@ -636,7 +633,7 @@ mod tests {
         });
 
         let edu = serde_json::from_value::<Edu>(json.clone()).unwrap();
-        assert_matches!(&edu, Edu::Presence(content));
+        assert_let!(Edu::Presence(content) = &edu);
         assert_eq!(content.push.len(), 1);
         let presence_update = &content.push[0];
         assert_eq!(presence_update.user_id, "@alice:example.com");
@@ -683,7 +680,7 @@ mod tests {
         });
 
         let edu = serde_json::from_value::<Edu>(json.clone()).unwrap();
-        assert_matches!(&edu, Edu::Presence(content));
+        assert_let!(Edu::Presence(content) = &edu);
         assert_eq!(content.push.len(), 1);
         let presence_update = &content.push[0];
         assert_eq!(presence_update.user_id, "@alice:example.com");
@@ -693,7 +690,7 @@ mod tests {
         assert_eq!(presence_update.status_msg.as_deref(), Some("Making cupcakes"));
         assert_eq!(presence_update.stream_id, Some(int!(321)));
         assert_eq!(presence_update.prev_id, Some(int!(123)));
-        assert_matches!(&presence_update.recipients, PresenceRecipientListUpdates { add, delete });
+        assert_let!(PresenceRecipientListUpdates { add, delete } = &presence_update.recipients);
         assert_eq!(add.len(), 1);
         assert_eq!(delete.len(), 1);
 

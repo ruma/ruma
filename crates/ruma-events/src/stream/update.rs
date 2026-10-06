@@ -81,12 +81,12 @@ impl StreamUpdateContent {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::assert_matches;
     use js_int::uint;
     use ruma_common::{
         canonical_json::assert_to_canonical_json_eq, owned_event_id, owned_room_id, serde::Raw,
     };
     use serde_json::{from_value as from_json_value, json};
+    use strass::assert_let;
 
     use super::{StreamUpdateContent, StreamUpdateOperation, ToDeviceStreamUpdateEventContent};
     use crate::{AnyToDeviceEvent, ToDeviceEvent};
@@ -116,7 +116,7 @@ mod tests {
         let deserialized: ToDeviceStreamUpdateEventContent =
             Raw::new(&content).unwrap().deserialize().unwrap();
         assert_eq!(deserialized.seq, uint!(1));
-        assert_matches!(deserialized.operation, StreamUpdateOperation::Replace(payload));
+        assert_let!(StreamUpdateOperation::Replace(payload) = deserialized.operation);
         assert_eq!(payload.body, "hello");
     }
 
@@ -145,7 +145,7 @@ mod tests {
         let deserialized: ToDeviceStreamUpdateEventContent =
             Raw::new(&content).unwrap().deserialize().unwrap();
         assert_eq!(deserialized.seq, uint!(0));
-        assert_matches!(deserialized.operation, StreamUpdateOperation::Replace(payload));
+        assert_let!(StreamUpdateOperation::Replace(payload) = deserialized.operation);
         assert_eq!(payload.body, "hello");
     }
 
@@ -189,8 +189,8 @@ mod tests {
         });
 
         let event = from_json_value::<AnyToDeviceEvent>(event).unwrap();
-        assert_matches!(event, AnyToDeviceEvent::StreamUpdate(ToDeviceEvent { content, .. }));
-        assert_matches!(content.operation, StreamUpdateOperation::Replace(payload));
+        assert_let!(AnyToDeviceEvent::StreamUpdate(ToDeviceEvent { content, .. }) = event);
+        assert_let!(StreamUpdateOperation::Replace(payload) = content.operation);
         assert_eq!(payload.body, "hello");
     }
 
@@ -211,8 +211,8 @@ mod tests {
         });
 
         let event = from_json_value::<AnyToDeviceEvent>(event).unwrap();
-        assert_matches!(event, AnyToDeviceEvent::StreamUpdate(ToDeviceEvent { content, .. }));
-        assert_matches!(content.operation, StreamUpdateOperation::Replace(payload));
+        assert_let!(AnyToDeviceEvent::StreamUpdate(ToDeviceEvent { content, .. }) = event);
+        assert_let!(StreamUpdateOperation::Replace(payload) = content.operation);
         assert_eq!(payload.body, "hello");
     }
 }

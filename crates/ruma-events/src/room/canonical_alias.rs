@@ -42,6 +42,7 @@ impl RoomCanonicalAliasEventContent {
 mod tests {
     use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_room_alias_id};
     use serde_json::{from_value as from_json_value, json};
+    use strass::assert_variant_eq;
 
     use super::RoomCanonicalAliasEventContent;
     use crate::OriginalStateEvent;
@@ -128,7 +129,6 @@ mod tests {
 
     #[test]
     fn nonempty_field_as_some() {
-        let alias = Some(owned_room_alias_id!("#somewhere:localhost"));
         let json_data = json!({
             "content": {
                 "alias": "#somewhere:localhost"
@@ -140,12 +140,12 @@ mod tests {
             "state_key": "",
             "type": "m.room.canonical_alias"
         });
-        assert_eq!(
+        assert_variant_eq!(
             from_json_value::<OriginalStateEvent<RoomCanonicalAliasEventContent>>(json_data)
                 .unwrap()
                 .content
                 .alias,
-            alias
+            Some("#somewhere:localhost")
         );
     }
 }

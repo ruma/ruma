@@ -360,7 +360,7 @@ impl std::error::Error for CanonicalJsonFieldError {}
 mod tests {
     use std::collections::BTreeMap;
 
-    use assert_matches2::assert_matches;
+    use assert_matches::assert_matches;
     use js_int::int;
     use serde_json::{
         from_str as from_json_str, json, to_string as to_json_string,

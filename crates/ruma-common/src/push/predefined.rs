@@ -737,7 +737,7 @@ impl PredefinedContentRuleId {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches2::assert_matches;
+    use assert_matches::assert_matches;
     use assign::assign;
 
     use super::PredefinedOverrideRuleId;

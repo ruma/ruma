@@ -1,4 +1,3 @@
-use assert_matches2::assert_matches;
 use js_int::uint;
 use ruma_common::{
     MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, owned_event_id,
@@ -9,6 +8,7 @@ use ruma_events::{
     room::redaction::{RoomRedactionEvent, RoomRedactionEventContent},
 };
 use serde_json::{from_value as from_json_value, json};
+use strass::assert_let;
 
 #[test]
 fn serialize_redaction_content() {
@@ -52,9 +52,9 @@ fn deserialize_redaction() {
         "type": "m.room.redaction"
     });
 
-    assert_matches!(
-        from_json_value::<AnyMessageLikeEvent>(json_data),
-        Ok(AnyMessageLikeEvent::RoomRedaction(RoomRedactionEvent::Original(ev)))
+    assert_let!(
+        Ok(AnyMessageLikeEvent::RoomRedaction(RoomRedactionEvent::Original(ev))) =
+            from_json_value::<AnyMessageLikeEvent>(json_data)
     );
 
     assert_eq!(ev.redacts(&RedactionRules::V1), "$nomorev1:example.com");
