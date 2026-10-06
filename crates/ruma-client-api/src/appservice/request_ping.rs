@@ -1,4 +1,4 @@
-//! `POST /_matrix/client/*/appservice/{appserviceId}/ping}`
+//! `POST /_matrix/client/*/appservice/{appserviceId}/ping`
 //!
 //! Ask the homeserver to ping the application service to ensure the connection works.
 

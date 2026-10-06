@@ -199,7 +199,7 @@ pub mod v3 {
     #[cfg_attr(feature = "client", derive(serde::Serialize))]
     #[cfg_attr(feature = "server", derive(serde::Deserialize))]
     struct RequestQuery {
-        /// Timestamp to use for the `origin_server_ts` of the event.
+        /// The format to use for the returned data.
         #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
         format: StateEventFormat,
     }
