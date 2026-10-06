@@ -3,6 +3,9 @@
 //! [spec]: https://spec.matrix.org/v1.19/client-server-api/#getwell-knownmatrixclient
 //!
 //! Get discovery information about the domain.
+//!
+//! Since Matrix 1.20, clients should follow 30x redirects when fetching this endpoint, while
+//! avoiding redirect loops.
 
 use ruma_common::{
     api::{auth_scheme::NoAccessToken, request, response},
