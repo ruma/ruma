@@ -198,6 +198,9 @@ pub mod v3 {
                 "m.set_avatar_url" => Some(Cow::Owned(serialize(&self.set_avatar_url))),
                 "m.3pid_changes" => Some(Cow::Owned(serialize(&self.thirdparty_id_changes))),
                 "m.get_login_token" => Some(Cow::Owned(serialize(&self.get_login_token))),
+                "m.profile_fields" | "uk.tcpip.msc4133.profile_fields" => {
+                    self.profile_fields.as_ref().map(|cap| Cow::Owned(serialize(cap)))
+                }
                 "m.forget_forced_upon_leave" => {
                     Some(Cow::Owned(serialize(&self.forget_forced_upon_leave)))
                 }
@@ -221,6 +224,9 @@ pub mod v3 {
                 "m.set_avatar_url" => self.set_avatar_url = from_json_value(value)?,
                 "m.3pid_changes" => self.thirdparty_id_changes = from_json_value(value)?,
                 "m.get_login_token" => self.get_login_token = from_json_value(value)?,
+                "m.profile_fields" | "uk.tcpip.msc4133.profile_fields" => {
+                    self.profile_fields = from_json_value(value)?;
+                }
                 "m.forget_forced_upon_leave" => {
                     self.forget_forced_upon_leave = from_json_value(value)?;
                 }
