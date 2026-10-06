@@ -13,6 +13,8 @@ Bug fixes:
 
 - The `shared_history` field of `ToDeviceRoomKeyEventContent` is serialized as `shared_history`
   rather than `m.shared_history`, to match the Matrix spec.
+- Prevent custom event content types used by `_Custom` event variants from implementing
+  `EventContentFromType`.
 
 Improvements:
 
