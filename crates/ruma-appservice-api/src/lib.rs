@@ -32,7 +32,7 @@ pub struct Namespace {
     /// Whether this application service has exclusive access to events within this namespace.
     pub exclusive: bool,
 
-    /// A regular expression defining which values this namespace includes.
+    /// A POSIX regular expression defining which values this namespace includes.
     pub regex: String,
 }
 
@@ -191,7 +191,7 @@ impl From<RegistrationInit> for Registration {
 /// appservice, by including a homeserver access token in the `Authentication` http header, or an
 /// `access_token` query parameter.
 ///
-/// Using the query parameter is deprecated since Matrix 1.11.
+/// Using the query parameter is deprecated since Matrix 1.4.
 #[derive(Debug, Clone, Copy, Default)]
 #[allow(clippy::exhaustive_structs)]
 pub struct HomeserverToken;
