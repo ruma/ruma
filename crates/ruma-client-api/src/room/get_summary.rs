@@ -1,4 +1,4 @@
-//! `GET /_matrix/client/v1/summary/{roomIdOrAlias}`
+//! `GET /_matrix/client/v1/room_summary/{roomIdOrAlias}`
 //!
 //! Returns a short description of the state of a room.
 
