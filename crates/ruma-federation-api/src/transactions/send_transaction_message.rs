@@ -44,7 +44,7 @@ pub mod v1 {
         ///
         /// Must not be more than 50 items.
         ///
-        /// With the `compat-optional-pdus` feature, this field is optional in deserialization,
+        /// With the `compat-optional-txn-pdus` feature, this field is optional in deserialization,
         /// defaulting to an empty `Vec`.
         #[cfg_attr(feature = "compat-optional-txn-pdus", serde(default))]
         pub pdus: Vec<Box<RawJsonValue>>,
