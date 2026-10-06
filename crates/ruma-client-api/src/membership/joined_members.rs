@@ -38,8 +38,7 @@ pub mod v3 {
     /// Response type for the `joined_members` endpoint.
     #[response]
     pub struct Response {
-        /// A list of the rooms the user is in, i.e.
-        /// the ID of each room in which the user has joined membership.
+        /// A map from user ID to information about each user with joined membership in the room.
         pub joined: BTreeMap<OwnedUserId, RoomMember>,
     }
 
