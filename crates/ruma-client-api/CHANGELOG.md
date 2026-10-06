@@ -6,6 +6,9 @@ Bug fixes:
 
 - In the `session::login::v3` module, the `identity_server` field is no longer
   serialized when it is `Option::None`.
+- `Capabilities::get` and `Capabilities::set` now handle the `m.profile_fields`
+  capability (and its unstable MSC4133 name) instead of using the custom
+  capabilities map.
 
 Improvements:
 
