@@ -564,4 +564,58 @@ pub mod v3 {
             allowed_scopes.is_empty()
         }
     }
+
+    #[cfg(test)]
+    mod tests {
+        use ruma_common::RoomVersionId;
+        #[cfg(feature = "unstable-msc4540")]
+        use ruma_common::api::OAuthClientScope;
+        use serde_json::to_value as to_json_value;
+
+        #[allow(deprecated)]
+        use super::{
+            AccountModerationCapability, Capabilities, ChangePasswordCapability,
+            ForgetForcedUponLeaveCapability, GetLoginTokenCapability, ProfileFieldsCapability,
+            RoomVersionStability, RoomVersionsCapability, SetAvatarUrlCapability,
+            SetDisplayNameCapability, ThirdPartyIdChangesCapability,
+        };
+
+        /// Capabilities with every typed field set to a non-default value.
+        #[allow(deprecated)]
+        fn non_default_capabilities() -> Capabilities {
+            Capabilities {
+                change_password: ChangePasswordCapability::new(false),
+                room_versions: RoomVersionsCapability::new(
+                    RoomVersionId::V11,
+                    [(RoomVersionId::V11, RoomVersionStability::Stable)].into(),
+                ),
+                set_displayname: SetDisplayNameCapability::new(false),
+                set_avatar_url: SetAvatarUrlCapability::new(false),
+                thirdparty_id_changes: ThirdPartyIdChangesCapability::new(false),
+                get_login_token: GetLoginTokenCapability::new(true),
+                profile_fields: Some(ProfileFieldsCapability::new(true)),
+                forget_forced_upon_leave: ForgetForcedUponLeaveCapability::new(true),
+                account_moderation: AccountModerationCapability::new(true, true),
+                #[cfg(feature = "unstable-msc4540")]
+                admin: super::AdminCapability::new([OAuthClientScope::ApiFullAccess].into()),
+                custom_capabilities: Default::default(),
+            }
+        }
+
+        #[test]
+        fn get_and_set_cover_typed_fields() {
+            let caps = non_default_capabilities();
+            let serialized = to_json_value(&caps).unwrap();
+            let serialized = serialized.as_object().unwrap();
+
+            let mut copy = Capabilities::new();
+            for (name, value) in serialized {
+                assert_eq!(caps.get(name).as_deref(), Some(value), "get({name})");
+                copy.set(name, value.clone()).unwrap();
+            }
+
+            assert!(copy.custom_capabilities.is_empty(), "{:?}", copy.custom_capabilities);
+            assert_eq!(to_json_value(&copy).unwrap(), to_json_value(&caps).unwrap());
+        }
+    }
 }
