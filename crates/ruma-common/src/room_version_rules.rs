@@ -138,7 +138,9 @@ impl RoomVersionRules {
         ..Self::V10
     };
 
-    /// Rules for room version 12.
+    /// Rules for [room version 12].
+    ///
+    /// [room version 12]: https://spec.matrix.org/v1.19/rooms/v12/
     pub const V12: Self = Self {
         room_id_format: RoomIdFormatVersion::V2,
         authorization: AuthorizationRules::V12,
@@ -274,8 +276,10 @@ impl StateResolutionV2Rules {
         consider_conflicted_state_subgraph: false,
     };
 
-    /// The second version of the second iteration of the state resolution algorithm, introduced in
-    /// room version 12.
+    /// The second version of the second iteration of the state resolution algorithm ([spec]),
+    /// introduced in room version 12.
+    ///
+    /// [spec]: https://spec.matrix.org/v1.19/rooms/v12/#state-resolution
     pub const V2_1: Self = Self {
         begin_iterative_auth_checks_with_empty_state_map: true,
         consider_conflicted_state_subgraph: true,
@@ -350,16 +354,22 @@ pub struct AuthorizationRules {
     /// [spec]: https://spec.matrix.org/v1.19/rooms/v11/#event-format
     pub use_room_create_sender: bool,
 
-    /// Whether room creators should always be considered to have "infinite" power level,
+    /// Whether room creators should always be considered to have "infinite" power level ([spec]),
     /// introduced in room version 12.
+    ///
+    /// [spec]: https://spec.matrix.org/v1.19/rooms/v12/#authorisation-rules
     pub explicitly_privilege_room_creators: bool,
 
     /// Whether additional room creators can be set with the `content.additional_creators` field of
-    /// an `m.room.create` event, introduced in room version 12.
+    /// an `m.room.create` event ([spec]), introduced in room version 12.
+    ///
+    /// [spec]: https://spec.matrix.org/v1.19/rooms/v12/#authorisation-rules
     pub additional_room_creators: bool,
 
-    /// Whether to use the event ID of the `m.room.create` event of the room as the room ID,
-    /// introduced in room version 12.
+    /// Whether to use the event ID of the `m.room.create` event of the room as the room ID
+    /// ([spec]), introduced in room version 12.
+    ///
+    /// [spec]: https://spec.matrix.org/v1.19/rooms/v12/#event-format-1
     pub room_create_event_id_as_room_id: bool,
 }
 
@@ -418,7 +428,9 @@ impl AuthorizationRules {
     /// [spec]: https://spec.matrix.org/v1.19/rooms/v11/#authorisation-rules
     pub const V11: Self = Self { use_room_create_sender: true, ..Self::V10 };
 
-    /// Authorization rules with tweaks introduced in room version 12.
+    /// Authorization rules with tweaks introduced in room version 12 ([spec]).
+    ///
+    /// [spec]: https://spec.matrix.org/v1.19/rooms/v12/#authorisation-rules
     pub const V12: Self = Self {
         explicitly_privilege_room_creators: true,
         additional_room_creators: true,
@@ -595,12 +607,16 @@ pub struct EventFormatRules {
     /// Whether the `event_id` field is required, disabled since room version 3.
     pub require_event_id: bool,
 
-    /// Whether the `room_id` field is required on the `m.room.create` event, disabled since room
-    /// version 12.
+    /// Whether the `room_id` field is required on the `m.room.create` event ([spec]), disabled
+    /// since room version 12.
+    ///
+    /// [spec]: https://spec.matrix.org/v1.19/rooms/v12/#event-format-1
     pub require_room_create_room_id: bool,
 
-    /// Whether the `m.room.create` event is allowed to be in the `auth_events`, disabled since
-    /// room version 12.
+    /// Whether the `m.room.create` event is allowed to be in the `auth_events` ([spec]), disabled
+    /// since room version 12.
+    ///
+    /// [spec]: https://spec.matrix.org/v1.19/rooms/v12/#event-format-1
     pub allow_room_create_in_auth_events: bool,
 }
 
@@ -615,7 +631,9 @@ impl EventFormatRules {
     /// Event format rules with tweaks introduced in room version 3.
     pub const V3: Self = Self { require_event_id: false, ..Self::V1 };
 
-    /// Event format rules with tweaks introduced in room version 12.
+    /// Event format rules with tweaks introduced in room version 12 ([spec]).
+    ///
+    /// [spec]: https://spec.matrix.org/v1.19/rooms/v12/#event-format-1
     pub const V12: Self = Self {
         require_room_create_room_id: false,
         allow_room_create_in_auth_events: false,
