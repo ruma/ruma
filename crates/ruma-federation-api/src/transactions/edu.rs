@@ -267,7 +267,7 @@ impl TypingContent {
     }
 }
 
-/// The description of the direct-to- device message.
+/// The description of a device list update.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct DeviceListUpdateContent {
@@ -316,7 +316,7 @@ impl DeviceListUpdateContent {
     }
 }
 
-/// The description of the direct-to- device message.
+/// The description of the direct-to-device message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct DirectDeviceContent {
