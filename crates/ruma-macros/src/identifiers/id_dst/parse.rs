@@ -1,7 +1,7 @@
 //! Implementations and types to parse the `IdDst` macro input.
 
 use as_variant::as_variant;
-use proc_macro2::Span;
+use proc_macro2::{Span, TokenTree};
 use quote::{format_ident, quote};
 use syn::{meta::ParseNestedMeta, parse_quote};
 
@@ -15,16 +15,30 @@ impl IdDst {
     /// Parse the given `IdDst` macro input.
     pub(super) fn parse(input: syn::ItemStruct) -> syn::Result<Self> {
         let mut id_dst_attrs = IdDstAttrs::default();
+        let mut is_repr_transparent = false;
 
         for attr in &input.attrs {
-            if !attr.path().is_ident("ruma_id") {
-                continue;
+            if attr.path().is_ident("ruma_id") {
+                attr.parse_nested_meta(|meta| id_dst_attrs.try_merge(meta))?;
+            } else if attr.path().is_ident("repr") {
+                attr.parse_nested_meta(|meta| {
+                    is_repr_transparent |= meta.path.is_ident("transparent");
+                    skip_nested_meta_args(&meta)
+                })?;
             }
-
-            attr.parse_nested_meta(|meta| id_dst_attrs.try_merge(meta))?;
         }
 
         let IdDstAttrs { validate, smallvec_inline_bytes } = id_dst_attrs;
+
+        if !is_repr_transparent {
+            // The generated code transmutes `&str` to `&Self`, which is only sound if the layout of
+            // the type is guaranteed to be the same as `str`. `cfg_attr`s are already expanded at
+            // this point, so this only sees the active attributes.
+            return Err(syn::Error::new_spanned(
+                &input.ident,
+                "IDs must be `#[repr(transparent)]` over `str`",
+            ));
+        }
 
         if validate.is_none() && !input.generics.params.is_empty() {
             return Err(syn::Error::new(
@@ -46,7 +60,16 @@ impl IdDst {
             &input.fields,
             syn::Fields::Unnamed(syn::FieldsUnnamed { unnamed, .. }) => unnamed
         )
-        .and_then(|unnamed| unnamed.len().checked_sub(1))
+        .and_then(|unnamed| {
+            // The generated code transmutes `&str` to `&Self`, so the last field must be `str`.
+            let last_field = unnamed.last()?;
+            let is_str = matches!(
+                &last_field.ty,
+                syn::Type::Path(syn::TypePath { qself: None, path, .. }) if path.is_ident("str")
+            );
+
+            is_str.then(|| unnamed.len() - 1)
+        })
         .ok_or_else(|| {
             syn::Error::new(
                 Span::call_site(),
@@ -82,6 +105,26 @@ impl IdDst {
             ruma_common,
         })
     }
+}
+
+/// Skip the arguments of the given nested meta item, if any.
+///
+/// This consumes all the tokens up to the next comma, so forms like `align(N)` or `key = value`
+/// are accepted and validated by the compiler instead.
+fn skip_nested_meta_args(meta: &ParseNestedMeta<'_>) -> syn::Result<()> {
+    meta.input.step(|cursor| {
+        let mut rest = *cursor;
+
+        while let Some((token, next)) = rest.token_tree() {
+            if matches!(&token, TokenTree::Punct(punct) if punct.as_char() == ',') {
+                break;
+            }
+
+            rest = next;
+        }
+
+        Ok(((), rest))
+    })
 }
 
 /// The parsed attributes of the [`IdDst`].

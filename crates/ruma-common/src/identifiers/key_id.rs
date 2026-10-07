@@ -209,6 +209,7 @@ impl KeyAlgorithm for OneTimeKeyAlgorithm {}
 ///
 /// This type has no semantic value and no validation is done. It is meant to be able to use the
 /// [`KeyId`] API without validating the key name.
+#[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdDst)]
 pub struct AnyKeyName(str);
 

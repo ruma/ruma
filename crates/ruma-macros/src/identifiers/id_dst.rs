@@ -150,6 +150,8 @@ impl IdDst {
             #[automatically_derived]
             impl #impl_generics #id {
                 pub(super) const fn from_borrowed_unchecked(s: &#str) -> &Self {
+                    // SAFETY: The type is `#[repr(transparent)]` over `str`, which is checked when
+                    // parsing the macro input.
                     unsafe { ::std::mem::transmute(s) }
                 }
             }
