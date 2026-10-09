@@ -221,6 +221,13 @@ unstable-msc4495 = [
     "ruma-federation-api?/unstable-msc4495",
     "ruma-events?/unstable-msc4495"
 ]
+unstable-msc4532 = [
+    "ruma-common/unstable-msc4532",
+    "ruma-client-api?/unstable-msc4532",
+    "ruma-federation-api?/unstable-msc4532",
+    "ruma-appservice-api?/unstable-msc4532",
+    "ruma-events?/unstable-msc4532"
+]
 unstable-msc4540 = ["ruma-client-api?/unstable-msc4540"]
 unstable-msc4546 = ["ruma-events?/unstable-msc4546"]
 unstable-uniffi = ["ruma-events?/unstable-uniffi"]
