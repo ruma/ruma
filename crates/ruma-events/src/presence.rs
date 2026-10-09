@@ -41,7 +41,7 @@ pub struct PresenceEventContent {
 
     /// Whether the user is currently active or not.
     ///
-    /// If the `unstable-msc4532` feature is enabled and `presence` is a [MSC4532]
+    /// If the `unstable-msc4532` feature is enabled and `presence` is a MSC4532
     /// presence state, this field will be ignored and will always have the same value
     /// as [`PresenceState::currently_active`] after deserialization.
     #[cfg_attr(
