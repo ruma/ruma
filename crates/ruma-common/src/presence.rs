@@ -4,6 +4,8 @@
 
 #[cfg(feature = "unstable-msc4532")]
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "unstable-msc4532")]
+use serde_json::Value as JsonValue;
 
 #[cfg(feature = "unstable-msc4532")]
 use crate::serde::JsonObject;
@@ -99,6 +101,15 @@ impl PresenceState {
         }
     }
 
+    /// Returns `true` if this [`PresenceState`] is a [MSC4532] state.
+    ///
+    /// This uses the behavior map as defined in the proposal.
+    ///
+    /// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
+    pub fn is_msc4532_state(&self) -> bool {
+        matches!(self, Self::Active | Self::Idle | Self::Busy | Self::Offline)
+    }
+
     /// Return a reasonable `currently_active` value for this [`PresenceState`].
     #[expect(deprecated)]
     pub fn currently_active(&self) -> bool {
@@ -138,5 +149,21 @@ impl PresenceStatus {
     /// Creates a new `PresenceStatus` with the given message.
     pub fn new(msg: Option<String>) -> Self {
         Self { msg, data: JsonObject::new() }
+    }
+
+    /// Creates a new `PresenceStatus` with the given message and additional data.
+    pub fn with_data(msg: Option<String>, data: JsonObject) -> Self {
+        Self { msg, data }
+    }
+
+    /// The data of this `PresenceStatus`.
+    ///
+    /// Prefer to use the public fields when possible; this method is meant to be used to access
+    /// unsupported fields only.
+    pub fn data(&self) -> JsonObject {
+        match serde_json::to_value(self).expect("status serialization to succeed") {
+            JsonValue::Object(obj) => obj,
+            _ => panic!("PresenceStatus serialization should yield an object"),
+        }
     }
 }
