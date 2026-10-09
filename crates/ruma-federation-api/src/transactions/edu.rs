@@ -134,6 +134,10 @@ pub struct PresenceUpdate {
     pub presence: PresenceState,
 
     /// An optional description to accompany the presence.
+    ///
+    /// If the `unstable-msc4532` feature is enabled, this field is ignored during
+    /// serialization, and will always have the same value as `status.msg` after
+    /// deserialization.
     #[cfg_attr(
         feature = "unstable-msc4532",
         deprecated(note = "Deprecated when MSC4532 is enabled, use `status` instead")
@@ -143,6 +147,9 @@ pub struct PresenceUpdate {
     /// Optional status information to accompany the presence.
     ///
     /// This field uses the unstable prefix defined in [MSC4532].
+    ///
+    /// If this field is not present at deserialization, the value of `status_msg`
+    /// will be used instead.
     ///
     /// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
     #[cfg(feature = "unstable-msc4532")]
@@ -155,7 +162,7 @@ pub struct PresenceUpdate {
     )]
     pub last_active_ago: UInt,
 
-    /// Whether or not the user is currently active.
+    /// Whether the user is currently active or not.
     ///
     /// Defaults to false.
     #[cfg_attr(
@@ -218,6 +225,9 @@ pub struct PresenceUpdateRepr {
     ///
     /// This field uses the unstable prefix defined in [MSC4532].
     ///
+    /// If this field is not present at deserialization, the value of `status_msg`
+    /// will be used instead.
+    ///
     /// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
     #[cfg(feature = "unstable-msc4532")]
     #[serde(
@@ -230,7 +240,7 @@ pub struct PresenceUpdateRepr {
     /// The number of milliseconds that have elapsed since the user last did something.
     last_active_ago: UInt,
 
-    /// Whether or not the user is currently active.
+    /// Whether the user is currently active or not.
     ///
     /// Defaults to false.
     #[serde(default)]
