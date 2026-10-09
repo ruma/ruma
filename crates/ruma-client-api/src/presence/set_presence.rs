@@ -39,17 +39,24 @@ pub mod v3 {
         pub presence: PresenceState,
 
         /// The status message to attach to this state.
+        ///
+        /// If the `unstable-msc4532` feature is enabled, this field is ignored during
+        /// serialization, and will always have the same value as `status.msg` after
+        /// deserialization.
         #[cfg_attr(
             feature = "unstable-msc4532",
             deprecated(note = "Deprecated when MSC4532 is enabled, use `status` instead")
         )]
-        // required to prevent dead code warnings for the deprecated field
+        // required to prevent dead code warnings for the deprecated field on `RequestBody`
         #[allow(dead_code)]
         pub status_msg: Option<String>,
 
         /// The status information to attach to this state.
         ///
         /// This field uses the unstable prefix defined in [MSC4532].
+        ///
+        /// If this field is not present at deserialization, the value of `status_msg`
+        /// will be used instead.
         ///
         /// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
         #[cfg(feature = "unstable-msc4532")]
@@ -85,15 +92,18 @@ pub mod v3 {
     #[derive(Serialize, Deserialize)]
     struct RequestBodyRepr {
         /// The new presence state.
-        pub presence: PresenceState,
+        presence: PresenceState,
 
         /// The status message to attach to this state.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub status_msg: Option<String>,
+        status_msg: Option<String>,
 
         /// The status information to attach to this state.
         ///
         /// This field uses the unstable prefix defined in [MSC4532].
+        ///
+        /// If this field is not present at deserialization, the value of `status_msg`
+        /// will be used instead.
         ///
         /// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
         #[serde(
@@ -102,7 +112,7 @@ pub mod v3 {
             default
         )]
         #[cfg(feature = "unstable-msc4532")]
-        pub status: PresenceStatus,
+        status: PresenceStatus,
     }
 
     impl<'de> Deserialize<'de> for RequestBody {
