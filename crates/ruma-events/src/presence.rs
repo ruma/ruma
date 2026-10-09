@@ -39,7 +39,11 @@ pub struct PresenceEventContent {
     /// JSON will result in `None` here during deserialization.
     pub avatar_url: Option<OwnedMxcUri>,
 
-    /// Whether or not the user is currently active.
+    /// Whether the user is currently active or not.
+    ///
+    /// If the `unstable-msc4532` feature is enabled and `presence` is a [MSC4532]
+    /// presence state, this field will be ignored and will always have the same value
+    /// as [`PresenceState::currently_active`] after deserialization.
     #[cfg_attr(
         feature = "unstable-msc4532",
         deprecated(
@@ -58,6 +62,10 @@ pub struct PresenceEventContent {
     pub presence: PresenceState,
 
     /// An optional description to accompany the presence.
+    ///
+    /// If the `unstable-msc4532` feature is enabled, this field is ignored during
+    /// serialization, and will always have the same value as `status.msg` after
+    /// deserialization.
     #[cfg_attr(
         feature = "unstable-msc4532",
         deprecated(note = "Deprecated when MSC4532 is enabled, use `status` instead")
@@ -67,6 +75,9 @@ pub struct PresenceEventContent {
     /// Optional information to accompany the presence.
     ///
     /// This field uses the unstable prefix defined in [MSC4532].
+    ///
+    /// If this field is not present at deserialization, the value of `status_msg`
+    /// will be used instead.
     ///
     /// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
     #[cfg(feature = "unstable-msc4532")]
@@ -92,7 +103,7 @@ struct PresenceEventRepr {
     )]
     avatar_url: Option<OwnedMxcUri>,
 
-    /// Whether or not the user is currently active.
+    /// Whether the user is currently active or not.
     #[serde(skip_serializing_if = "Option::is_none")]
     currently_active: Option<bool>,
 
@@ -114,6 +125,9 @@ struct PresenceEventRepr {
     /// Optional information to accompany the presence.
     ///
     /// This field uses the unstable prefix defined in [MSC4532].
+    ///
+    /// If this field is not present at deserialization, the value of `status_msg`
+    /// will be used instead.
     ///
     /// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
     #[cfg(feature = "unstable-msc4532")]
@@ -145,7 +159,12 @@ impl<'de> Deserialize<'de> for PresenceEventContent {
         #[cfg(feature = "unstable-msc4532")]
         let status_msg = if status == PresenceStatus::default() { status_msg } else { status.msg };
         #[cfg(feature = "unstable-msc4532")]
-        let currently_active = Some(presence.currently_active());
+        let currently_active = if presence.is_msc4532_state() {
+            // ignore the provided currently_active value and use the proposal's definition
+            Some(presence.currently_active())
+        } else {
+            currently_active
+        };
 
         Ok(Self {
             avatar_url,
@@ -153,9 +172,9 @@ impl<'de> Deserialize<'de> for PresenceEventContent {
             displayname,
             last_active_ago,
             presence,
-            status_msg: status_msg.clone(),
             #[cfg(feature = "unstable-msc4532")]
-            status: PresenceStatus::new(status_msg),
+            status: PresenceStatus::new(status_msg.clone()),
+            status_msg,
         })
     }
 }
