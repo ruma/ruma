@@ -141,7 +141,7 @@ pub(crate) struct RequestAttrs {
     error_ty: Option<syn::Type>,
 
     /// Whether the request implements `Serialize` and `Deserialize` manually.
-    pub(super) manual_body_serde: bool,
+    manual_body_serde: bool,
 }
 
 impl RequestAttrs {
