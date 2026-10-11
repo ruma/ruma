@@ -61,7 +61,7 @@ pub mod unstable {
 
         use std::time::Duration;
 
-        use js_int::UInt;
+        use js_int::int;
         use ruma_common::{
             MilliSecondsSinceUnixEpoch, api::OutgoingResponseExt as _, owned_event_id,
             owned_room_id, serde::Raw,
@@ -86,11 +86,11 @@ pub mod unstable {
                 Some("a_state_key".to_owned()),
                 Raw::from_json_string(content).unwrap(),
                 Duration::from_millis(103),
-                MilliSecondsSinceUnixEpoch(UInt::new(70000).unwrap()),
+                MilliSecondsSinceUnixEpoch(int!(70000)),
             );
 
             event0.event_id = Some(owned_event_id!("$event:imaginary.hs"));
-            event0.finalized_ts = Some(MilliSecondsSinceUnixEpoch(UInt::new(70103).unwrap()));
+            event0.finalized_ts = Some(MilliSecondsSinceUnixEpoch(int!(70103)));
 
             let response = Response::new(vec![event0]);
 

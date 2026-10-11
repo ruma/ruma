@@ -8,7 +8,7 @@
 #![allow(clippy::exhaustive_structs)]
 
 use criterion::{Criterion, criterion_group, criterion_main};
-use js_int::{int, uint};
+use js_int::int;
 use ruma_common::{
     MilliSecondsSinceUnixEpoch, RoomVersionId, owned_event_id,
     room_version_rules::{AuthorizationRules, StateResolutionV2Rules},
@@ -38,7 +38,7 @@ fn reverse_topological_power_sort(c: &mut Criterion) {
         ]);
         b.iter(|| {
             let _ = state_res::reverse_topological_power_sort(&graph, |_id| {
-                Ok((int!(0).into(), MilliSecondsSinceUnixEpoch(uint!(0))))
+                Ok((int!(0).into(), MilliSecondsSinceUnixEpoch(int!(0))))
             });
         });
     });

@@ -1,4 +1,4 @@
-use js_int::{UInt, uint};
+use js_int::{Int, int};
 use ruma_common::{
     EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId, RoomVersionId,
     owned_event_id, owned_user_id,
@@ -39,7 +39,7 @@ pub struct RoomTimelineFactory {
     /// The current server timestamp.
     ///
     /// This is incremented for every event.
-    server_ts: UInt,
+    server_ts: Int,
 
     /// The PDUs in the room.
     pdus: EventIdMap<OwnedEventId, Pdu>,
@@ -185,7 +185,7 @@ impl RoomTimelineFactory {
 
     /// Get the next server timestamp.
     fn next_server_timestamp(&mut self) -> MilliSecondsSinceUnixEpoch {
-        self.server_ts += uint!(1);
+        self.server_ts += int!(1);
         MilliSecondsSinceUnixEpoch(self.server_ts)
     }
 
@@ -710,7 +710,7 @@ impl RoomCreatePduBuilder {
         RoomTimelineFactory {
             room_id,
             rules: self.rules,
-            server_ts: UInt::MIN,
+            server_ts: int!(0),
             pdus: [(room_create_event_id.clone(), room_create)].into(),
             timeline: vec![room_create_event_id.clone()],
             state: [((StateEventType::RoomCreate, String::new()), room_create_event_id)].into(),

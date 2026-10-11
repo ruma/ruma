@@ -1,6 +1,6 @@
 #![cfg(all(feature = "client", feature = "server"))]
 
-use js_int::uint;
+use js_int::int;
 use ruma_common::{
     MilliSecondsSinceUnixEpoch,
     api::{OutgoingRequestExt as _, auth_scheme::AuthScheme},
@@ -26,7 +26,7 @@ fn server_signatures_roundtrip() {
     let request = send_transaction_message::v1::Request::new(
         "12345".into(),
         origin.clone(),
-        MilliSecondsSinceUnixEpoch(uint!(1_000_000)),
+        MilliSecondsSinceUnixEpoch(int!(1_000_000)),
     );
 
     let http_request = request

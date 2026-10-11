@@ -1,6 +1,6 @@
 use std::collections::BTreeSet;
 
-use js_int::uint;
+use js_int::int;
 use ruma_common::{
     MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId, RoomId, UserId,
 };
@@ -72,7 +72,7 @@ impl Pdu {
             event_id,
             room_id: None,
             sender,
-            origin_server_ts: MilliSecondsSinceUnixEpoch(uint!(0)),
+            origin_server_ts: MilliSecondsSinceUnixEpoch(int!(0)),
             event_type,
             state_key: None,
             content,

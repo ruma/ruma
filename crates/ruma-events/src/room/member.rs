@@ -933,7 +933,7 @@ impl RedactionEvent for SyncRoomMemberEvent {}
 #[cfg(test)]
 mod tests {
     use assert_matches::assert_matches;
-    use js_int::uint;
+    use js_int::int;
     use maplit::btreemap;
     use ruma_common::{
         MilliSecondsSinceUnixEpoch, ServerSigningKeyId, SigningKeyAlgorithm, serde::CanBeEmpty,
@@ -961,7 +961,7 @@ mod tests {
 
         let ev = from_json_value::<OriginalStateEvent<RoomMemberEventContent>>(json).unwrap();
         assert_eq!(ev.event_id, "$h29iv0s8:example.com");
-        assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
+        assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(int!(1)));
         assert_eq!(ev.room_id, "!n8f893n9:example.com");
         assert_eq!(ev.sender, "@carl:example.com");
         assert_eq!(ev.state_key, "@carl:example.com");
@@ -995,7 +995,7 @@ mod tests {
 
         let ev = from_json_value::<OriginalStateEvent<RoomMemberEventContent>>(json).unwrap();
         assert_eq!(ev.event_id, "$h29iv0s8:example.com");
-        assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
+        assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(int!(1)));
         assert_eq!(ev.room_id, "!n8f893n9:example.com");
         assert_eq!(ev.sender, "@carl:example.com");
         assert_eq!(ev.state_key, "@carl:example.com");
@@ -1045,7 +1045,7 @@ mod tests {
 
         let ev = from_json_value::<OriginalStateEvent<RoomMemberEventContent>>(json).unwrap();
         assert_eq!(ev.event_id, "$143273582443PhrSn:example.org");
-        assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(233)));
+        assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(int!(233)));
         assert_eq!(ev.room_id, "!jEsUZKDJdhlrceRyVU:example.org");
         assert_eq!(ev.sender, "@alice:example.org");
         assert_eq!(ev.state_key, "@alice:example.org");
@@ -1110,7 +1110,7 @@ mod tests {
 
         let ev = from_json_value::<OriginalStateEvent<RoomMemberEventContent>>(json).unwrap();
         assert_eq!(ev.event_id, "$143273582443PhrSn:example.org");
-        assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(233)));
+        assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(int!(233)));
         assert_eq!(ev.room_id, "!jEsUZKDJdhlrceRyVU:example.org");
         assert_eq!(ev.sender, "@alice:example.org");
         assert_eq!(ev.state_key, "@alice:example.org");
@@ -1162,7 +1162,7 @@ mod tests {
 
         let ev = from_json_value::<OriginalStateEvent<RoomMemberEventContent>>(json).unwrap();
         assert_eq!(ev.event_id, "$h29iv0s8:example.com");
-        assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
+        assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(int!(1)));
         assert_eq!(ev.room_id, "!n8f893n9:example.com");
         assert_eq!(ev.sender, "@carl:example.com");
         assert_eq!(ev.state_key, "@carl:example.com");
