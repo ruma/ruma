@@ -35,6 +35,28 @@ fn deserialize_room_name_with_prev_content() {
 }
 
 #[test]
+fn deserialize_room_name_with_replaces_state() {
+    let json = json!({
+        "content": {
+            "name": "Somewhere",
+        },
+        "event_id": "$h29iv0s8:example.com",
+        "origin_server_ts": 1,
+        "room_id": "!roomid:room.com",
+        "sender": "@carl:example.com",
+        "state_key": "",
+        "type": "m.room.name",
+        "unsigned": {
+            "replaces_state": "$replaced:example.com",
+        },
+    });
+
+    assert_let!(Ok(AnyStateEvent::RoomName(StateEvent::Original(ev))) = from_json_value(json));
+    assert_eq!(ev.unsigned.replaces_state.as_ref().unwrap(), "$replaced:example.com");
+    assert!(!ev.unsigned.is_empty());
+}
+
+#[test]
 fn deserialize_sync_room_name_with_prev_content() {
     let json = json!({
         "content": {
