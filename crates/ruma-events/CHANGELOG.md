@@ -9,6 +9,7 @@ Bug fixes:
 
 Improvements:
 
+- Add `replaces_state` field to `RoomMemberUnsigned`, due to a clarification in the Matrix spec.
 - Add unstable support for [MSC4546] (Circles) behind the `unstable-msc4546` feature flag.
 - The `shared_history` field of `ToDeviceForwardedRoomKeyEventContent` is deprecated, since it is
   not part of the Matrix spec.
