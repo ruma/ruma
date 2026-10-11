@@ -45,6 +45,24 @@ pub const RECOMMENDED_TRANSFERABLE_STATE_EVENT_TYPES: &[StateEventType] = &[
     StateEventType::RoomPresenceSharing,
 ];
 
+/// Event types that may be requested using the stripped state endpoint. ([MSC4560])
+///
+/// [MSC4560]: https://github.com/matrix-org/matrix-spec-proposals/pull/4560
+#[cfg(feature = "unstable-msc4560")]
+pub const ALLOWED_STRIPPED_STATE_EVENTS: &[StateEventType] = &[
+    StateEventType::RoomCreate,
+    StateEventType::RoomName,
+    StateEventType::RoomAvatar,
+    StateEventType::RoomTopic,
+    StateEventType::RoomJoinRules,
+    StateEventType::RoomCanonicalAlias,
+    StateEventType::RoomGuestAccess,
+    StateEventType::RoomHistoryVisibility,
+    StateEventType::RoomEncryption,
+    StateEventType::SpaceChild,
+    StateEventType::SpaceParent,
+];
+
 event_enum! {
     /// Any global account data event.
     enum GlobalAccountData {
