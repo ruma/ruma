@@ -16,6 +16,7 @@ Bug fixes:
 
 Improvements:
 
+- Add `replaces_state` field to `RoomMemberUnsigned`, due to a clarification in the Matrix spec.
 - Add unstable support for [MSC4546] (Circles) behind the `unstable-msc4546` feature flag.
 
 [MSC4546]: https://github.com/matrix-org/matrix-spec-proposals/pull/4546
