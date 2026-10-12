@@ -916,13 +916,23 @@ impl CanBeEmpty for RoomMemberUnsigned {
     /// events. Do not use it to determine whether an incoming `unsigned` field was present - it
     /// could still have been present but contained none of the known fields.
     fn is_empty(&self) -> bool {
-        self.age.is_none()
-            && self.transaction_id.is_none()
-            && self.replaces_state.is_none()
-            && self.prev_content.is_none()
-            && self.invite_room_state.is_empty()
-            && self.knock_room_state.is_empty()
-            && self.relations.is_empty()
+        let Self {
+            age,
+            transaction_id,
+            replaces_state,
+            prev_content,
+            invite_room_state,
+            knock_room_state,
+            relations,
+        } = self;
+
+        age.is_none()
+            && transaction_id.is_none()
+            && replaces_state.is_none()
+            && prev_content.is_none()
+            && invite_room_state.is_empty()
+            && knock_room_state.is_empty()
+            && relations.is_empty()
     }
 }
 
