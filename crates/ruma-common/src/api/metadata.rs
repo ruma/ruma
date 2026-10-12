@@ -862,6 +862,15 @@ pub enum FeatureFlag {
     #[ruma_enum(rename = "uk.timedout.msc4494")]
     Msc4494,
 
+    /// `org.matrix.msc4536` ([MSC])
+    ///
+    /// Fetching multiple user profiles.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4536
+    #[cfg(feature = "unstable-msc4536")]
+    #[ruma_enum(rename = "org.matrix.msc4536")]
+    Msc4536,
+
     /// `org.continuwuity.msc4560` ([MSC])
     ///
     /// Stripped state over federation
