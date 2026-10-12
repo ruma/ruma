@@ -921,6 +921,7 @@ impl CanBeEmpty for RoomMemberUnsigned {
             && self.replaces_state.is_none()
             && self.prev_content.is_none()
             && self.invite_room_state.is_empty()
+            && self.knock_room_state.is_empty()
             && self.relations.is_empty()
     }
 }

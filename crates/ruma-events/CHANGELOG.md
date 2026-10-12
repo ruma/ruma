@@ -7,6 +7,7 @@ Bug fixes:
 - The `shared_history` field of `ToDeviceRoomKeyEventContent` is serialized as `shared_history`
   rather than `m.shared_history`, to match the Matrix spec.
 - `StateUnsigned::is_empty()` returns `false` when `replaces_state` is set.
+- `RoomMemberUnsigned::is_empty()` returns `false` when `knock_room_state` is not empty.
 
 Improvements:
 
