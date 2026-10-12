@@ -18,6 +18,11 @@ pub mod unstable {
     };
     use ruma_events::{AnyStrippedStateEvent, StateEventType};
 
+    /// The maximum number of vias that may be included in the request.
+    ///
+    /// If more than this many vias are included, `M_INVALID_PARAM` will be returned.
+    pub const MAX_VIAS: usize = 32;
+
     metadata! {
         method: POST,
         rate_limited: true,
