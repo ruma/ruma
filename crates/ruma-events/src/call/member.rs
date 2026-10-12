@@ -253,7 +253,7 @@ mod tests {
     use std::time::Duration;
 
     use assert_matches::assert_matches;
-    use js_int::{int, uint};
+    use js_int::int;
     use ruma_common::{
         MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId, device_id,
         owned_device_id, user_id,
@@ -642,7 +642,7 @@ mod tests {
         assert_eq!(member_event.event_id, event_id);
         assert_eq!(member_event.sender, sender);
         assert_eq!(member_event.room_id, room_id);
-        assert_eq!(member_event.origin_server_ts.0, uint!(111));
+        assert_eq!(member_event.origin_server_ts.0, int!(111));
         let membership = SessionMembershipData {
             application: Application::Call(CallApplicationContent::new(
                 "".to_owned(),

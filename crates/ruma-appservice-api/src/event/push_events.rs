@@ -329,7 +329,7 @@ pub mod v1 {
 
     #[cfg(test)]
     mod tests {
-        use js_int::uint;
+        use js_int::int;
         use ruma_common::{
             MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, event_id,
             room_id, user_id,
@@ -417,7 +417,7 @@ pub mod v1 {
             let event_receipts = receipt.content.get(event_id).unwrap();
             let event_read_receipts = event_receipts.get(&ReceiptType::Read).unwrap();
             let event_user_read_receipt = event_read_receipts.get(user_id).unwrap();
-            assert_eq!(event_user_read_receipt.ts, Some(MilliSecondsSinceUnixEpoch(uint!(453))));
+            assert_eq!(event_user_read_receipt.ts, Some(MilliSecondsSinceUnixEpoch(int!(453))));
 
             assert_to_canonical_json_eq!(data, receipt_json);
 

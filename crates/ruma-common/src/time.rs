@@ -1,16 +1,16 @@
 use std::fmt;
 
-use js_int::{UInt, uint};
+use js_int::{Int, int};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
-use time::OffsetDateTime;
+use time::{OffsetDateTime, SignedDuration};
 use web_time::{Duration, SystemTime, UNIX_EPOCH};
 
 /// A timestamp represented as the number of milliseconds since the unix epoch.
 #[derive(Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Deserialize, Serialize)]
 #[allow(clippy::exhaustive_structs)]
 #[serde(transparent)]
-pub struct MilliSecondsSinceUnixEpoch(pub UInt);
+pub struct MilliSecondsSinceUnixEpoch(pub Int);
 
 impl MilliSecondsSinceUnixEpoch {
     /// Creates a new `MilliSecondsSinceUnixEpoch` from the given `SystemTime`, if it is not before
@@ -28,7 +28,10 @@ impl MilliSecondsSinceUnixEpoch {
 
     /// Creates a new `SystemTime` from `self`, if it can be represented.
     pub fn to_system_time(self) -> Option<SystemTime> {
-        UNIX_EPOCH.checked_add(Duration::from_millis(self.0.into()))
+        let millis = i64::from(self.0);
+        let op =
+            if millis.is_negative() { SystemTime::checked_sub } else { SystemTime::checked_add };
+        op(&UNIX_EPOCH, Duration::from_millis(millis.unsigned_abs()))
     }
 
     /// Adds the given Duration to the time, returning it if the new time can be represented.
@@ -37,13 +40,13 @@ impl MilliSecondsSinceUnixEpoch {
     }
 
     /// Get the time since the unix epoch in milliseconds.
-    pub fn get(&self) -> UInt {
+    pub fn get(&self) -> Int {
         self.0
     }
 
     /// Get time since the unix epoch in seconds.
-    pub fn as_secs(&self) -> UInt {
-        self.0 / uint!(1000)
+    pub fn as_secs(&self) -> Int {
+        self.0 / int!(1000)
     }
 }
 
@@ -51,7 +54,7 @@ impl fmt::Debug for MilliSecondsSinceUnixEpoch {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match OffsetDateTime::from_unix_timestamp(i64::from(self.0) / 1000) {
             Ok(date) => {
-                let date = date + Duration::from_millis(u64::from(self.0) % 1000);
+                let date = date + SignedDuration::milliseconds(i64::from(self.0) % 1000);
 
                 let (year, month, day) = date.to_calendar_date();
                 let month = month as u8;
@@ -94,7 +97,7 @@ impl TryFrom<MilliSecondsSinceUnixEpoch> for SystemTime {
 #[derive(Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Deserialize, Serialize)]
 #[allow(clippy::exhaustive_structs)]
 #[serde(transparent)]
-pub struct SecondsSinceUnixEpoch(pub UInt);
+pub struct SecondsSinceUnixEpoch(pub Int);
 
 impl SecondsSinceUnixEpoch {
     /// Creates a new `MilliSecondsSinceUnixEpoch` from the given `SystemTime`, if it is not before
@@ -112,7 +115,10 @@ impl SecondsSinceUnixEpoch {
 
     /// Creates a new `SystemTime` from `self`, if it can be represented.
     pub fn to_system_time(self) -> Option<SystemTime> {
-        UNIX_EPOCH.checked_add(Duration::from_secs(self.0.into()))
+        let millis = i64::from(self.0);
+        let op =
+            if millis.is_negative() { SystemTime::checked_sub } else { SystemTime::checked_add };
+        op(&UNIX_EPOCH, Duration::from_secs(millis.unsigned_abs()))
     }
 
     /// Adds the given Duration to the time, returning it if the new time can be represented.
@@ -121,7 +127,7 @@ impl SecondsSinceUnixEpoch {
     }
 
     /// Get time since the unix epoch in seconds.
-    pub fn get(&self) -> UInt {
+    pub fn get(&self) -> Int {
         self.0
     }
 }
@@ -185,7 +191,7 @@ pub enum TimeConversionError {
 mod tests {
     use std::time::{Duration, UNIX_EPOCH};
 
-    use js_int::uint;
+    use js_int::int;
     use serde::{Deserialize, Serialize};
     use serde_json::json;
 
@@ -211,7 +217,7 @@ mod tests {
         let request = SystemTimeTest {
             millis: MilliSecondsSinceUnixEpoch::from_system_time(UNIX_EPOCH + Duration::new(2, 0))
                 .unwrap(),
-            secs: SecondsSinceUnixEpoch(uint!(0)),
+            secs: SecondsSinceUnixEpoch(int!(0)),
         };
 
         assert_eq!(serde_json::to_value(request).unwrap(), json!({ "millis": 2000, "secs": 0 }));
@@ -219,13 +225,13 @@ mod tests {
 
     #[test]
     fn debug_s() {
-        let seconds = SecondsSinceUnixEpoch(uint!(0));
+        let seconds = SecondsSinceUnixEpoch(int!(0));
         assert_eq!(format!("{seconds:?}"), "1970-01-01T00:00:00");
     }
 
     #[test]
     fn debug_ms() {
-        let seconds = MilliSecondsSinceUnixEpoch(uint!(0));
+        let seconds = MilliSecondsSinceUnixEpoch(int!(0));
         assert_eq!(format!("{seconds:?}"), "1970-01-01T00:00:00.000");
     }
 }
