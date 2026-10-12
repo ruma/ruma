@@ -12,6 +12,7 @@ Bug fixes:
 
 Improvements:
 
+- Add support for fetching multiple profiles with the `profile/query` endpoint from [MSC4536].
 - Updated support for unstable MSC4388 with new `txn_id` field on update requests.
 - Add unstable support for [MSC4540] "`m.admin` capability".
 - Delay fields in `send_delayed_event` requests are now `delay_ms` instead of `delay`.
@@ -19,6 +20,7 @@ Improvements:
   `rtc::livekit::delegate_delayed_leave` endpoints from [MSC4195], behind the
   `unstable-msc4195` feature.
 
+[MSC4536]: https://github.com/matrix-org/matrix-spec-proposals/pull/4536
 [MSC4540]: https://github.com/matrix-org/matrix-spec-proposals/pull/4540
 [MSC4195]: https://github.com/matrix-org/matrix-spec-proposals/pull/4195
 
