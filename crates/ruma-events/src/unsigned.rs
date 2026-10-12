@@ -147,13 +147,23 @@ impl<C: PossiblyRedactedStateEventContent> CanBeEmpty for StateUnsigned<C> {
     /// events. Do not use it to determine whether an incoming `unsigned` field was present - it
     /// could still have been present but contained none of the known fields.
     fn is_empty(&self) -> bool {
-        let empty = self.age.is_none()
-            && self.transaction_id.is_none()
-            && self.replaces_state.is_none()
-            && self.prev_content.is_none()
-            && self.relations.is_empty();
+        let Self {
+            age,
+            transaction_id,
+            replaces_state,
+            prev_content,
+            relations,
+            #[cfg(feature = "unstable-msc4354")]
+            sticky_duration_ttl_ms,
+        } = self;
+
+        let empty = age.is_none()
+            && transaction_id.is_none()
+            && replaces_state.is_none()
+            && prev_content.is_none()
+            && relations.is_empty();
         #[cfg(feature = "unstable-msc4354")]
-        let empty = empty && self.sticky_duration_ttl_ms.is_none();
+        let empty = empty && sticky_duration_ttl_ms.is_none();
         empty
     }
 }
