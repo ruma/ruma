@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+Improvements:
+
+- Add support for fetching multiple profiles with the `profile/query` endpoint from [MSC4536].
+
+[MSC4536]: https://github.com/matrix-org/matrix-spec-proposals/pull/4536
+
 ## 0.25.1
 
 Bug fixes:
