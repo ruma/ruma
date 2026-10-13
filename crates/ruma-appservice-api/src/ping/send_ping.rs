@@ -1,4 +1,4 @@
-//! `PUT /_matrix/app/*/ping`
+//! `POST /_matrix/app/*/ping`
 //!
 //! Endpoint to ping the application service.
 

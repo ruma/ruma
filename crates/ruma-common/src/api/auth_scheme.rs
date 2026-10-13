@@ -104,7 +104,7 @@ impl AuthScheme for NoAccessToken {
     }
 }
 
-/// Authentication is performed by including an access token in the `Authentication` http
+/// Authentication is performed by including an access token in the `Authorization` http
 /// header, or an `access_token` query parameter.
 ///
 /// Using the query parameter is deprecated since Matrix 1.11.
@@ -138,7 +138,7 @@ impl AuthScheme for AccessToken {
 impl ClientScopedAuthScheme for AccessToken {}
 
 /// Authentication is optional, and it is performed by including an access token in the
-/// `Authentication` http header, or an `access_token` query parameter.
+/// `Authorization` http header, or an `access_token` query parameter.
 ///
 /// Using the query parameter is deprecated since Matrix 1.11.
 #[derive(Debug, Clone, Copy, Default)]
@@ -172,7 +172,7 @@ impl AuthScheme for AccessTokenOptional {
 impl ClientScopedAuthScheme for AccessTokenOptional {}
 
 /// Authentication is required, and can only be performed for appservices, by including an
-/// appservice access token in the `Authentication` http header, or `access_token` query
+/// appservice access token in the `Authorization` http header, or `access_token` query
 /// parameter.
 ///
 /// Using the query parameter is deprecated since Matrix 1.11.
@@ -204,7 +204,7 @@ impl AuthScheme for AppserviceToken {
 }
 
 /// No authentication is performed for clients, but it can be performed for appservices, by
-/// including an appservice access token in the `Authentication` http header, or an
+/// including an appservice access token in the `Authorization` http header, or an
 /// `access_token` query parameter.
 ///
 /// Using the query parameter is deprecated since Matrix 1.11.

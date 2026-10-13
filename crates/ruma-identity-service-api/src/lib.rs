@@ -26,7 +26,7 @@ pub mod tos;
 ruma_common::priv_owned_str!();
 
 /// Authentication is required by including an identity server access token in the
-/// `Authentication` http header, or an `access_token` query parameter.
+/// `Authorization` http header, or an `access_token` query parameter.
 ///
 /// Using the query parameter is deprecated since Matrix 1.11.
 #[derive(Debug, Clone, Copy, Default)]
