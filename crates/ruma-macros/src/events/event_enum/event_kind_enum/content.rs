@@ -132,7 +132,7 @@ impl EventContentEnumVariation<'_> {
                 )*
                 #[doc(hidden)]
                 #[serde(serialize_with = #serialize_custom_event_error_path)]
-                _Custom(#ruma_events::_custom::#custom_content_struct),
+                _Custom(#custom_content_struct),
             }
 
             #event_content_from_type_impl
@@ -187,9 +187,9 @@ impl EventContentEnumVariation<'_> {
                             },
                         )*
                         _ => {
-                            Ok(Self::_Custom(
-                                #ruma_events::_custom::#custom_content_struct::from_parts(event_type, json)?
-                            ))
+                            Ok(Self::_Custom(#custom_content_struct {
+                                event_type: event_type.into(),
+                            }))
                         }
                     }
                 }
@@ -423,7 +423,7 @@ impl EventContentChangeEnum<'_> {
                     #variants(#ruma_events::StateEventContentChange<#event_content_types>),
                 )*
                 #[doc(hidden)]
-                _Custom(#ruma_events::_custom::#custom_content_struct),
+                _Custom(#custom_content_struct),
             }
 
             impl #ident {
