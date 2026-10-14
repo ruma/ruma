@@ -128,6 +128,9 @@ Improvements:
   `RoomThirdPartyInviteEventContent`.
 - Add unstable support for full PDUs in `create_invite` and `create_knock_event` alongside stripped
   events from MSC4311 behind the `unstable-msc4311` feature.
+- Add unstable support for [MSC4560] "Stripped state requests over federation".
+
+[MSC4560]: https://github.com/matrix-org/matrix-spec-proposals/pull/4560
 
 ## 0.11.2
 

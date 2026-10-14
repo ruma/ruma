@@ -16,7 +16,9 @@ Improvements:
 - Add unstable support for the `rtc::livekit::get_token` and
   `rtc::livekit::delegate_delayed_leave` endpoints from [MSC4195], behind the
   `unstable-msc4195` feature.
+- Add unstable support for [MSC4560] "Stripped state requests over federation".
 
+[MSC4560]: https://github.com/matrix-org/matrix-spec-proposals/pull/4560
 [MSC4540]: https://github.com/matrix-org/matrix-spec-proposals/pull/4540
 [MSC4195]: https://github.com/matrix-org/matrix-spec-proposals/pull/4195
 

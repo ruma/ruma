@@ -862,6 +862,15 @@ pub enum FeatureFlag {
     #[ruma_enum(rename = "uk.timedout.msc4494")]
     Msc4494,
 
+    /// `org.continuwuity.msc4560` ([MSC])
+    ///
+    /// Stripped state over federation
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4560
+    #[cfg(feature = "unstable-msc4560")]
+    #[ruma_enum(rename = "org.continuwuity.msc4560")]
+    Msc4560,
+
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
 }

@@ -25,7 +25,9 @@ Improvements:
   behind an unstable cargo feature because they are likely to be removed soon after the DST
   identifier type removal.
 - Add unstable support for [MSC4363] "OAuth step up authentication".
+- Add unstable support for [MSC4560] "Stripped state requests over federation".
 
+[MSC4560]: https://github.com/matrix-org/matrix-spec-proposals/pull/4560
 [MSC4363]: https://github.com/matrix-org/matrix-spec-proposals/pull/4363
 
 ## 0.20.0
