@@ -18,7 +18,7 @@ fn registration_deserialization() {
               regex: "#_irc_bridge_.*"
           rooms: []
         "##;
-    let observed: Registration = serde_yaml::from_str(registration_config).unwrap();
+    let observed: Registration = serde_saphyr::from_str(registration_config).unwrap();
 
     assert_eq!(observed.id, "IRC Bridge");
     assert_eq!(observed.url.unwrap(), "http://127.0.0.1:1234");
@@ -58,7 +58,7 @@ fn registration_with_optional_url() {
           aliases: []
           rooms: []
         "#;
-    assert_let!(Registration { url, .. } = serde_yaml::from_str(registration_config).unwrap());
+    assert_let!(Registration { url, .. } = serde_saphyr::from_str(registration_config).unwrap());
     assert_eq!(url, None);
 }
 
@@ -74,5 +74,5 @@ fn registration_with_missing_url() {
           aliases: []
           rooms: []
         "#;
-    serde_yaml::from_str::<Registration>(registration_config).unwrap_err();
+    serde_saphyr::from_str::<Registration>(registration_config).unwrap_err();
 }

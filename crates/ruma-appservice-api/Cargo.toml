@@ -31,7 +31,7 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 
 [dev-dependencies]
-serde_yaml = "0.9.14"
+serde-saphyr = { version = "2.0.0", default-features = false, features = ["deserialize"] }
 strass = { workspace = true }
 
 [lints]
