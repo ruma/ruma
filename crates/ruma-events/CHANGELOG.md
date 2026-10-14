@@ -15,7 +15,9 @@ Improvements:
 - Add unstable support for [MSC4546] (Circles) behind the `unstable-msc4546` feature flag.
 - The `shared_history` field of `ToDeviceForwardedRoomKeyEventContent` is deprecated, since it is
   not part of the Matrix spec.
+- Add unstable support for [MSC4560] "Stripped state requests over federation".
 
+[MSC4560]: https://github.com/matrix-org/matrix-spec-proposals/pull/4560
 [MSC4546]: https://github.com/matrix-org/matrix-spec-proposals/pull/4546
 
 ## 0.35.0
