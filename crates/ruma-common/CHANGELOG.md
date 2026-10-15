@@ -12,6 +12,9 @@ Bug fixes:
 
 - `AnyKeyName` is now `#[repr(transparent)]`. Its `from_borrowed_unchecked` implementation
   transmutes `&str` into `&AnyKeyName`, which was undefined behavior without this attribute.
+- Percent-encode `\` in path segments of endpoint URLs. Clients following the WHATWG URL standard
+  treat it as `/` in paths, which changed the requested path when an argument contained a
+  backslash.
 
 Improvements:
 
