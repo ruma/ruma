@@ -1214,6 +1214,7 @@ mod server_tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn deserialize_request_no_query_params() {
         let uri = http::Uri::builder()
             .scheme("https")
@@ -1239,6 +1240,7 @@ mod server_tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn deserialize_request_some_query_params() {
         let uri = http::Uri::builder()
             .scheme("https")

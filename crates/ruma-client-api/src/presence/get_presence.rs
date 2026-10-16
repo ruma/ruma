@@ -60,9 +60,8 @@ pub mod v3 {
     pub struct Response {
         /// The state message for this user if one was set.
         ///
-        /// If the `unstable-msc4532` feature is enabled, this field is ignored during
-        /// serialization, and will always have the same value as `status.msg` after
-        /// deserialization.
+        /// If the `unstable-msc4532` feature is enabled, this field will always have the same
+        /// value as `status.msg` after deserialization.
         #[cfg_attr(
             feature = "unstable-msc4532",
             deprecated(note = "Deprecated when MSC4532 is enabled, use `status` instead")
@@ -207,6 +206,7 @@ pub mod v3 {
         }
     }
 
+    // Servers serialize the data as-is, clients are expected to handle old fields as needed.
     impl Serialize for ResponseBody {
         fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where
@@ -223,19 +223,10 @@ pub mod v3 {
             } = self;
 
             ResponseBodyRepr {
-                // If MSC4532 is enabled, set the legacy field for backwards compatibility
-                #[cfg(not(feature = "unstable-msc4532"))]
                 status_msg: status_msg.clone(),
                 #[cfg(feature = "unstable-msc4532")]
-                status_msg: status.msg.clone(),
-
-                #[cfg(not(feature = "unstable-msc4532"))]
-                currently_active: *currently_active,
-                #[cfg(feature = "unstable-msc4532")]
-                currently_active: Some(presence.currently_active()),
-
-                #[cfg(feature = "unstable-msc4532")]
                 status: status.clone(),
+                currently_active: *currently_active,
                 last_active_ago: *last_active_ago,
                 presence: presence.clone(),
             }
