@@ -63,9 +63,8 @@ pub struct PresenceEventContent {
 
     /// An optional description to accompany the presence.
     ///
-    /// If the `unstable-msc4532` feature is enabled, this field is ignored during
-    /// serialization, and will always have the same value as `status.msg` after
-    /// deserialization.
+    /// If the `unstable-msc4532` feature is enabled, this field will always have the same value as
+    /// `status.msg` after deserialization.
     #[cfg_attr(
         feature = "unstable-msc4532",
         deprecated(note = "Deprecated when MSC4532 is enabled, use `status` instead")
@@ -198,18 +197,10 @@ impl Serialize for PresenceEventContent {
         } = self;
 
         PresenceEventRepr {
-            #[cfg(not(feature = "unstable-msc4532"))]
             currently_active: *currently_active,
-            #[cfg(feature = "unstable-msc4532")]
-            currently_active: Some(presence.currently_active()),
-
-            #[cfg(not(feature = "unstable-msc4532"))]
             status_msg: status_msg.clone(),
             #[cfg(feature = "unstable-msc4532")]
-            status_msg: status.msg.clone(),
-            #[cfg(feature = "unstable-msc4532")]
             status: status.clone(),
-
             avatar_url: avatar_url.clone(),
             last_active_ago: *last_active_ago,
             displayname: displayname.clone(),
@@ -292,6 +283,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn deserialization() {
         let json = json!({
             "content": {
