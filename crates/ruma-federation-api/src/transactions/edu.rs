@@ -633,6 +633,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn presence_edu() {
         let json = json!({
             "content": {
@@ -669,6 +670,7 @@ mod tests {
     }
 
     #[cfg(feature = "unstable-msc4495")]
+    #[allow(deprecated)]
     #[test]
     fn msc4495_presence_edu() {
         use js_int::int;
