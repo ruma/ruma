@@ -87,6 +87,8 @@ pub mod v3 {
         /// If the `unstable-msc4532` feature is enabled and `presence` is a [MSC4532]
         /// presence state, this field will be ignored and will always have the same value
         /// as [`PresenceState::currently_active`] after deserialization.
+        ///
+        /// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
         #[cfg_attr(
             feature = "unstable-msc4532",
             deprecated(
