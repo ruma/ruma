@@ -13,8 +13,10 @@ Improvements:
 - Updated support for unstable MSC4388 with new `txn_id` field on update requests.
 - Delay fields in `send_delayed_event` requests are now `delay_ms` instead of `delay`.
 - Add unstable support for [MSC4532] "Revised Social Presence".
+- Add unstable support for the `presence` sliding sync extension, as defined in [MSC4559].
 
 [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
+[MSC4559]: https://github.com/matrix-org/matrix-spec-proposals/pull/4559
 
 ## 0.25.2
 
