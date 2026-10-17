@@ -236,6 +236,15 @@ pub mod request {
         )]
         pub sticky_events: StickyEvents,
 
+        /// Configure the presence extension.
+        #[cfg(feature = "unstable-msc4559")]
+        #[serde(
+            default,
+            skip_serializing_if = "Presence::is_empty",
+            rename = "org.continuwuity.presence_v2.msc4559.presence"
+        )]
+        pub presence: Presence,
+
         /// Extensions may add further fields to the list.
         #[serde(flatten)]
         other: BTreeMap<String, serde_json::Value>,
@@ -264,6 +273,11 @@ pub mod request {
             #[cfg(feature = "unstable-msc4480")]
             {
                 empty = empty && self.sticky_events.is_empty();
+            }
+
+            #[cfg(feature = "unstable-msc4559")]
+            {
+                empty = empty && self.presence.is_empty();
             }
 
             empty
@@ -550,6 +564,41 @@ pub mod request {
             self.enabled.is_none()
         }
     }
+
+    /// Presence extension.
+    ///
+    /// Specified as part of [MSC4559](https://github.com/matrix-org/matrix-spec-proposals/pull/4559).
+    #[cfg(feature = "unstable-msc4559")]
+    #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+    pub struct Presence {
+        /// Activate or deactivate this extension.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub enabled: Option<bool>,
+
+        /// List of list names for which user presence should be enabled.
+        ///
+        /// If not defined, will be enabled for *all* the lists appearing in the
+        /// request. If defined and empty, will be disabled for all the lists.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub lists: Option<Vec<String>>,
+
+        /// List of room names for which user presence should be enabled.
+        ///
+        /// If not defined, will be enabled for *all* the rooms appearing in the
+        /// room subscriptions. If defined and empty, will be disabled for all
+        /// the rooms.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub rooms: Option<Vec<ExtensionRoomConfig>>,
+    }
+
+    #[cfg(feature = "unstable-msc4559")]
+    impl Presence {
+        /// Whether all fields are empty or `None`.
+        pub fn is_empty(&self) -> bool {
+            self.enabled.is_none()
+        }
+    }
 }
 
 /// Response type for the `/sync` endpoint.
@@ -594,6 +643,8 @@ pub mod response {
     use ruma_common::OneTimeKeyAlgorithm;
     #[cfg(feature = "unstable-msc4308")]
     use ruma_common::OwnedEventId;
+    #[cfg(feature = "unstable-msc4559")]
+    use ruma_common::presence::{PresenceState, PresenceStatus};
     #[cfg(feature = "unstable-msc4262")]
     use ruma_common::profile::UserProfileUpdate;
     use ruma_events::{
@@ -803,6 +854,15 @@ pub mod response {
             rename = "org.matrix.msc4354.sticky_events"
         )]
         pub sticky_events: StickyEvents,
+
+        /// Presence extension response.
+        #[cfg(feature = "unstable-msc4559")]
+        #[serde(
+            default,
+            skip_serializing_if = "Presence::is_empty",
+            rename = "org.continuwuity.presence_v2.msc4559.presence"
+        )]
+        pub presence: Presence,
     }
 
     impl Extensions {
@@ -829,6 +889,11 @@ pub mod response {
             #[cfg(feature = "unstable-msc4480")]
             {
                 empty = empty && self.sticky_events.is_empty();
+            }
+
+            #[cfg(feature = "unstable-msc4559")]
+            {
+                empty = empty && self.presence.is_empty();
             }
 
             empty
@@ -1026,6 +1091,42 @@ pub mod response {
         /// Whether all fields are empty or `None`.
         pub fn is_empty(&self) -> bool {
             self.users.is_empty()
+        }
+    }
+
+    /// An update to a user's presence sent down sync.
+    ///
+    /// As defined in [MSC4559](https://github.com/matrix-org/matrix-spec-proposals/pull/4559).
+    #[cfg(feature = "unstable-msc4559")]
+    #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+    pub struct PresenceUpdate {
+        /// The user's presence state.
+        pub presence: PresenceState,
+
+        /// The status information for this user's presence, using the format from [MSC4532].
+        ///
+        /// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
+        pub status: PresenceStatus,
+    }
+
+    /// Presence extension response.
+    ///
+    /// Specified as part of [MSC4559](https://github.com/matrix-org/matrix-spec-proposals/pull/4559).
+    #[cfg(feature = "unstable-msc4559")]
+    #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+    pub struct Presence {
+        /// Presence updates keyed by user ID.
+        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+        pub user_ids: BTreeMap<OwnedUserId, PresenceUpdate>,
+    }
+
+    #[cfg(feature = "unstable-msc4559")]
+    impl Presence {
+        /// Whether all fields are empty or `None`.
+        pub fn is_empty(&self) -> bool {
+            self.user_ids.is_empty()
         }
     }
 }
