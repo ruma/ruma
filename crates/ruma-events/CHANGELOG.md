@@ -10,6 +10,8 @@ Bug fixes:
 Improvements:
 
 - Add unstable support for [MSC4546] (Circles) behind the `unstable-msc4546` feature flag.
+- The `shared_history` field of `ToDeviceForwardedRoomKeyEventContent` is deprecated, since it is
+  not part of the Matrix spec.
 
 [MSC4546]: https://github.com/matrix-org/matrix-spec-proposals/pull/4546
 
