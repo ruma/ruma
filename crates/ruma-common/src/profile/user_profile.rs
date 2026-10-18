@@ -44,6 +44,11 @@ impl UserProfile {
         self.0.insert(field, value);
     }
 
+    /// Removes the given profile field, returning it's value if it was previously set.
+    pub fn remove(&mut self, field: &str) -> Option<JsonValue> {
+        self.0.remove(field)
+    }
+
     /// Applies the changes from a [`UserProfileChanges`] to this profile.
     #[cfg(feature = "unstable-msc4262")]
     pub fn apply(&mut self, changes: UserProfileChanges) {
