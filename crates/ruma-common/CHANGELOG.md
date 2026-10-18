@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+Improvements:
+
+- Add `remove` function to `UserProfile` to remove keys from the profile.
+
 ## 0.20.1
 
 Bug fixes:
