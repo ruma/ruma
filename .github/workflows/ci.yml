@@ -8,9 +8,9 @@ env:
 
 on:
   push:
-    branches: [main, next]
+    branches: [main, ruma-*, next]
   pull_request:
-    branches: [main, next]
+    branches: [main, ruma-*, next]
 
 jobs:
   xtask:
