@@ -47,6 +47,9 @@ pub struct ToDeviceForwardedRoomKeyEventContent {
     /// Used to mark key if allowed for shared history.
     ///
     /// Defaults to `false`.
+    #[deprecated = "\
+        This field is not defined in the Matrix specification. \
+        It will be removed in the next breaking release."]
     #[serde(
         default,
         rename = "m.shared_history",
@@ -103,6 +106,7 @@ impl From<ToDeviceForwardedRoomKeyEventContentInit> for ToDeviceForwardedRoomKey
             session_key: init.session_key,
             sender_claimed_ed25519_key: init.sender_claimed_ed25519_key,
             forwarding_curve25519_key_chain: init.forwarding_curve25519_key_chain,
+            #[expect(deprecated)]
             shared_history: false,
         }
     }
