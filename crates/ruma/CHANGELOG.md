@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+## 0.17.1
+
+Refer to the changelogs of:
+
+- ruma-appservice-api 0.17.1
+- ruma-client-api 0.25.1
+- ruma-common 0.20.1
+- ruma-events 0.35.1
+- ruma-federation-api 0.16.1
+- ruma-identifiers-validation 0.13.0
+- ruma-identity-service-api 0.16.1
+- ruma-signatures 0.22.1
+
 ## 0.17.0
 
 Refer to the changelogs of:
