@@ -1941,7 +1941,7 @@ dependencies = [
 
 [[package]]
 name = "ruma-common"
-version = "0.20.0"
+version = "0.20.1"
 dependencies = [
  "as_variant",
  "assert_matches2",

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.20.1
+
 Bug fixes:
 
 - `AnyKeyName` is now `#[repr(transparent)]`. Its `from_borrowed_unchecked` implementation
