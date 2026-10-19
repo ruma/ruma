@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.22.1
+
 Improvements:
 
 - Zeroize temporary copies of private key material in `Ed25519KeyPair::generate()` and, with the
