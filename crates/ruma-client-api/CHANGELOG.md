@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+Improvements:
+
+- Updated support for unstable MSC4388 with new `txn_id` field on update requests.
+- Delay fields in `send_delayed_event` requests are now `delay_ms` instead of `delay`.
+
+## 0.25.1
+
 Bug fixes:
 
 - In the `session::login::v3` module, the `identity_server` field is no longer
@@ -12,9 +19,7 @@ Bug fixes:
 
 Improvements:
 
-- Updated support for unstable MSC4388 with new `txn_id` field on update requests.
 - Add unstable support for [MSC4540] "`m.admin` capability".
-- Delay fields in `send_delayed_event` requests are now `delay_ms` instead of `delay`.
 - Add unstable support for the `rtc::livekit::get_token` and
   `rtc::livekit::delegate_delayed_leave` endpoints from [MSC4195], behind the
   `unstable-msc4195` feature.
