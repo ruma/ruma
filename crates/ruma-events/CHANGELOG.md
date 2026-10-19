@@ -9,6 +9,8 @@ Breaking changes:
 - The `shared_history` field of `ToDeviceForwardedRoomKeyEventContent` was removed, since it is
   not part of the Matrix spec.
 
+## 0.35.1
+
 Bug fixes:
 
 - The `shared_history` field of `ToDeviceRoomKeyEventContent` is serialized as `shared_history`
@@ -20,6 +22,8 @@ Improvements:
 
 - Add `replaces_state` field to `RoomMemberUnsigned`, due to a clarification in the Matrix spec.
 - Add unstable support for [MSC4546] (Circles) behind the `unstable-msc4546` feature flag.
+- The `shared_history` field of `ToDeviceForwardedRoomKeyEventContent` is deprecated, since it is
+  not part of the Matrix spec.
 - Add unstable support for [MSC4560] "Stripped state requests over federation".
 
 [MSC4560]: https://github.com/matrix-org/matrix-spec-proposals/pull/4560
