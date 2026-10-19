@@ -7,6 +7,25 @@ pub fn validate(server_name: &str) -> Result<(), Error> {
         return Err(Error::InvalidServerName);
     }
 
+    // As per spec, the server name can be a hostname plus an optional port.
+    //
+    // The hostname is defined as follows:
+    //
+    // hostname    = IPv4address / "[" IPv6address "]" / dns-name
+    //
+    // 1. IPv4 addresses are at most 15 characters long.
+    // 2. IPv6 addresses are at most 45 characters long.
+    // 3. DNS names are at most 255 characters long.
+    //
+    // The optional port must be separated by a ":" character followed by at most 5 digits.
+    //
+    // This brings the maximum allowed length of a server name to 255 + 1 + 5 => 261.
+    //
+    // [1]: https://spec.matrix.org/v1.19/appendices/#server-name
+    if server_name.len() > 261 {
+        return Err(Error::InvalidServerName);
+    }
+
     let end_of_host = if server_name.starts_with('[') {
         let Some(end_of_ipv6) = server_name.find(']') else {
             return Err(Error::InvalidServerName);
