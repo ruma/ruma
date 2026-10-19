@@ -10,6 +10,12 @@ Breaking changes:
 - The `IdDst` derive macro now requires the type to be `#[repr(transparent)]`, because the generated
   code transmutes `&str` into a reference to the type, which is only sound with this representation.
 
+Improvements:
+
+- Add unstable support for [MSC4363] "OAuth step up authentication".
+
+## 0.20.1
+
 Bug fixes:
 
 - `AnyKeyName` is now `#[repr(transparent)]`. Its `from_borrowed_unchecked` implementation
@@ -34,7 +40,6 @@ Improvements:
   to ease the transition for the expected change by allowing to migrate tests in advance. They are
   behind an unstable cargo feature because they are likely to be removed soon after the DST
   identifier type removal.
-- Add unstable support for [MSC4363] "OAuth step up authentication".
 - Add unstable support for [MSC4560] "Stripped state requests over federation".
 
 [MSC4560]: https://github.com/matrix-org/matrix-spec-proposals/pull/4560
