@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.25.1
+
 Bug fixes:
 
 - In the `session::login::v3` module, the `identity_server` field is no longer
