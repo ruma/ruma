@@ -3,6 +3,8 @@ use std::collections::BTreeSet;
 use std::str::FromStr;
 
 use as_variant::as_variant;
+#[cfg(feature = "unstable-msc4363")]
+use js_int::UInt;
 use ruma_common::{
     RoomVersionId,
     api::error::{HeaderDeserializationError, HeaderSerializationError},
@@ -562,11 +564,9 @@ impl IncompatibleRoomVersionErrorData {
 pub struct InsufficientUserAuthenticationErrorData {
     /// The ACR values to supply to the auth server.
     pub acr_values: Vec<String>,
-
     /// The maximum number of seconds since the last authentication
     /// until authentication must be performed again.
-    pub max_age: Option<Duration>,
-
+    pub max_age: Option<UInt>,
     /// The scopes required to access the resource.
     pub scope: BTreeSet<OAuthClientScope>,
 }
