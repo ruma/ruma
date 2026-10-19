@@ -1,10 +1,10 @@
-use std::num::NonZeroU8;
+use std::num::NonZeroU16;
 
 use crate::{error::MxcUriError, server_name};
 
 const PROTOCOL: &str = "mxc://";
 
-pub fn validate(uri: &str) -> Result<NonZeroU8, MxcUriError> {
+pub fn validate(uri: &str) -> Result<NonZeroU16, MxcUriError> {
     let Some(uri) = uri.strip_prefix(PROTOCOL) else {
         return Err(MxcUriError::WrongSchema);
     };
@@ -25,6 +25,9 @@ pub fn validate(uri: &str) -> Result<NonZeroU8, MxcUriError> {
     } else if server_name::validate(server_name).is_err() {
         Err(MxcUriError::ServerNameMalformed)
     } else {
-        Ok(NonZeroU8::new((index + 6) as u8).unwrap())
+        // SAFETY: The `server_name::validate` call above guarantees a maximum length of
+        // 261 bytes. The maximum length plus the additional 6 bytes is still representable
+        // by a `u16`.
+        Ok(NonZeroU16::new((index + 6) as u16).unwrap())
     }
 }
