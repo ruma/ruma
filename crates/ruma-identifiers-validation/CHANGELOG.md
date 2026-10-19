@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.13.0
+
 Breaking changes:
 
 - Allow `mxc://` URIs with a valid server name whose length is bigger than 249 bytes in

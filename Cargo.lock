@@ -2048,7 +2048,7 @@ dependencies = [
 
 [[package]]
 name = "ruma-identifiers-validation"
-version = "0.12.1"
+version = "0.13.0"
 dependencies = [
  "js_int",
  "thiserror",
