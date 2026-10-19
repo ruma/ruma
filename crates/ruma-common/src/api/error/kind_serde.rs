@@ -253,21 +253,16 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             }
             #[cfg(feature = "unstable-msc4363")]
             ErrorCode::InsufficientUserAuthentication => {
-                use crate::{
-                    Acr,
-                    api::{OAuthClientScope, error::InsufficientUserAuthenticationErrorData},
+                use crate::api::{
+                    OAuthClientScope, error::InsufficientUserAuthenticationErrorData,
                 };
 
                 ErrorKind::InsufficientUserAuthentication(Box::new(
                     InsufficientUserAuthenticationErrorData {
                         acr_values: acr_values
-                            .clone()
-                            .map(from_json_value::<String>)
-                            .transpose()
-                            .map_err(de::Error::custom)?
-                            .map(|value| value.split(" ").map(Acr::parse).collect())
-                            .transpose()
-                            .map_err(de::Error::custom)?
+                            .as_ref()
+                            .and_then(|value| value.as_str())
+                            .map(|value| value.split(" ").map(ToOwned::to_owned).collect())
                             .unwrap_or_default(),
                         max_age: max_age
                             .map(from_json_value::<UInt>)
@@ -276,13 +271,9 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
                             .map(Into::into)
                             .map(Duration::from_secs),
                         scope: scope
-                            .clone()
-                            .map(from_json_value::<String>)
-                            .transpose()
-                            .map_err(de::Error::custom)?
-                            .map(|value| value.split(" ").map(OAuthClientScope::try_from).collect())
-                            .transpose()
-                            .map_err(de::Error::custom)?
+                            .as_ref()
+                            .and_then(|value| value.as_str())
+                            .map(|value| value.split(" ").map(OAuthClientScope::from).collect())
                             .unwrap_or_default(),
                     },
                 ))
@@ -600,17 +591,11 @@ mod tests {
             deserialized,
             ErrorKind::InsufficientUserAuthentication(Box::new(
                 InsufficientUserAuthenticationErrorData {
-                    acr_values: vec![
-                        "urn:example:foo".parse().unwrap(),
-                        "urn:example:bar".parse().unwrap()
-                    ],
+                    acr_values: vec!["urn:example:foo".to_owned(), "urn:example:bar".to_owned()],
                     max_age: Some(Duration::from_secs(300)),
-                    scope: [
-                        OAuthClientScope::ApiFullAccess,
-                        "urn:example:xyzzy".try_into().unwrap()
-                    ]
-                    .into_iter()
-                    .collect()
+                    scope: [OAuthClientScope::ApiFullAccess, "urn:example:xyzzy".into()]
+                        .into_iter()
+                        .collect()
                 }
             ))
         );
@@ -627,12 +612,9 @@ mod tests {
 
         let serialized = to_json_value(ErrorKind::InsufficientUserAuthentication(Box::new(
             InsufficientUserAuthenticationErrorData {
-                acr_values: vec![
-                    "urn:example:foo".parse().unwrap(),
-                    "urn:example:bar".parse().unwrap(),
-                ],
+                acr_values: vec!["urn:example:foo".to_owned(), "urn:example:bar".to_owned()],
                 max_age: Some(Duration::from_secs(300)),
-                scope: [OAuthClientScope::ApiFullAccess, "urn:example:xyzzy".try_into().unwrap()]
+                scope: [OAuthClientScope::ApiFullAccess, "urn:example:xyzzy".into()]
                     .into_iter()
                     .collect(),
             },

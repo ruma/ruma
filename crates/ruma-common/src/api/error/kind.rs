@@ -15,7 +15,7 @@ use web_time::{Duration, SystemTime};
 use crate::OwnedUserId;
 use crate::PrivOwnedStr;
 #[cfg(feature = "unstable-msc4363")]
-use crate::{OwnedAcr, api::OAuthClientScope};
+use crate::api::OAuthClientScope;
 
 /// An enum for the error kind.
 ///
@@ -561,7 +561,7 @@ impl IncompatibleRoomVersionErrorData {
 #[cfg(feature = "unstable-msc4363")]
 pub struct InsufficientUserAuthenticationErrorData {
     /// The ACR values to supply to the auth server.
-    pub acr_values: Vec<OwnedAcr>,
+    pub acr_values: Vec<String>,
 
     /// The maximum number of seconds since the last authentication
     /// until authentication must be performed again.
