@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.35.1
+
 Bug fixes:
 
 - The `shared_history` field of `ToDeviceRoomKeyEventContent` is serialized as `shared_history`
