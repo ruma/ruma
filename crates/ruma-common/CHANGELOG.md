@@ -2,12 +2,6 @@
 
 ## Unreleased
 
-Breaking changes:
-
-- `OAuthClientScope` now requires that custom values are valid OAuth scopes.
-  Consequently, its `From<str>` implementation has been replaced with a `TryFrom<str>`
-  implementation, and deserializing it is no longer infallible.
-
 Bug fixes:
 
 - `AnyKeyName` is now `#[repr(transparent)]`. Its `from_borrowed_unchecked` implementation
