@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.16.1
+
 Bug fixes:
 
 - The `authentication::get_account_information::v2` endpoint uses the `GET`
