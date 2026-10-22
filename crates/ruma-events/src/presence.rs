@@ -2,12 +2,16 @@
 //!
 //! The only content valid for this event is `PresenceEventContent`.
 
+#[cfg(feature = "unstable-msc4532")]
+pub mod persistent;
 #[cfg(feature = "unstable-msc4495")]
 pub mod prompted;
 #[cfg(feature = "unstable-msc4495")]
 pub mod sharing;
 
 use js_int::UInt;
+#[cfg(feature = "unstable-msc4532")]
+use ruma_common::presence::PresenceStatus;
 use ruma_common::{OwnedMxcUri, OwnedUserId, presence::PresenceState};
 use serde::{Deserialize, Serialize};
 
