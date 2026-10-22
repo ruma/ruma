@@ -24,10 +24,12 @@ Improvements:
   `rtc::livekit::delegate_delayed_leave` endpoints from [MSC4195], behind the
   `unstable-msc4195` feature.
 - Add unstable support for [MSC4560] "Stripped state requests over federation".
+- Add unstable support for the `presence` sliding sync extension, as defined in [MSC4559].
 
 [MSC4560]: https://github.com/matrix-org/matrix-spec-proposals/pull/4560
 [MSC4540]: https://github.com/matrix-org/matrix-spec-proposals/pull/4540
 [MSC4195]: https://github.com/matrix-org/matrix-spec-proposals/pull/4195
+[MSC4559]: https://github.com/matrix-org/matrix-spec-proposals/pull/4559
 
 ## 0.25.0
 
