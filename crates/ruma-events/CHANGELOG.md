@@ -9,6 +9,12 @@ Breaking changes:
 - The `shared_history` field of `ToDeviceForwardedRoomKeyEventContent` was removed, since it is
   not part of the Matrix spec.
 
+Improvements:
+
+- Add unstable support for [MSC4532] "Revised Social Presence".
+
+[MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
+
 ## 0.35.2
 
 Improvements:
