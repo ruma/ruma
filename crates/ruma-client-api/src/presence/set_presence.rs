@@ -7,12 +7,15 @@ pub mod v3 {
     //!
     //! [spec]: https://spec.matrix.org/v1.19/client-server-api/#put_matrixclientv3presenceuseridstatus
 
+    #[cfg(feature = "unstable-msc4532")]
+    use ruma_common::presence::PresenceStatus;
     use ruma_common::{
         OwnedUserId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         presence::PresenceState,
     };
+    use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
     metadata! {
         method: PUT,
@@ -26,6 +29,7 @@ pub mod v3 {
 
     /// Request type for the `set_presence` endpoint.
     #[request]
+    #[ruma_api(manual_body_serde)]
     pub struct Request {
         /// The user whose presence state will be updated.
         #[ruma_api(path)]
@@ -35,8 +39,98 @@ pub mod v3 {
         pub presence: PresenceState,
 
         /// The status message to attach to this state.
+        ///
+        /// If the `unstable-msc4532` feature is enabled, this field will
+        /// be populated with the value of `status.msg` if not set.
+        #[cfg_attr(
+            feature = "unstable-msc4532",
+            deprecated(note = "Deprecated when MSC4532 is enabled, use `status` instead")
+        )]
+        pub status_msg: Option<String>,
+
+        /// The status information to attach to this state.
+        ///
+        /// This field uses the unstable prefix defined in [MSC4532].
+        ///
+        /// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
+        #[cfg(feature = "unstable-msc4532")]
+        pub status: PresenceStatus,
+    }
+
+    /// Wire representation of the request body for `set_presence`.
+    #[derive(Serialize, Deserialize)]
+    struct RequestBodyRepr {
+        /// The new presence state.
+        pub presence: PresenceState,
+
+        /// The status message to attach to this state.
+        ///
+        /// If the `unstable-msc4532` feature is enabled, this field will
+        /// be populated with the value of `status.msg` if not set.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub status_msg: Option<String>,
+
+        /// The status information to attach to this state.
+        ///
+        /// This field uses the unstable prefix defined in [MSC4532].
+        ///
+        /// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
+        #[cfg(feature = "unstable-msc4532")]
+        #[serde(
+            skip_serializing_if = "ruma_common::serde::is_default",
+            rename = "org.continuwuity.presence_v2.msc4532.status",
+            default
+        )]
+        pub status: PresenceStatus,
+    }
+
+    // Servers accept the data from clients as-is
+    impl<'de> Deserialize<'de> for RequestBody {
+        #[allow(deprecated)]
+        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where
+            D: Deserializer<'de>,
+        {
+            let RequestBodyRepr {
+                presence,
+                status_msg,
+                #[cfg(feature = "unstable-msc4532")]
+                status,
+            } = RequestBodyRepr::deserialize(deserializer)?;
+
+            Ok(Self {
+                presence,
+                status_msg,
+                #[cfg(feature = "unstable-msc4532")]
+                status,
+            })
+        }
+    }
+
+    impl Serialize for RequestBody {
+        #[allow(deprecated)]
+        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: Serializer,
+        {
+            let RequestBody {
+                presence,
+                status_msg,
+                #[cfg(feature = "unstable-msc4532")]
+                status,
+            } = self;
+
+            #[cfg(feature = "unstable-msc4532")]
+            let status_msg = if status_msg.is_none() { &status.msg } else { status_msg };
+
+            RequestBodyRepr {
+                presence: presence.clone(),
+                status_msg: status_msg.clone(),
+                #[cfg(feature = "unstable-msc4532")]
+                status: status.clone(),
+            }
+            .serialize(serializer)
+        }
     }
 
     /// Response type for the `set_presence` endpoint.
@@ -47,7 +141,14 @@ pub mod v3 {
     impl Request {
         /// Creates a new `Request` with the given user ID and presence state.
         pub fn new(user_id: OwnedUserId, presence: PresenceState) -> Self {
-            Self { user_id, presence, status_msg: None }
+            Self {
+                user_id,
+                presence,
+                #[allow(deprecated)]
+                status_msg: None,
+                #[cfg(feature = "unstable-msc4532")]
+                status: PresenceStatus::default(),
+            }
         }
     }
 
