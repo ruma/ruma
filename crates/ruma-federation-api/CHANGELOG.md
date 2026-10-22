@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+Improvements:
+
+- Add unstable support for [MSC4532] "Revised Social Presence".
+
+[MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
+
 ## 0.16.1
 
 Improvements:

@@ -5,6 +5,8 @@ use std::collections::BTreeMap;
 #[cfg(feature = "unstable-msc4495")]
 use js_int::Int;
 use js_int::UInt;
+#[cfg(feature = "unstable-msc4532")]
+use ruma_common::presence::PresenceStatus;
 use ruma_common::{
     OwnedDeviceId, OwnedEventId, OwnedRoomId, OwnedTransactionId, OwnedUserId,
     encryption::{CrossSigningKey, DeviceKeys},
@@ -135,10 +137,23 @@ pub struct PresenceUpdate {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub status_msg: Option<String>,
 
+    /// Optional status information to accompany the presence.
+    ///
+    /// This field uses the unstable prefix defined in [MSC4532].
+    ///
+    /// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
+    #[cfg(feature = "unstable-msc4532")]
+    #[serde(
+        skip_serializing_if = "ruma_common::serde::is_default",
+        rename = "org.continuwuity.presence_v2.msc4532.status",
+        default
+    )]
+    pub status: PresenceStatus,
+
     /// The number of milliseconds that have elapsed since the user last did something.
     pub last_active_ago: UInt,
 
-    /// Whether or not the user is currently active.
+    /// Whether the user is currently active or not.
     ///
     /// Defaults to false.
     #[serde(default)]
@@ -185,6 +200,8 @@ impl PresenceUpdate {
             presence,
             last_active_ago: last_activity,
             status_msg: None,
+            #[cfg(feature = "unstable-msc4532")]
+            status: PresenceStatus::default(),
             currently_active: false,
             #[cfg(feature = "unstable-msc4495")]
             recipients: PresenceRecipientListUpdates::default(),
@@ -616,6 +633,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn presence_edu() {
         let json = json!({
             "content": {
@@ -652,6 +670,7 @@ mod tests {
     }
 
     #[cfg(feature = "unstable-msc4495")]
+    #[allow(deprecated)]
     #[test]
     fn msc4495_presence_edu() {
         use js_int::int;
