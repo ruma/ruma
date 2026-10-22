@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+Breaking changes:
+
+- Change `key_id::validate` to return `Result<(), Error>` instead of `Result<NonZeroU8, Error>`
+  (nothing in Ruma was using the returned index anymore)
+
+Bug fixes:
+
+- Report empty algorithm name as `Error::Empty`, not `Error::MissingColon`
+
 ## 0.13.0
 
 Breaking changes:
