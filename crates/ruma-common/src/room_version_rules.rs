@@ -158,6 +158,17 @@ impl RoomVersionRules {
         redaction: RedactionRules::MSC2870,
         ..Self::V11
     };
+
+    /// Rules for room version `dev.zirco.msc4527.v1` ([MSC4527]).
+    ///
+    /// [MSC4527]: https://github.com/matrix-org/matrix-spec-proposals/pull/4527
+    #[cfg(feature = "unstable-msc4527")]
+    pub const MSC4527: Self = Self {
+        disposition: RoomVersionDisposition::Unstable,
+        authorization: AuthorizationRules::MSC4527,
+        redaction: RedactionRules::MSC4527,
+        ..Self::V11
+    };
 }
 
 /// The stability of a room version.
@@ -371,6 +382,13 @@ pub struct AuthorizationRules {
     ///
     /// [spec]: https://spec.matrix.org/v1.19/rooms/v12/#event-format-1
     pub room_create_event_id_as_room_id: bool,
+
+    /// Whether to use the `content.state` field of the `m.room.power_levels` event to dictate the
+    /// required power level for state events, introduced in [MSC4527].
+    ///
+    /// [MSC4527]: https://github.com/matrix-org/matrix-spec-proposals/pull/4527
+    #[cfg(feature = "unstable-msc4527")]
+    pub use_power_levels_state: bool,
 }
 
 impl AuthorizationRules {
@@ -390,6 +408,8 @@ impl AuthorizationRules {
         explicitly_privilege_room_creators: false,
         additional_room_creators: false,
         room_create_event_id_as_room_id: false,
+        #[cfg(feature = "unstable-msc4527")]
+        use_power_levels_state: false,
     };
 
     /// Authorization rules with tweaks introduced in room version 3 ([spec]).
@@ -437,6 +457,12 @@ impl AuthorizationRules {
         room_create_event_id_as_room_id: true,
         ..Self::V11
     };
+
+    /// Authorization rules with tweaks introduced in [MSC4527].
+    ///
+    /// [MSC4527]: https://github.com/matrix-org/matrix-spec-proposals/pull/4527
+    #[cfg(feature = "unstable-msc4527")]
+    pub const MSC4527: Self = Self { use_power_levels_state: true, ..Self::V12 };
 }
 
 /// The tweaks in the [redaction] algorithm for a room version.
@@ -490,6 +516,13 @@ pub struct RedactionRules {
     /// [spec]: https://spec.matrix.org/v1.19/rooms/v11/#redactions
     pub keep_room_power_levels_invite: bool,
 
+    /// Whether to keep the `state` field in the `content` of `m.room.power_levels` events
+    /// ([MSC4527]).
+    ///
+    /// [MSC4527]: https://github.com/matrix-org/matrix-spec-proposals/pull/4527
+    #[cfg(feature = "unstable-msc4527")]
+    pub keep_room_power_levels_state: bool,
+
     /// Whether to keep the `signed` field in `third_party_invite` of the `content` of
     /// `m.room.member` events ([spec]), introduced in room version 11.
     ///
@@ -523,6 +556,8 @@ impl RedactionRules {
         keep_room_create_content: false,
         keep_room_redaction_redacts: false,
         keep_room_power_levels_invite: false,
+        #[cfg(feature = "unstable-msc4527")]
+        keep_room_power_levels_state: false,
         keep_room_member_third_party_invite_signed: false,
         content_field_redacts: false,
         #[cfg(feature = "unstable-msc2870")]
@@ -564,6 +599,12 @@ impl RedactionRules {
     #[cfg(feature = "unstable-msc2870")]
     pub const MSC2870: Self =
         Self { keep_room_server_acl_allow_deny_allow_ip_literals: true, ..Self::V11 };
+
+    /// Redaction rules with tweaks introduced in [MSC4527].
+    ///
+    /// [MSC4527]: https://github.com/matrix-org/matrix-spec-proposals/pull/4527
+    #[cfg(feature = "unstable-msc4527")]
+    pub const MSC4527: Self = Self { keep_room_power_levels_state: true, ..Self::V11 };
 }
 
 /// The tweaks for [verifying the signatures] for a room version.

@@ -10,6 +10,8 @@ use ruma_common::{
     power_levels::NotificationPowerLevels,
     serde::{JsonCastable, JsonObject},
 };
+#[cfg(feature = "unstable-msc4527")]
+use ruma_events::StateEventType;
 use ruma_events::{TimelineEventType, room::power_levels::RoomPowerLevelsEventContent};
 use serde::Serialize;
 
@@ -263,6 +265,13 @@ pub struct RoomPowerLevelsContentOverride {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub redact: Option<Int>,
 
+    /// The level required to send specific state event types.
+    ///
+    /// This is a mapping from state event type to power level required.
+    #[cfg(feature = "unstable-msc4527")]
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub state: BTreeMap<StateEventType, Int>,
+
     /// The default level required to send state events.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub state_default: Option<Int>,
@@ -300,6 +309,8 @@ impl From<RoomPowerLevelsEventContent> for RoomPowerLevelsContentOverride {
             invite,
             kick,
             redact,
+            #[cfg(feature = "unstable-msc4527")]
+            state,
             state_default,
             users,
             users_default,
@@ -314,6 +325,8 @@ impl From<RoomPowerLevelsEventContent> for RoomPowerLevelsContentOverride {
             invite: Some(invite),
             kick: Some(kick),
             redact: Some(redact),
+            #[cfg(feature = "unstable-msc4527")]
+            state,
             state_default: Some(state_default),
             users,
             users_default: Some(users_default),
@@ -352,6 +365,8 @@ mod tests {
             invite: None,
             kick: None,
             redact: None,
+            #[cfg(feature = "unstable-msc4527")]
+            state: BTreeMap::new(),
             state_default: None,
             users: BTreeMap::new(),
             users_default: None,
@@ -373,6 +388,10 @@ mod tests {
             invite: Some(int!(23)),
             kick: Some(int!(23)),
             redact: Some(int!(23)),
+            #[cfg(feature = "unstable-msc4527")]
+            state: btreemap! {
+                "m.dummy".into() => int!(23)
+            },
             state_default: Some(int!(23)),
             users: btreemap! {
                 user => int!(23)
@@ -381,6 +400,32 @@ mod tests {
             notifications: assign!(NotificationPowerLevels::new(), { room: int!(23) }),
         };
 
+        #[cfg(feature = "unstable-msc4527")]
+        assert_to_canonical_json_eq!(
+            power_levels_event,
+            json!({
+                "ban": 23,
+                "events": {
+                    "m.dummy": 23
+                },
+                "events_default": 23,
+                "invite": 23,
+                "kick": 23,
+                "redact": 23,
+                "state": {
+                    "m.dummy": 23
+                },
+                "state_default": 23,
+                "users": {
+                    "@carl:example.com": 23
+                },
+                "users_default": 23,
+                "notifications": {
+                    "room": 23
+                }
+            })
+        );
+        #[cfg(not(feature = "unstable-msc4527"))]
         assert_to_canonical_json_eq!(
             power_levels_event,
             json!({
@@ -399,7 +444,7 @@ mod tests {
                 "users_default": 23,
                 "notifications": {
                     "room": 23
-                },
+                }
             })
         );
     }
