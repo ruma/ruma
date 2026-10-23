@@ -7,7 +7,9 @@ Improvements:
 - Add support for fetching multiple profiles with the `profile/query` endpoint from [MSC4536].
 - Updated support for unstable MSC4388 with new `txn_id` field on update requests.
 - Delay fields in `send_delayed_event` requests are now `delay_ms` instead of `delay`.
+- Add unstable support for [MSC4527] (State event power levels).
 
+[MSC4527]: https://github.com/matrix-org/matrix-spec-proposals/pull/4527
 [MSC4536]: https://github.com/matrix-org/matrix-spec-proposals/pull/4536
 
 ## 0.25.1
