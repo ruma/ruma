@@ -318,7 +318,7 @@ impl Body {
         Some(quote! {
             /// Data in the request body.
             #[doc(hidden)]
-            #[derive(Debug, #ruma_macros::_FakeDeriveRumaApi, #ruma_macros::_FakeDeriveSerde)]
+            #[derive(Clone, Debug, #ruma_macros::_FakeDeriveRumaApi, #ruma_macros::_FakeDeriveSerde)]
             #[cfg_attr(feature = #outgoing_body_feature, derive(#ruma_macros::OutgoingBodyJson))]
             #extra_attrs
             pub struct #ident { #( #fields ),* }
