@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.35.2
+
+Improvements:
+
+- Update ruma-macros and ruma-common to 0.20.2.
+
 ## 0.35.1
 
 Bug fixes:
