@@ -13,6 +13,11 @@ Breaking changes:
 Improvements:
 
 - Add unstable support for [MSC4363] "OAuth step up authentication".
+
+## 0.20.2
+
+Improvements:
+
 - Add `remove` function to `UserProfile` to remove keys from the profile.
 
 ## 0.20.1
