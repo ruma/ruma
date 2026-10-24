@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+Bug fixes:
+
+- Deserializing `Capabilities` no longer fails when the server sends both
+  `m.profile_fields` and `uk.tcpip.msc4133.profile_fields`. The stable name
+  takes precedence.
+
 Improvements:
 
 - Add support for fetching multiple profiles with the `profile/query` endpoint from [MSC4536].
