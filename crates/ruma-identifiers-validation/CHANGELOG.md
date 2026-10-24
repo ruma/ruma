@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.14.0
+
 Breaking changes:
 
 - Change `key_id::validate` to return `Result<(), Error>` instead of `Result<NonZeroU8, Error>`
