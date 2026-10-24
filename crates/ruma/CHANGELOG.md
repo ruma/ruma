@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.17.2
+
+Refer to the changelogs of:
+
+- ruma-client-api 0.25.2
+- ruma-common 0.20.2
+- ruma-identifiers-validation 0.14.0
+
 ## 0.17.1
 
 Refer to the changelogs of:
