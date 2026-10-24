@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.25.2
+
 Improvements:
 
 - Add support for fetching multiple profiles with the `profile/query` endpoint from [MSC4536].
