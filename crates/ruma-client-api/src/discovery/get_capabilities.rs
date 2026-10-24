@@ -24,9 +24,10 @@ pub mod v3 {
         profile::ProfileFieldName,
         serde::StringEnum,
     };
-    use serde::{Deserialize, Serialize};
+    use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
     use serde_json::{
-        Value as JsonValue, from_value as from_json_value, to_value as to_json_value,
+        Map as JsonMap, Value as JsonValue, from_value as from_json_value,
+        to_value as to_json_value,
     };
 
     use crate::PrivOwnedStr;
@@ -75,6 +76,7 @@ pub mod v3 {
 
     /// Contains information about all the capabilities that the server supports.
     #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+    #[serde(remote = "Self")]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     #[allow(deprecated)]
     pub struct Capabilities {
@@ -172,6 +174,23 @@ pub mod v3 {
         /// labeled using the Java package naming convention and stored as arbitrary JSON values.
         #[serde(flatten)]
         custom_capabilities: BTreeMap<String, JsonValue>,
+    }
+
+    impl Serialize for Capabilities {
+        fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+            Self::serialize(self, serializer)
+        }
+    }
+
+    impl<'de> Deserialize<'de> for Capabilities {
+        fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+            let mut capabilities = JsonMap::deserialize(deserializer)?;
+            // Servers may send both names, which serde rejects as a duplicate field.
+            if capabilities.contains_key("m.profile_fields") {
+                capabilities.remove("uk.tcpip.msc4133.profile_fields");
+            }
+            Self::deserialize(JsonValue::Object(capabilities)).map_err(de::Error::custom)
+        }
     }
 
     impl Capabilities {
@@ -616,6 +635,30 @@ pub mod v3 {
 
             assert!(copy.custom_capabilities.is_empty(), "{:?}", copy.custom_capabilities);
             assert_eq!(to_json_value(&copy).unwrap(), to_json_value(&caps).unwrap());
+        }
+
+        #[test]
+        fn deserialize_stable_and_unstable_profile_fields() {
+            let caps: Capabilities = serde_json::from_value(serde_json::json!({
+                "m.profile_fields": { "enabled": true },
+                "uk.tcpip.msc4133.profile_fields": { "enabled": false },
+                "m.room_versions": { "default": "11", "available": { "11": "stable" } },
+            }))
+            .unwrap();
+
+            assert!(caps.profile_fields.unwrap().enabled);
+            assert_eq!(caps.room_versions.default, RoomVersionId::V11);
+            assert!(caps.custom_capabilities.is_empty());
+        }
+
+        #[test]
+        fn deserialize_unstable_profile_fields() {
+            let caps: Capabilities = serde_json::from_value(serde_json::json!({
+                "uk.tcpip.msc4133.profile_fields": { "enabled": true },
+            }))
+            .unwrap();
+
+            assert!(caps.profile_fields.unwrap().enabled);
         }
     }
 }
