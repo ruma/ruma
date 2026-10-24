@@ -1931,7 +1931,7 @@ dependencies = [
 
 [[package]]
 name = "ruma-client-api"
-version = "0.25.1"
+version = "0.25.2"
 dependencies = [
  "as_variant",
  "assert_matches",
