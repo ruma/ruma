@@ -9,6 +9,12 @@ Breaking changes:
 - The `shared_history` field of `ToDeviceForwardedRoomKeyEventContent` was removed, since it is
   not part of the Matrix spec.
 
+## 0.35.2
+
+Improvements:
+
+- Update ruma-macros and ruma-common to 0.20.2.
+
 ## 0.35.1
 
 Bug fixes:
