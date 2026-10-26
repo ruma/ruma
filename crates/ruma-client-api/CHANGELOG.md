@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+Bug fixes:
+
+- Deserializing `Capabilities` no longer fails when the server sends both
+  `m.profile_fields` and `uk.tcpip.msc4133.profile_fields`. The stable name
+  takes precedence.
+
 Improvements:
 
 - Updated support for unstable MSC4388 with new `txn_id` field on update requests.
