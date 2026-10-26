@@ -249,6 +249,7 @@ pub struct LegacyMembershipContent {
 }
 
 #[cfg(test)]
+#[allow(deprecated)]
 mod tests {
     use std::time::Duration;
 
@@ -283,7 +284,7 @@ mod tests {
             device_id: owned_device_id!("ABCDE"),
             expires: Duration::from_secs(3600),
             foci_active: vec![Focus::Livekit(LivekitFocus {
-                alias: "1".to_owned(),
+                alias: Some("1".to_owned()),
                 service_url: "https://livekit.com".to_owned(),
             })],
             membership_id: "0".to_owned(),
@@ -299,7 +300,7 @@ mod tests {
                 focus_selection: FocusSelection::OldestMembership,
             }),
             vec![Focus::Livekit(LivekitFocus {
-                alias: "1".to_owned(),
+                alias: Some("1".to_owned()),
                 service_url: "https://livekit.com".to_owned(),
             })],
             None,
@@ -378,7 +379,7 @@ mod tests {
                 focus_selection: FocusSelection::OldestMembership,
             }),
             vec![Focus::Livekit(LivekitFocus {
-                alias: "room1".to_owned(),
+                alias: Some("room1".to_owned()),
                 service_url: "https://livekit1.com".to_owned(),
             })],
             None,
@@ -418,6 +419,53 @@ mod tests {
     }
 
     #[test]
+    fn deserialize_call_member_event_content_without_livekit_alias() {
+        let call_member_ev = CallMemberEventContent::new(
+            Application::Call(CallApplicationContent::new("123456".to_owned(), CallScope::Room)),
+            owned_device_id!("THIS_DEVICE"),
+            ActiveFocus::Livekit(ActiveLivekitFocus {
+                focus_selection: FocusSelection::OldestMembership,
+            }),
+            vec![Focus::Livekit(LivekitFocus {
+                alias: None,
+                service_url: "https://livekit1.com".to_owned(),
+            })],
+            None,
+            None,
+        );
+
+        let call_member_ev_json = json!({
+            "application": "m.call",
+            "call_id": "123456",
+            "scope": "m.room",
+            "expires": 14_400_000, // Default to 4 hours
+            "device_id": "THIS_DEVICE",
+            "focus_active":{
+                "type": "livekit",
+                "focus_selection": "oldest_membership"
+            },
+            "foci_preferred": [
+                {
+                    "livekit_service_url": "https://livekit1.com",
+                    "type": "livekit"
+                }
+            ],
+        });
+
+        let ev_content: CallMemberEventContent =
+            serde_json::from_value(call_member_ev_json).unwrap();
+        assert_eq!(
+            serde_json::to_string(&ev_content).unwrap(),
+            serde_json::to_string(&call_member_ev).unwrap()
+        );
+        let empty = CallMemberEventContent::Empty(EmptyMembershipData { leave_reason: None });
+        assert_eq!(
+            serde_json::to_string(&json!({})).unwrap(),
+            serde_json::to_string(&empty).unwrap()
+        );
+    }
+
+    #[test]
     #[cfg(feature = "unstable-msc4075")]
     fn deserialize_event_with_call_intent() {
         let call_member_ev = CallMemberEventContent::new(
@@ -431,7 +479,7 @@ mod tests {
                 focus_selection: FocusSelection::OldestMembership,
             }),
             vec![Focus::Livekit(LivekitFocus {
-                alias: "room1".to_owned(),
+                alias: Some("room1".to_owned()),
                 service_url: "https://livekit1.com".to_owned(),
             })],
             None,
@@ -529,7 +577,7 @@ mod tests {
                 device_id: owned_device_id!("THIS_DEVICE"),
                 expires: Duration::from_secs(3600),
                 foci_active: vec![Focus::Livekit(LivekitFocus {
-                    alias: "room1".to_owned(),
+                    alias: Some("room1".to_owned()),
                     service_url: "https://livekit1.com".to_owned(),
                 })],
                 membership_id: "0".to_owned(),
@@ -543,7 +591,7 @@ mod tests {
                 device_id: owned_device_id!("OTHER_DEVICE"),
                 expires: Duration::from_secs(3600),
                 foci_active: vec![Focus::Livekit(LivekitFocus {
-                    alias: "room2".to_owned(),
+                    alias: Some("room2".to_owned()),
                     service_url: "https://livekit2.com".to_owned(),
                 })],
                 membership_id: "0".to_owned(),
@@ -650,7 +698,7 @@ mod tests {
             )),
             device_id: owned_device_id!("THIS_DEVICE"),
             foci_preferred: [Focus::Livekit(LivekitFocus {
-                alias: "room1".to_owned(),
+                alias: Some("room1".to_owned()),
                 service_url: "https://livekit1.com".to_owned(),
             })]
             .to_vec(),
