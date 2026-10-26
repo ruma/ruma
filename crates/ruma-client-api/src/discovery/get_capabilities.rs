@@ -24,7 +24,7 @@ pub mod v3 {
         profile::ProfileFieldName,
         serde::StringEnum,
     };
-    use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
+    use serde::{Deserialize, Deserializer, Serialize, de};
     use serde_json::{
         Map as JsonMap, Value as JsonValue, from_value as from_json_value,
         to_value as to_json_value,
@@ -75,8 +75,7 @@ pub mod v3 {
     }
 
     /// Contains information about all the capabilities that the server supports.
-    #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-    #[serde(remote = "Self")]
+    #[derive(Clone, Debug, Default, Serialize)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     #[allow(deprecated)]
     pub struct Capabilities {
@@ -133,11 +132,7 @@ pub mod v3 {
         pub get_login_token: GetLoginTokenCapability,
 
         /// Capability to indicate if the user can set extended profile fields.
-        #[serde(
-            rename = "m.profile_fields",
-            alias = "uk.tcpip.msc4133.profile_fields",
-            skip_serializing_if = "Option::is_none"
-        )]
+        #[serde(rename = "m.profile_fields", skip_serializing_if = "Option::is_none")]
         pub profile_fields: Option<ProfileFieldsCapability>,
 
         /// Capability to indicate if the server automatically forgets rooms that the user leaves.
@@ -176,20 +171,59 @@ pub mod v3 {
         custom_capabilities: BTreeMap<String, JsonValue>,
     }
 
-    impl Serialize for Capabilities {
-        fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-            Self::serialize(self, serializer)
-        }
-    }
-
     impl<'de> Deserialize<'de> for Capabilities {
         fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+            #[derive(Deserialize)]
+            #[allow(deprecated)]
+            struct CapabilitiesDeHelper {
+                #[serde(rename = "m.change_password", default)]
+                change_password: ChangePasswordCapability,
+                #[serde(rename = "m.room_versions", default)]
+                room_versions: RoomVersionsCapability,
+                #[serde(rename = "m.set_displayname", default)]
+                set_displayname: SetDisplayNameCapability,
+                #[serde(rename = "m.set_avatar_url", default)]
+                set_avatar_url: SetAvatarUrlCapability,
+                #[serde(rename = "m.3pid_changes", default)]
+                thirdparty_id_changes: ThirdPartyIdChangesCapability,
+                #[serde(rename = "m.get_login_token", default)]
+                get_login_token: GetLoginTokenCapability,
+                #[serde(rename = "m.profile_fields", alias = "uk.tcpip.msc4133.profile_fields")]
+                profile_fields: Option<ProfileFieldsCapability>,
+                #[serde(rename = "m.forget_forced_upon_leave", default)]
+                forget_forced_upon_leave: ForgetForcedUponLeaveCapability,
+                #[serde(rename = "m.account_moderation", default)]
+                account_moderation: AccountModerationCapability,
+                #[cfg(feature = "unstable-msc4540")]
+                #[serde(rename = "org.continuwuity.msc4540.admin", default)]
+                admin: AdminCapability,
+                #[serde(flatten)]
+                custom_capabilities: BTreeMap<String, JsonValue>,
+            }
+
             let mut capabilities = JsonMap::deserialize(deserializer)?;
             // Servers may send both names, which serde rejects as a duplicate field.
             if capabilities.contains_key("m.profile_fields") {
                 capabilities.remove("uk.tcpip.msc4133.profile_fields");
             }
-            Self::deserialize(JsonValue::Object(capabilities)).map_err(de::Error::custom)
+            let helper = CapabilitiesDeHelper::deserialize(JsonValue::Object(capabilities))
+                .map_err(de::Error::custom)?;
+
+            #[allow(deprecated)]
+            Ok(Self {
+                change_password: helper.change_password,
+                room_versions: helper.room_versions,
+                set_displayname: helper.set_displayname,
+                set_avatar_url: helper.set_avatar_url,
+                thirdparty_id_changes: helper.thirdparty_id_changes,
+                get_login_token: helper.get_login_token,
+                profile_fields: helper.profile_fields,
+                forget_forced_upon_leave: helper.forget_forced_upon_leave,
+                account_moderation: helper.account_moderation,
+                #[cfg(feature = "unstable-msc4540")]
+                admin: helper.admin,
+                custom_capabilities: helper.custom_capabilities,
+            })
         }
     }
 
@@ -635,6 +669,18 @@ pub mod v3 {
 
             assert!(copy.custom_capabilities.is_empty(), "{:?}", copy.custom_capabilities);
             assert_eq!(to_json_value(&copy).unwrap(), to_json_value(&caps).unwrap());
+        }
+
+        #[test]
+        fn serialize_deserialize_capabilities() {
+            for mut caps in [Capabilities::new(), non_default_capabilities()] {
+                caps.set("com.example.custom", serde_json::json!({ "enabled": true })).unwrap();
+                let serialized = to_json_value(&caps).unwrap();
+                let deserialized: Capabilities =
+                    serde_json::from_value(serialized.clone()).unwrap();
+
+                assert_eq!(to_json_value(&deserialized).unwrap(), serialized);
+            }
         }
 
         #[test]
