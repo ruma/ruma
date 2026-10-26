@@ -23,7 +23,8 @@ pub enum Focus {
 pub struct LivekitFocus {
     /// The alias where the LiveKit sessions can be reached.
     #[serde(rename = "livekit_alias")]
-    pub alias: String,
+    #[deprecated = "Newer versions of Element Call won't fill this field anymore."]
+    pub alias: Option<String>,
 
     /// The URL of the JWT service for the LiveKit instance.
     #[serde(rename = "livekit_service_url")]
@@ -37,7 +38,8 @@ impl LivekitFocus {
     ///
     /// * `alias` - The alias with which the LiveKit sessions can be reached.
     /// * `service_url` - The url of the JWT server for the LiveKit instance.
-    pub fn new(alias: String, service_url: String) -> Self {
+    #[allow(deprecated)]
+    pub fn new(alias: Option<String>, service_url: String) -> Self {
         Self { alias, service_url }
     }
 }

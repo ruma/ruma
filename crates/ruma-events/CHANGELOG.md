@@ -12,6 +12,7 @@ Breaking changes:
 Improvements:
 
 - Add unstable support for [MSC4532] "Revised Social Presence".
+- Make `livekit_alias` optional on RTC member events.
 
 [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
 
