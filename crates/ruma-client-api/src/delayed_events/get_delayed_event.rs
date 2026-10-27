@@ -65,7 +65,7 @@ pub mod unstable {
     mod server_tests {
         use std::time::Duration;
 
-        use js_int::UInt;
+        use js_int::int;
         use ruma_common::{
             MilliSecondsSinceUnixEpoch, api::OutgoingResponseExt as _, owned_event_id,
             owned_room_id, serde::Raw,
@@ -90,10 +90,10 @@ pub mod unstable {
                 Some("a_state_key".to_owned()),
                 Raw::from_json_string(content).unwrap(),
                 Duration::from_millis(103),
-                MilliSecondsSinceUnixEpoch(UInt::new(70000).unwrap()),
+                MilliSecondsSinceUnixEpoch(int!(70000)),
             );
             event_data.event_id = Some(owned_event_id!("$event:imaginary.hs"));
-            event_data.finalized_ts = Some(MilliSecondsSinceUnixEpoch(UInt::new(70103).unwrap()));
+            event_data.finalized_ts = Some(MilliSecondsSinceUnixEpoch(int!(70103)));
 
             let response: http::Response<Vec<u8>> =
                 Response::new(event_data).try_into_http_response().unwrap();
@@ -121,7 +121,7 @@ pub mod unstable {
     mod client_tests {
         use std::time::Duration;
 
-        use js_int::uint;
+        use js_int::int;
         use ruma_common::{
             MilliSecondsSinceUnixEpoch, api::IncomingResponseExt as _, owned_event_id,
         };
@@ -162,14 +162,14 @@ pub mod unstable {
             assert_eq!(res.event_type, TimelineEventType::RoomTopic);
             assert_eq!(res.state_key, Some("a_state_key".to_owned()));
             assert_eq!(res.delay, Duration::from_millis(103));
-            assert_eq!(res.running_since, MilliSecondsSinceUnixEpoch(uint!(70000)));
+            assert_eq!(res.running_since, MilliSecondsSinceUnixEpoch(int!(70000)));
             assert_eq!(
                 serde_json::from_str::<JsonValue>(res.content.json().get()).unwrap(),
                 content
             );
             assert!(res.error.is_none());
             assert_eq!(res.event_id, Some(owned_event_id!("$event:imaginary.hs")));
-            assert_eq!(res.finalized_ts, Some(MilliSecondsSinceUnixEpoch(uint!(70103))));
+            assert_eq!(res.finalized_ts, Some(MilliSecondsSinceUnixEpoch(int!(70103))));
         }
     }
 }

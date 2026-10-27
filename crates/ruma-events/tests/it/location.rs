@@ -2,7 +2,7 @@
 
 use assert_matches::assert_matches;
 use assign::assign;
-use js_int::uint;
+use js_int::{int, uint};
 use ruma_common::{
     MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, owned_event_id,
     serde::CanBeEmpty,
@@ -54,7 +54,7 @@ fn event_serialization() {
             )
         ),
         {
-            ts: Some(MilliSecondsSinceUnixEpoch(uint!(1_636_829_458))),
+            ts: Some(MilliSecondsSinceUnixEpoch(int!(1_636_829_458))),
             relates_to: Some(Relation::Reply(
                 Reply::with_event_id(owned_event_id!("$replyevent:example.com"))
             )),
@@ -174,10 +174,10 @@ fn message_event_deserialization() {
     assert_eq!(ev.content.location.description.as_deref(), Some("Alice's whereabouts"));
     assert_eq!(ev.content.location.zoom_level.unwrap().get(), uint!(4));
     assert_eq!(ev.content.asset.type_, AssetType::Self_);
-    assert_eq!(ev.content.ts, Some(MilliSecondsSinceUnixEpoch(uint!(1_636_829_458))));
+    assert_eq!(ev.content.ts, Some(MilliSecondsSinceUnixEpoch(int!(1_636_829_458))));
 
     assert_eq!(ev.event_id, "$event:notareal.hs");
-    assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(134_829_848)));
+    assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(int!(134_829_848)));
     assert_eq!(ev.room_id, "!roomid:notareal.hs");
     assert_eq!(ev.sender, "@user:notareal.hs");
     assert!(ev.unsigned.is_empty());
