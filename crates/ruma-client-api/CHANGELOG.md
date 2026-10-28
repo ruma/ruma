@@ -14,6 +14,12 @@ Improvements:
 - Delay fields in `send_delayed_event` requests are now `delay_ms` instead of `delay`.
 - Add unstable support for [MSC4532] "Revised Social Presence".
 - Add unstable support for the `presence` sliding sync extension, as defined in [MSC4559].
+- Add the `url` field from [MSC4195] to `LiveKitRtcTransport`. The
+  `livekit_service_url` field (`service_url`) is now optional and deprecated.
+  LiveKitRtcTransport::new()` and `RtcTransport::livekit()` now take the `url`
+  of the LiveKit SFU instead of the `service_url` of the LiveKit JWT service.
+  Constructing a `LiveKitRtcTransport` with the `service_url` is still possible
+  with the deprecated `LiveKitRtcTransport::with_service_url()`.
 
 [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
 [MSC4559]: https://github.com/matrix-org/matrix-spec-proposals/pull/4559
