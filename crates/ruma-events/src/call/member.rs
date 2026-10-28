@@ -257,9 +257,11 @@ mod tests {
     use js_int::{int, uint};
     use ruma_common::{
         MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId, device_id,
-        owned_device_id, user_id,
+        owned_device_id, owned_server_name, user_id,
     };
-    use serde_json::{Value as JsonValue, from_value as from_json_value, json};
+    use serde_json::{
+        Value as JsonValue, from_value as from_json_value, json, to_value as to_json_value,
+    };
     use strass::assert_let;
 
     use super::{
@@ -285,7 +287,9 @@ mod tests {
             expires: Duration::from_secs(3600),
             foci_active: vec![Focus::Livekit(LivekitFocus {
                 alias: Some("1".to_owned()),
-                service_url: "https://livekit.com".to_owned(),
+                url: None,
+                server_name: None,
+                service_url: Some("https://livekit.com".to_owned()),
             })],
             membership_id: "0".to_owned(),
             created_ts: None,
@@ -301,7 +305,9 @@ mod tests {
             }),
             vec![Focus::Livekit(LivekitFocus {
                 alias: Some("1".to_owned()),
-                service_url: "https://livekit.com".to_owned(),
+                url: None,
+                server_name: None,
+                service_url: Some("https://livekit.com".to_owned()),
             })],
             None,
             Duration::from_secs(3600).into(), // Default to 1 hour
@@ -380,7 +386,9 @@ mod tests {
             }),
             vec![Focus::Livekit(LivekitFocus {
                 alias: Some("room1".to_owned()),
-                service_url: "https://livekit1.com".to_owned(),
+                url: None,
+                server_name: None,
+                service_url: Some("https://livekit1.com".to_owned()),
             })],
             None,
             None,
@@ -428,7 +436,9 @@ mod tests {
             }),
             vec![Focus::Livekit(LivekitFocus {
                 alias: None,
-                service_url: "https://livekit1.com".to_owned(),
+                url: None,
+                server_name: None,
+                service_url: Some("https://livekit1.com".to_owned()),
             })],
             None,
             None,
@@ -466,6 +476,60 @@ mod tests {
     }
 
     #[test]
+    fn serde_livekit_focus_legacy() {
+        let json = json!({
+            "type": "livekit",
+            "livekit_service_url": "https://livekit-jwt.example.com",
+        });
+
+        let focus = from_json_value::<Focus>(json.clone()).unwrap();
+        assert_let!(Focus::Livekit(livekit) = &focus);
+        assert_eq!(livekit.alias, None);
+        assert_eq!(livekit.url, None);
+        assert_eq!(livekit.server_name, None);
+        assert_eq!(livekit.service_url.as_deref(), Some("https://livekit-jwt.example.com"));
+
+        assert_eq!(to_json_value(&focus).unwrap(), json);
+    }
+
+    #[test]
+    fn serde_livekit_focus_url_only() {
+        let json = json!({
+            "type": "livekit",
+            "url": "wss://livekit.example.com",
+        });
+
+        let focus = from_json_value::<Focus>(json.clone()).unwrap();
+        assert_let!(Focus::Livekit(livekit) = &focus);
+        assert_eq!(livekit.alias, None);
+        assert_eq!(livekit.url.as_deref(), Some("wss://livekit.example.com"));
+        assert_eq!(livekit.server_name, None);
+        assert_eq!(livekit.service_url, None);
+
+        assert_eq!(to_json_value(&focus).unwrap(), json);
+    }
+
+    #[test]
+    fn serde_livekit_focus_all_fields() {
+        let json = json!({
+            "type": "livekit",
+            "url": "wss://livekit.bob.com",
+            "server_name": "bob.com",
+            "livekit_service_url": "https://livekit-jwt.bob.com",
+            "livekit_alias": "room1",
+        });
+
+        let focus = from_json_value::<Focus>(json.clone()).unwrap();
+        assert_let!(Focus::Livekit(livekit) = &focus);
+        assert_eq!(livekit.alias.as_deref(), Some("room1"));
+        assert_eq!(livekit.url.as_deref(), Some("wss://livekit.bob.com"));
+        assert_eq!(livekit.server_name, Some(owned_server_name!("bob.com")));
+        assert_eq!(livekit.service_url.as_deref(), Some("https://livekit-jwt.bob.com"));
+
+        assert_eq!(to_json_value(&focus).unwrap(), json);
+    }
+
+    #[test]
     #[cfg(feature = "unstable-msc4075")]
     fn deserialize_event_with_call_intent() {
         let call_member_ev = CallMemberEventContent::new(
@@ -480,7 +544,9 @@ mod tests {
             }),
             vec![Focus::Livekit(LivekitFocus {
                 alias: Some("room1".to_owned()),
-                service_url: "https://livekit1.com".to_owned(),
+                url: None,
+                server_name: None,
+                service_url: Some("https://livekit1.com".to_owned()),
             })],
             None,
             None,
@@ -578,7 +644,9 @@ mod tests {
                 expires: Duration::from_secs(3600),
                 foci_active: vec![Focus::Livekit(LivekitFocus {
                     alias: Some("room1".to_owned()),
-                    service_url: "https://livekit1.com".to_owned(),
+                    url: None,
+                    server_name: None,
+                    service_url: Some("https://livekit1.com".to_owned()),
                 })],
                 membership_id: "0".to_owned(),
                 created_ts: None,
@@ -592,7 +660,9 @@ mod tests {
                 expires: Duration::from_secs(3600),
                 foci_active: vec![Focus::Livekit(LivekitFocus {
                     alias: Some("room2".to_owned()),
-                    service_url: "https://livekit2.com".to_owned(),
+                    url: None,
+                    server_name: None,
+                    service_url: Some("https://livekit2.com".to_owned()),
                 })],
                 membership_id: "0".to_owned(),
                 created_ts: None,
@@ -699,7 +769,9 @@ mod tests {
             device_id: owned_device_id!("THIS_DEVICE"),
             foci_preferred: [Focus::Livekit(LivekitFocus {
                 alias: Some("room1".to_owned()),
-                service_url: "https://livekit1.com".to_owned(),
+                url: None,
+                server_name: None,
+                service_url: Some("https://livekit1.com".to_owned()),
             })]
             .to_vec(),
             focus_active: ActiveFocus::Livekit(ActiveLivekitFocus {

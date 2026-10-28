@@ -1,5 +1,6 @@
 //! Types for MatrixRTC Focus/SFU configurations.
 
+use ruma_common::OwnedServerName;
 use ruma_macros::StringEnum;
 use serde::{Deserialize, Serialize};
 
@@ -22,25 +23,47 @@ pub enum Focus {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct LivekitFocus {
     /// The alias where the LiveKit sessions can be reached.
-    #[serde(rename = "livekit_alias")]
+    #[serde(rename = "livekit_alias", skip_serializing_if = "Option::is_none")]
     #[deprecated = "Newer versions of Element Call won't fill this field anymore."]
     pub alias: Option<String>,
 
+    /// The WebSocket URL of the LiveKit SFU.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub url: Option<String>,
+
+    /// The server name of the homeserver that grants access to the LiveKit SFU.
+    ///
+    /// This must be set when publishing on an SFU of a different homeserver than the sender's. If
+    /// this is `None`, the SFU belongs to the sender's homeserver.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub server_name: Option<OwnedServerName>,
+
     /// The URL of the JWT service for the LiveKit instance.
-    #[serde(rename = "livekit_service_url")]
-    pub service_url: String,
+    #[serde(rename = "livekit_service_url", skip_serializing_if = "Option::is_none")]
+    #[deprecated = "Use `url` instead unless you require backwards compatibility with older versions of MSC4195."]
+    pub service_url: Option<String>,
 }
 
 impl LivekitFocus {
-    /// Initialize a [`LivekitFocus`].
+    /// Initialize a [`LivekitFocus`] with the given SFU URL.
     ///
     /// # Arguments
     ///
-    /// * `alias` - The alias with which the LiveKit sessions can be reached.
-    /// * `service_url` - The url of the JWT server for the LiveKit instance.
+    /// * `url` - The WebSocket URL of the LiveKit SFU.
     #[allow(deprecated)]
-    pub fn new(alias: Option<String>, service_url: String) -> Self {
-        Self { alias, service_url }
+    pub fn new(url: String) -> Self {
+        Self { alias: None, url: Some(url), server_name: None, service_url: None }
+    }
+
+    /// Initialize a [`LivekitFocus`] with the given JWT service URL.
+    ///
+    /// # Arguments
+    ///
+    /// * `service_url` - The URL of the JWT service for the LiveKit instance.
+    #[deprecated = "Use `LivekitFocus::new()` instead unless you require backwards compatibility with older versions of MSC4195."]
+    #[allow(deprecated)]
+    pub fn with_service_url(service_url: String) -> Self {
+        Self { alias: None, url: None, server_name: None, service_url: Some(service_url) }
     }
 }
 
