@@ -13,8 +13,13 @@ Improvements:
 
 - Add unstable support for [MSC4532] "Revised Social Presence".
 - Make `livekit_alias` optional on RTC member events.
+- Add the `url` and `server_name` fields from [MSC4195] to `LivekitFocus`. The `livekit_service_url`
+  field (`service_url`) is now optional and deprecated. `LivekitFocus::new()` now only takes the `url`
+  of the LiveKit SFU. Constructing a `LivekitFocus` with the `service_url` of the LiveKit JWT service
+  is still possible with the deprecated `LivekitFocus::with_service_url()`.
 
 [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
+[MSC4195]: https://github.com/matrix-org/matrix-spec-proposals/pull/4195
 
 ## 0.35.2
 
