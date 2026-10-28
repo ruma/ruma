@@ -13,6 +13,14 @@ Improvements:
 - Updated support for unstable MSC4388 with new `txn_id` field on update requests.
 - Delay fields in `send_delayed_event` requests are now `delay_ms` instead of `delay`.
 - Add unstable support for [MSC4532] "Revised Social Presence".
+- `RtcTransport::LiveKit` now represents the `m.livekit` transport type from [MSC4195]
+  and holds a `LiveKitRtcTransport` with the SFU's WebSocket `url`. The `livekit`
+  transport type used by implementations of earlier versions of MSC4195 moved to
+  `RtcTransport::LegacyLiveKit`, which holds the former `LiveKitRtcTransport`, now
+  called `LegacyLiveKitRtcTransport`. `RtcTransport::livekit()` now takes the SFU's
+  WebSocket URL while `RtcTransport::legacy_livekit()` retains the former behavior.
+  `RtcTransport::LegacyLiveKit`, `RtcTransport::legacy_livekit()` and
+  `LegacyLiveKitRtcTransport` are deprecated.
 
 [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
 
