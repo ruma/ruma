@@ -4,6 +4,8 @@
 pub mod get_thread_subscription;
 #[cfg(feature = "unstable-msc4308")]
 pub mod get_thread_subscriptions_changes;
+#[cfg(feature = "unstable-msc4360")]
+pub mod get_thread_updates;
 pub mod get_threads;
 #[cfg(feature = "unstable-msc4306")]
 pub mod subscribe_thread;

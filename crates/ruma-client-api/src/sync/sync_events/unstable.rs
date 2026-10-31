@@ -1,18 +1,13 @@
-//! `POST /_matrix/client/unstable/org.matrix.simplified_msc3575/sync` ([MSC4186])
+//! `/unstable/org.matrix.simplified_msc3575/` ([MSC])
 //!
-//! A simplified version of sliding sync ([MSC3575]).
-//!
-//! Get all new events in a sliding window of rooms since the last sync or a given point in time.
-//!
-//! [MSC3575]: https://github.com/matrix-org/matrix-spec-proposals/pull/3575
-//! [MSC4186]: https://github.com/matrix-org/matrix-spec-proposals/pull/4186
+//! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4186
 
 use std::{collections::BTreeMap, time::Duration};
 
 use js_int::UInt;
 use js_option::JsOption;
 use ruma_common::{
-    OwnedMxcUri, OwnedRoomId, OwnedUserId,
+    OwnedMxcUri, OwnedRoomId, OwnedUserId, UserId,
     api::{auth_scheme::AccessToken, request, response},
     metadata,
     presence::PresenceState,
@@ -21,7 +16,7 @@ use ruma_common::{
 use ruma_events::{AnySyncStateEvent, AnySyncTimelineEvent, StateEventType};
 use serde::{Deserialize, Serialize};
 
-use super::UnreadNotificationsCount;
+use super::{UnreadNotificationsCount, v4};
 
 metadata! {
     method: POST,
@@ -29,7 +24,6 @@ metadata! {
     authentication: AccessToken,
     history: {
         unstable("org.matrix.simplified_msc3575") => "/_matrix/client/unstable/org.matrix.simplified_msc3575/sync",
-        // 1.4 => "/_matrix/client/v5/sync",
     }
 }
 
@@ -99,14 +93,116 @@ impl Request {
     pub fn new() -> Self {
         Default::default()
     }
+
+    /// Converts this request to a [`v4::Request`].
+    ///
+    /// `user_id` is the ID of the user making the request, used to replace the `$ME` state keys.
+    ///
+    /// The conversion is lossy:
+    ///
+    /// * `txn_id` is dropped, so it must be copied to the [`Response`] separately.
+    /// * The `ranges` of each list are merged into a single range covering all of them.
+    /// * `*` in the `rooms` of an extension becomes all the room subscriptions.
+    pub fn into_v4(self, user_id: &UserId) -> v4::Request {
+        let Self {
+            pos,
+            conn_id,
+            txn_id: _,
+            timeout,
+            set_presence,
+            lists,
+            room_subscriptions,
+            extensions,
+        } = self;
+
+        v4::Request {
+            conn_id,
+            pos,
+            timeout,
+            set_presence,
+            lists: lists
+                .into_iter()
+                .map(|(key, list)| (key, list_into_v4(list, user_id)))
+                .collect(),
+            room_subscriptions: room_subscriptions
+                .into_iter()
+                .map(|(room_id, subscription)| {
+                    let subscription = v4::request::RoomSubscription {
+                        required_state: required_state_into_v4(
+                            subscription.required_state,
+                            user_id,
+                        ),
+                        timeline_limit: subscription.timeline_limit,
+                    };
+                    (room_id, subscription)
+                })
+                .collect(),
+            extensions: extensions.into(),
+        }
+    }
+}
+
+fn list_into_v4(list: request::List, user_id: &UserId) -> v4::request::List {
+    let request::List { ranges, room_details, filters } = list;
+
+    v4::request::List {
+        range: ranges.into_iter().reduce(|(start, end), (other_start, other_end)| {
+            (start.min(other_start), end.max(other_end))
+        }),
+        room_details: v4::request::RoomDetails {
+            required_state: required_state_into_v4(room_details.required_state, user_id),
+            timeline_limit: room_details.timeline_limit,
+        },
+        filters: filters.map(|filters| v4::request::ListFilters {
+            is_dm: filters.is_dm,
+            is_encrypted: filters.is_encrypted,
+            is_invited: filters.is_invite,
+            room_types: filters.room_types,
+            not_room_types: filters.not_room_types,
+            ..Default::default()
+        }),
+    }
+}
+
+fn required_state_into_v4(
+    required_state: Vec<(StateEventType, String)>,
+    user_id: &UserId,
+) -> v4::request::RequiredState {
+    let mut v4_required_state = v4::request::RequiredState::default();
+
+    for (event_type, state_key) in required_state {
+        if event_type == StateEventType::RoomMember && state_key == "$LAZY" {
+            v4_required_state.lazy_members = true;
+            continue;
+        }
+
+        let event_type = (event_type.to_string() != "*").then_some(event_type);
+        let state_key = match state_key.as_str() {
+            "*" => None,
+            "$ME" => Some(user_id.as_str().to_owned()),
+            _ => Some(state_key),
+        };
+
+        v4_required_state.include.push(v4::request::RequiredStateElement { event_type, state_key });
+    }
+
+    v4_required_state
 }
 
 /// HTTP types related to a [`Request`].
 pub mod request {
-    use ruma_common::{RoomId, directory::RoomTypeFilter, serde::deserialize_cow_str};
+    use std::collections::BTreeMap;
+
+    use as_variant::as_variant;
+    use ruma_common::{OwnedRoomId, RoomId, directory::RoomTypeFilter, serde::deserialize_cow_str};
     use serde::de::Error as _;
 
-    use super::{BTreeMap, Deserialize, OwnedRoomId, Serialize, StateEventType, UInt};
+    #[cfg(feature = "unstable-msc4308")]
+    pub use super::super::extensions::request::ThreadSubscriptions;
+    #[cfg(feature = "unstable-msc4360")]
+    pub use super::super::extensions::request::Threads;
+    pub use super::super::extensions::request::{E2EE, ToDevice};
+    use super::{Deserialize, Serialize, StateEventType, UInt, v4};
 
     /// A sliding sync list request (see [`super::Request::lists`]).
     #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -185,7 +281,7 @@ pub mod request {
         pub timeline_limit: UInt,
     }
 
-    /// Sliding sync request extensions (see [`super::Request::extensions`]).
+    /// Sliding sync request extensions.
     #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Extensions {
@@ -217,6 +313,15 @@ pub mod request {
             rename = "io.element.msc4308.thread_subscriptions"
         )]
         pub thread_subscriptions: ThreadSubscriptions,
+
+        /// Configure the threads extension.
+        #[cfg(feature = "unstable-msc4360")]
+        #[serde(
+            default,
+            skip_serializing_if = "Threads::is_empty",
+            rename = "io.element.msc4360.threads"
+        )]
+        pub threads: Threads,
 
         /// Configure the profiles extension.
         #[cfg(feature = "unstable-msc4262")]
@@ -253,6 +358,7 @@ pub mod request {
     impl Extensions {
         /// Whether all fields are empty or `None`.
         pub fn is_empty(&self) -> bool {
+            #[allow(unused_mut)]
             let mut empty = self.to_device.is_empty()
                 && self.e2ee.is_empty()
                 && self.account_data.is_empty()
@@ -263,6 +369,11 @@ pub mod request {
             #[cfg(feature = "unstable-msc4308")]
             {
                 empty = empty && self.thread_subscriptions.is_empty();
+            }
+
+            #[cfg(feature = "unstable-msc4360")]
+            {
+                empty = empty && self.threads.is_empty();
             }
 
             #[cfg(feature = "unstable-msc4262")]
@@ -282,6 +393,79 @@ pub mod request {
 
             empty
         }
+    }
+
+    /// `*` in the `rooms` of an extension becomes all the room subscriptions.
+    impl From<Extensions> for v4::request::Extensions {
+        fn from(value: Extensions) -> Self {
+            let Extensions {
+                to_device,
+                e2ee,
+                account_data,
+                receipts,
+                typing,
+                #[cfg(feature = "unstable-msc4308")]
+                thread_subscriptions,
+                #[cfg(feature = "unstable-msc4360")]
+                threads,
+                #[cfg(feature = "unstable-msc4262")]
+                profiles,
+                #[cfg(feature = "unstable-msc4480")]
+                sticky_events,
+                #[cfg(feature = "unstable-msc4559")]
+                presence,
+                other,
+            } = value;
+
+            Self {
+                to_device,
+                e2ee,
+                account_data: v4::request::AccountData {
+                    enabled: account_data.enabled,
+                    lists: account_data.lists,
+                    rooms: rooms_into_v4(account_data.rooms),
+                },
+                receipts: v4::request::Receipts {
+                    enabled: receipts.enabled,
+                    lists: receipts.lists,
+                    rooms: rooms_into_v4(receipts.rooms),
+                },
+                typing: v4::request::Typing {
+                    enabled: typing.enabled,
+                    lists: typing.lists,
+                    rooms: rooms_into_v4(typing.rooms),
+                },
+                #[cfg(feature = "unstable-msc4308")]
+                thread_subscriptions,
+                #[cfg(feature = "unstable-msc4360")]
+                threads,
+                #[cfg(feature = "unstable-msc4262")]
+                profiles: v4::request::Profiles {
+                    enabled: profiles.enabled,
+                    fields: profiles.fields,
+                    lists: profiles.lists,
+                    rooms: rooms_into_v4(profiles.rooms),
+                },
+                #[cfg(feature = "unstable-msc4480")]
+                sticky_events: v4::request::StickyEvents {
+                    enabled: sticky_events.enabled,
+                    limit: sticky_events.limit,
+                    lists: sticky_events.lists,
+                    rooms: rooms_into_v4(sticky_events.rooms),
+                },
+                #[cfg(feature = "unstable-msc4559")]
+                presence: v4::request::Presence {
+                    enabled: presence.enabled,
+                    lists: presence.lists,
+                    rooms: rooms_into_v4(presence.rooms),
+                },
+                other,
+            }
+        }
+    }
+
+    fn rooms_into_v4(rooms: Option<Vec<ExtensionRoomConfig>>) -> Option<Vec<OwnedRoomId>> {
+        rooms?.into_iter().map(|room| as_variant!(room, ExtensionRoomConfig::Room)).collect()
     }
 
     /// Single entry for a room subscription configuration in an extension request.
@@ -319,32 +503,6 @@ pub mod request {
         }
     }
 
-    /// To-device messages extension.
-    ///
-    /// According to [MSC3885](https://github.com/matrix-org/matrix-spec-proposals/pull/3885).
-    #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
-    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-    pub struct ToDevice {
-        /// Activate or deactivate this extension.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub enabled: Option<bool>,
-
-        /// Maximum number of to-device messages per response.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub limit: Option<UInt>,
-
-        /// Give messages since this token only.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub since: Option<String>,
-    }
-
-    impl ToDevice {
-        /// Whether all fields are empty or `None`.
-        pub fn is_empty(&self) -> bool {
-            self.enabled.is_none() && self.limit.is_none() && self.since.is_none()
-        }
-    }
-
     /// Sticky events extension configuration.
     ///
     /// According to [MSC4480](https://github.com/matrix-org/matrix-spec-proposals/pull/4480).
@@ -362,34 +520,27 @@ pub mod request {
         #[serde(skip_serializing_if = "Option::is_none")]
         pub limit: Option<UInt>,
 
-        /// Return sticky events since this token only.
+        /// List of list names for which sticky events should be enabled.
+        ///
+        /// If not defined, will be enabled for *all* the lists appearing in the
+        /// request. If defined and empty, will be disabled for all the lists.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub since: Option<String>,
+        pub lists: Option<Vec<String>>,
+
+        /// List of room names for which sticky events should be enabled.
+        ///
+        /// If not defined, will be enabled for *all* the rooms appearing in the
+        /// room subscriptions. If defined and empty, will be disabled for all
+        /// the rooms.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub rooms: Option<Vec<ExtensionRoomConfig>>,
     }
 
     #[cfg(feature = "unstable-msc4480")]
     impl StickyEvents {
         /// Whether all fields are empty or `None`.
         pub fn is_empty(&self) -> bool {
-            self.enabled.is_none() && self.limit.is_none() && self.since.is_none()
-        }
-    }
-
-    /// E2EE extension configuration.
-    ///
-    /// According to [MSC3884](https://github.com/matrix-org/matrix-spec-proposals/pull/3884).
-    #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
-    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-    pub struct E2EE {
-        /// Activate or deactivate this extension.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub enabled: Option<bool>,
-    }
-
-    impl E2EE {
-        /// Whether all fields are empty or `None`.
-        pub fn is_empty(&self) -> bool {
-            self.enabled.is_none()
+            self.enabled.is_none() && self.limit.is_none()
         }
     }
 
@@ -495,33 +646,6 @@ pub mod request {
         /// Whether all fields are empty or `None`.
         pub fn is_empty(&self) -> bool {
             self.enabled.is_none()
-        }
-    }
-
-    /// Thread subscriptions extension.
-    ///
-    /// Specified as part of [MSC4308](https://github.com/matrix-org/matrix-spec-proposals/pull/4308).
-    #[cfg(feature = "unstable-msc4308")]
-    #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
-    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-    pub struct ThreadSubscriptions {
-        /// Activate or deactivate this extension.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub enabled: Option<bool>,
-
-        /// Maximum number of thread subscription changes to receive in the response.
-        ///
-        /// Defaults to 100.
-        /// Servers may impose a smaller limit than what is requested here.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub limit: Option<UInt>,
-    }
-
-    #[cfg(feature = "unstable-msc4308")]
-    impl ThreadSubscriptions {
-        /// Whether all fields are empty or `None`.
-        pub fn is_empty(&self) -> bool {
-            self.enabled.is_none() && self.limit.is_none()
         }
     }
 
@@ -638,28 +762,48 @@ impl Response {
     }
 }
 
+/// The conversion is lossy in the same way as for [`response::Room`], and `txn_id` is not set.
+impl From<v4::Response> for Response {
+    fn from(value: v4::Response) -> Self {
+        let v4::Response { pos, lists, rooms, extensions } = value;
+
+        Self {
+            txn_id: None,
+            pos,
+            lists: lists
+                .into_iter()
+                .map(|(key, list)| (key, response::List { count: list.count }))
+                .collect(),
+            rooms: rooms.into_iter().map(|(room_id, room)| (room_id, room.into())).collect(),
+            extensions: extensions.into(),
+        }
+    }
+}
+
 /// HTTP types related to a [`Response`].
 pub mod response {
+    use as_variant::as_variant;
     use ruma_common::OneTimeKeyAlgorithm;
-    #[cfg(feature = "unstable-msc4308")]
-    use ruma_common::OwnedEventId;
-    #[cfg(feature = "unstable-msc4559")]
-    use ruma_common::presence::{PresenceState, PresenceStatus};
-    #[cfg(feature = "unstable-msc4262")]
-    use ruma_common::profile::UserProfileUpdate;
     use ruma_events::{
-        AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent, AnyStrippedStateEvent,
-        AnyToDeviceEvent, receipt::SyncReceiptEvent, typing::SyncTypingEvent,
+        AnyStrippedStateEvent, AnyToDeviceEvent, receipt::SyncReceiptEvent, typing::SyncTypingEvent,
     };
+    use serde_json::{json, value::to_raw_value as to_raw_json_value};
 
+    pub use super::super::extensions::response::AccountData;
+    #[cfg(feature = "unstable-msc4262")]
+    pub use super::super::extensions::response::Profiles;
+    #[cfg(feature = "unstable-msc4308")]
+    pub use super::super::extensions::response::ThreadSubscriptions;
+    #[cfg(feature = "unstable-msc4360")]
+    pub use super::super::extensions::response::Threads;
+    #[cfg(feature = "unstable-msc4559")]
+    pub use super::super::extensions::response::{Presence, PresenceUpdate};
+    #[cfg(feature = "unstable-msc4480")]
+    pub use super::super::extensions::response::{StickyEvents, StickyEventsRoom};
     use super::{
         super::DeviceLists, AnySyncStateEvent, AnySyncTimelineEvent, BTreeMap, Deserialize,
         JsOption, OwnedMxcUri, OwnedRoomId, OwnedUserId, Raw, Serialize, UInt,
-        UnreadNotificationsCount,
-    };
-    #[cfg(feature = "unstable-msc4308")]
-    use crate::threads::get_thread_subscriptions_changes::unstable::{
-        ThreadSubscription, ThreadUnsubscription,
+        UnreadNotificationsCount, v4,
     };
 
     /// A sliding sync response updates to joiend rooms (see
@@ -767,6 +911,53 @@ pub mod response {
         }
     }
 
+    /// The conversion is lossy: `membership`, `lists`, `expanded_timeline`, deleted state
+    /// entries and the removal of the room name are dropped.
+    impl From<v4::response::Room> for Room {
+        fn from(value: v4::response::Room) -> Self {
+            let v4::response::Room {
+                bump_stamp,
+                membership: _,
+                lists: _,
+                name,
+                avatar,
+                heroes,
+                is_dm,
+                initial,
+                expanded_timeline: _,
+                required_state,
+                timeline,
+                prev_batch,
+                limited,
+                num_live,
+                joined_count,
+                invited_count,
+                stripped_state,
+            } = value;
+
+            Self {
+                name: name.into_option(),
+                avatar,
+                initial: initial.then_some(true),
+                is_dm,
+                invite_state: stripped_state,
+                unread_notifications: UnreadNotificationsCount::new(),
+                timeline,
+                required_state: required_state
+                    .into_iter()
+                    .filter_map(|entry| as_variant!(entry, v4::response::RequiredStateEntry::Event))
+                    .collect(),
+                prev_batch,
+                limited,
+                joined_count,
+                invited_count,
+                num_live,
+                bump_stamp,
+                heroes: heroes.map(|heroes| heroes.into_iter().map(Into::into).collect()),
+            }
+        }
+    }
+
     /// A sliding sync response room hero (see [`Room::heroes`]).
     #[derive(Clone, Debug, Deserialize, Serialize)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
@@ -804,6 +995,13 @@ pub mod response {
         }
     }
 
+    impl From<v4::response::Hero> for Hero {
+        fn from(value: v4::response::Hero) -> Self {
+            let v4::response::Hero { user_id, name, avatar } = value;
+            Self { user_id, name, avatar }
+        }
+    }
+
     /// Extensions responses.
     #[derive(Clone, Debug, Default, Serialize, Deserialize)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
@@ -836,6 +1034,15 @@ pub mod response {
             rename = "io.element.msc4308.thread_subscriptions"
         )]
         pub thread_subscriptions: ThreadSubscriptions,
+
+        /// Threads extension response.
+        #[cfg(feature = "unstable-msc4360")]
+        #[serde(
+            default,
+            skip_serializing_if = "Threads::is_empty",
+            rename = "io.element.msc4360.threads"
+        )]
+        pub threads: Threads,
 
         /// Profiles extension response.
         #[cfg(feature = "unstable-msc4262")]
@@ -870,6 +1077,7 @@ pub mod response {
         ///
         /// True if neither to-device, e2ee nor account data are to be found.
         pub fn is_empty(&self) -> bool {
+            #[allow(unused_mut)]
             let mut empty = self.to_device.is_none()
                 && self.e2ee.is_empty()
                 && self.account_data.is_empty()
@@ -879,6 +1087,11 @@ pub mod response {
             #[cfg(feature = "unstable-msc4308")]
             {
                 empty = empty && self.thread_subscriptions.is_empty();
+            }
+
+            #[cfg(feature = "unstable-msc4360")]
+            {
+                empty = empty && self.threads.is_empty();
             }
 
             #[cfg(feature = "unstable-msc4262")]
@@ -900,6 +1113,81 @@ pub mod response {
         }
     }
 
+    /// The typing and receipts events are rebuilt from their content.
+    impl From<v4::response::Extensions> for Extensions {
+        fn from(value: v4::response::Extensions) -> Self {
+            let v4::response::Extensions {
+                to_device,
+                e2ee,
+                account_data,
+                receipts,
+                typing,
+                #[cfg(feature = "unstable-msc4308")]
+                thread_subscriptions,
+                #[cfg(feature = "unstable-msc4360")]
+                threads,
+                #[cfg(feature = "unstable-msc4262")]
+                profiles,
+                #[cfg(feature = "unstable-msc4480")]
+                sticky_events,
+                #[cfg(feature = "unstable-msc4559")]
+                presence,
+            } = value;
+
+            Self {
+                to_device: to_device.map(|to_device| ToDevice {
+                    next_batch: to_device.next_batch,
+                    events: to_device.messages,
+                }),
+                e2ee: e2ee
+                    .map(|e2ee| E2EE {
+                        device_lists: e2ee.device_lists,
+                        device_one_time_keys_count: e2ee.device_one_time_keys_count,
+                        device_unused_fallback_key_types: Some(
+                            e2ee.device_unused_fallback_key_types,
+                        ),
+                    })
+                    .unwrap_or_default(),
+                account_data,
+                receipts: Receipts {
+                    rooms: receipts
+                        .rooms
+                        .into_iter()
+                        .map(|(room_id, content)| {
+                            let event = to_raw_json_value(&json!({
+                                "type": "m.receipt",
+                                "content": content,
+                            }))
+                            .expect("serialized receipt event should be valid JSON");
+                            (room_id, Raw::from_json(event))
+                        })
+                        .collect(),
+                },
+                typing: Typing {
+                    rooms: typing
+                        .rooms
+                        .into_iter()
+                        .map(|(room_id, content)| {
+                            let event = Raw::new(&SyncTypingEvent::new(content))
+                                .expect("serialized typing event should be valid JSON");
+                            (room_id, event)
+                        })
+                        .collect(),
+                },
+                #[cfg(feature = "unstable-msc4308")]
+                thread_subscriptions,
+                #[cfg(feature = "unstable-msc4360")]
+                threads,
+                #[cfg(feature = "unstable-msc4262")]
+                profiles,
+                #[cfg(feature = "unstable-msc4480")]
+                sticky_events,
+                #[cfg(feature = "unstable-msc4559")]
+                presence,
+            }
+        }
+    }
+
     /// To-device extension response.
     ///
     /// According to [MSC3885](https://github.com/matrix-org/matrix-spec-proposals/pull/3885).
@@ -912,42 +1200,6 @@ pub mod response {
         /// The to-device events.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub events: Vec<Raw<AnyToDeviceEvent>>,
-    }
-
-    /// Sticky events extension response.
-    ///
-    /// According to [MSC4480](https://github.com/matrix-org/matrix-spec-proposals/pull/4480).
-    #[cfg(feature = "unstable-msc4480")]
-    #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-    pub struct StickyEvents {
-        /// The token to supply in the `since` param of the next request.
-        ///
-        /// Set when there are changes.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub next_batch: Option<String>,
-
-        /// The sticky events, grouped by room.
-        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub rooms: BTreeMap<OwnedRoomId, StickyEventsRoom>,
-    }
-
-    #[cfg(feature = "unstable-msc4480")]
-    impl StickyEvents {
-        /// Whether the extension data is empty.
-        pub fn is_empty(&self) -> bool {
-            self.next_batch.is_none() && self.rooms.is_empty()
-        }
-    }
-
-    /// Sticky events for a single room in the sticky events extension response.
-    #[cfg(feature = "unstable-msc4480")]
-    #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-    pub struct StickyEventsRoom {
-        /// The sticky events for this room.
-        #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        pub events: Vec<Raw<AnySyncTimelineEvent>>,
     }
 
     /// E2EE extension response.
@@ -979,29 +1231,6 @@ pub mod response {
             self.device_lists.is_empty()
                 && self.device_one_time_keys_count.is_empty()
                 && self.device_unused_fallback_key_types.is_none()
-        }
-    }
-
-    /// Account-data extension response .
-    ///
-    /// Not yet part of the spec proposal. Taken from the reference implementation
-    /// <https://github.com/matrix-org/sliding-sync/blob/main/sync3/extensions/account_data.go>
-    #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-    pub struct AccountData {
-        /// The global private data created by this user.
-        #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        pub global: Vec<Raw<AnyGlobalAccountDataEvent>>,
-
-        /// The private data that this user has attached to each room.
-        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub rooms: BTreeMap<OwnedRoomId, Vec<Raw<AnyRoomAccountDataEvent>>>,
-    }
-
-    impl AccountData {
-        /// Whether all fields are empty or `None`.
-        pub fn is_empty(&self) -> bool {
-            self.global.is_empty() && self.rooms.is_empty()
         }
     }
 
@@ -1041,101 +1270,16 @@ pub mod response {
             self.rooms.is_empty()
         }
     }
-
-    /// Thread subscriptions extension response.
-    ///
-    /// Specified as part of [MSC4308](https://github.com/matrix-org/matrix-spec-proposals/pull/4308).
-    #[cfg(feature = "unstable-msc4308")]
-    #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-    pub struct ThreadSubscriptions {
-        /// New thread subscriptions.
-        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub subscribed: BTreeMap<OwnedRoomId, BTreeMap<OwnedEventId, ThreadSubscription>>,
-
-        /// New thread unsubscriptions.
-        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub unsubscribed: BTreeMap<OwnedRoomId, BTreeMap<OwnedEventId, ThreadUnsubscription>>,
-
-        /// A token that can be used to backpaginate (via the companion endpoint) other thread
-        /// subscription changes that occurred since the last sync, but that were not included in
-        /// this response.
-        ///
-        /// Only set when there are more changes to fetch.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub prev_batch: Option<String>,
-    }
-
-    #[cfg(feature = "unstable-msc4308")]
-    impl ThreadSubscriptions {
-        /// Whether all fields are empty or `None`.
-        pub fn is_empty(&self) -> bool {
-            self.subscribed.is_empty() && self.unsubscribed.is_empty() && self.prev_batch.is_none()
-        }
-    }
-
-    /// Profiles extension response.
-    ///
-    /// Specified as part of [MSC4262](https://github.com/matrix-org/matrix-spec-proposals/pull/4262).
-    #[cfg(feature = "unstable-msc4262")]
-    #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-    pub struct Profiles {
-        /// Profile updates keyed by user ID.
-        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub users: BTreeMap<OwnedUserId, UserProfileUpdate>,
-    }
-
-    #[cfg(feature = "unstable-msc4262")]
-    impl Profiles {
-        /// Whether all fields are empty or `None`.
-        pub fn is_empty(&self) -> bool {
-            self.users.is_empty()
-        }
-    }
-
-    /// An update to a user's presence sent down sync.
-    ///
-    /// As defined in [MSC4559](https://github.com/matrix-org/matrix-spec-proposals/pull/4559).
-    #[cfg(feature = "unstable-msc4559")]
-    #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-    pub struct PresenceUpdate {
-        /// The user's presence state.
-        pub presence: PresenceState,
-
-        /// The status information for this user's presence, using the format from [MSC4532].
-        ///
-        /// [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
-        pub status: PresenceStatus,
-    }
-
-    /// Presence extension response.
-    ///
-    /// Specified as part of [MSC4559](https://github.com/matrix-org/matrix-spec-proposals/pull/4559).
-    #[cfg(feature = "unstable-msc4559")]
-    #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-    pub struct Presence {
-        /// Presence updates keyed by user ID.
-        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub user_ids: BTreeMap<OwnedUserId, PresenceUpdate>,
-    }
-
-    #[cfg(feature = "unstable-msc4559")]
-    impl Presence {
-        /// Whether all fields are empty or `None`.
-        pub fn is_empty(&self) -> bool {
-            self.user_ids.is_empty()
-        }
-    }
 }
 
 #[cfg(test)]
 mod tests {
-    use ruma_common::owned_room_id;
+    use js_int::uint;
+    use ruma_common::{assert_to_canonical_json_eq, owned_room_id, user_id};
+    use ruma_events::StateEventType;
+    use serde_json::{from_value as from_json_value, json};
 
-    use super::request::ExtensionRoomConfig;
+    use super::{Request, request, request::ExtensionRoomConfig, response, v4};
 
     #[test]
     fn serialize_request_extension_room_config() {
@@ -1159,48 +1303,159 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "unstable-msc4480")]
     #[test]
-    fn sticky_events_extension_serde() {
-        use ruma_common::assert_to_canonical_json_eq;
-
-        use super::{request, response};
-
-        // The request extension serializes under the unstable extension key.
-        let mut extensions = request::Extensions::default();
-        extensions.sticky_events =
-            request::StickyEvents { enabled: Some(true), ..Default::default() };
-        assert_to_canonical_json_eq!(
-            extensions,
-            serde_json::json!({ "org.matrix.msc4354.sticky_events": { "enabled": true } })
+    fn request_into_v4() {
+        let mut request = Request::new();
+        request.txn_id = Some("txn".to_owned());
+        request.lists.insert(
+            "all".to_owned(),
+            request::List {
+                ranges: vec![(uint!(10), uint!(19)), (uint!(0), uint!(9))],
+                room_details: request::RoomDetails {
+                    required_state: vec![
+                        ("*".into(), "*".to_owned()),
+                        (StateEventType::RoomMember, "$LAZY".to_owned()),
+                        (StateEventType::RoomMember, "$ME".to_owned()),
+                        (StateEventType::RoomTopic, String::new()),
+                    ],
+                    timeline_limit: uint!(10),
+                },
+                filters: Some(request::ListFilters {
+                    is_invite: Some(false),
+                    ..Default::default()
+                }),
+            },
         );
 
-        // The response extension and its per-room sticky events deserialize.
-        let response: response::Extensions = serde_json::from_value(serde_json::json!({
-            "org.matrix.msc4354.sticky_events": {
-                "next_batch": "s123",
+        let mut request = request.into_v4(user_id!("@alice:example.com"));
+
+        assert_to_canonical_json_eq!(
+            request.lists.remove("all").unwrap(),
+            json!({
+                "range": [0, 19],
+                "required_state": {
+                    "include": [
+                        {},
+                        { "type": "m.room.member", "state_key": "@alice:example.com" },
+                        { "type": "m.room.topic", "state_key": "" },
+                    ],
+                    "lazy_members": true,
+                },
+                "timeline_limit": 10,
+                "filters": { "is_invited": false },
+            })
+        );
+    }
+
+    #[test]
+    fn extensions_into_v4() {
+        let mut request = Request::new();
+        request.extensions.typing.enabled = Some(true);
+        request.extensions.typing.rooms = Some(vec![
+            ExtensionRoomConfig::AllSubscribed,
+            ExtensionRoomConfig::Room(owned_room_id!("!a:example.com")),
+        ]);
+        request.extensions.receipts.enabled = Some(true);
+        request.extensions.receipts.rooms =
+            Some(vec![ExtensionRoomConfig::Room(owned_room_id!("!a:example.com"))]);
+
+        let request = request.into_v4(user_id!("@alice:example.com"));
+
+        assert_to_canonical_json_eq!(
+            request.extensions,
+            json!({
+                "typing": { "enabled": true },
+                "receipts": { "enabled": true, "rooms": ["!a:example.com"] },
+            })
+        );
+    }
+
+    #[test]
+    fn extensions_from_v4() {
+        let extensions: v4::response::Extensions = from_json_value(json!({
+            "to_device": { "next_batch": "1", "messages": [] },
+            "e2ee": { "device_one_time_keys_count": {}, "device_unused_fallback_key_types": [] },
+            "receipts": {
                 "rooms": {
-                    "!room:example.com": {
-                        "events": [{
-                            "content": { "body": "sticky", "msgtype": "m.text" },
-                            "event_id": "$1:example.com",
-                            "origin_server_ts": 1,
-                            "sender": "@alice:example.com",
-                            "type": "m.room.message",
-                            "msc4354_sticky": {
-                                "duration_ms": 300_000
-                            },
-                        }]
-                    }
-                }
-            }
+                    "!a:example.com": {
+                        "$e:example.com": { "m.read": { "@b:example.com": { "ts": 1 } } },
+                    },
+                },
+            },
+            "typing": { "rooms": { "!a:example.com": { "user_ids": ["@b:example.com"] } } },
         }))
         .unwrap();
 
-        assert_eq!(response.sticky_events.next_batch.as_deref(), Some("s123"));
-        assert_eq!(response.sticky_events.rooms.len(), 1);
-        let room = response.sticky_events.rooms.values().next().unwrap();
-        assert_eq!(room.events.len(), 1);
+        assert_to_canonical_json_eq!(
+            response::Extensions::from(extensions),
+            json!({
+                "to_device": { "next_batch": "1" },
+                "e2ee": { "device_unused_fallback_key_types": [] },
+                "receipts": {
+                    "rooms": {
+                        "!a:example.com": {
+                            "type": "m.receipt",
+                            "content": {
+                                "$e:example.com": { "m.read": { "@b:example.com": { "ts": 1 } } },
+                            },
+                        },
+                    },
+                },
+                "typing": {
+                    "rooms": {
+                        "!a:example.com": {
+                            "type": "m.typing",
+                            "content": { "user_ids": ["@b:example.com"] },
+                        },
+                    },
+                },
+            })
+        );
+    }
+
+    #[cfg(feature = "unstable-msc4480")]
+    #[test]
+    fn serialize_sticky_events_request() {
+        let mut extensions = request::Extensions::default();
+        extensions.sticky_events = request::StickyEvents {
+            enabled: Some(true),
+            rooms: Some(vec![ExtensionRoomConfig::AllSubscribed]),
+            ..Default::default()
+        };
+
+        assert_to_canonical_json_eq!(
+            extensions,
+            json!({ "org.matrix.msc4354.sticky_events": { "enabled": true, "rooms": ["*"] } })
+        );
+    }
+
+    #[test]
+    fn room_from_v4() {
+        let room: v4::response::Room = from_json_value(json!({
+            "name": null,
+            "initial": true,
+            "membership": "join",
+            "required_state": [
+                {
+                    "content": {},
+                    "event_id": "$create:example.com",
+                    "origin_server_ts": 1,
+                    "sender": "@alice:example.com",
+                    "state_key": "",
+                    "type": "m.room.create",
+                },
+                { "type": "m.room.topic", "state_key": "" },
+            ],
+            "stripped_state": [],
+        }))
+        .unwrap();
+
+        let room = response::Room::from(room);
+
+        assert_eq!(room.name, None);
+        assert_eq!(room.initial, Some(true));
+        assert_eq!(room.required_state.len(), 1);
+        assert_eq!(room.invite_state.unwrap().len(), 0);
     }
 
     #[test]

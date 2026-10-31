@@ -61,6 +61,7 @@ unstable-msc4495 = []
 # Revised Social Presence
 unstable-msc4532 = []
 unstable-msc4536 = []
+unstable-msc4559 = []
 unstable-msc4560 = []
 
 # Allow IDs to exceed 255 bytes.
