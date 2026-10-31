@@ -6,9 +6,14 @@ Breaking changes:
 
 - The `membership::get_mutual_rooms::unstable` module is renamed to `msc2666` to match the new
   unstable endpoint naming convention.
+- The sticky events sliding sync extension follows the latest version of [MSC4480]: the `since`
+  field of the request and the `next_batch` field of the response were removed, and the request
+  gained the `lists` and `rooms` fields.
 
 Bug fixes:
 
+- The `presence` and `status` fields of the `PresenceUpdate` of the presence sliding sync extension
+  are optional, as defined in [MSC4559].
 - Deserializing `Capabilities` no longer fails when the server sends both
   `m.profile_fields` and `uk.tcpip.msc4133.profile_fields`. The stable name
   takes precedence.
@@ -39,8 +44,23 @@ Improvements:
   - `sync::sync_events::v5` is renamed to `msc4186`.
   - `threads::get_thread_subscriptions_changes::unstable` is renamed to `msc4308` and the other
     `threads::*::unstable` are renamed to `msc4306`.
+- Add `sync::sync_events::v4` for the `/v4/sync` endpoint of [MSC4186], behind the
+  `unstable-msc4186` cargo feature. Its extensions follow [MSC4508], [MSC4538], [MSC4543],
+  [MSC4548] and [MSC4551].
+- Add conversions from the `sync::sync_events::msc4186` request to the `v4` request, and from
+  the `v4` response to the `msc4186` response.
+- Add unstable support for [MSC4360] "Threads extension to Sliding Sync", with the `threads` sliding
+  sync extension and the `get_thread_updates` endpoint.
 
+[MSC4186]: https://github.com/matrix-org/matrix-spec-proposals/pull/4186
+[MSC4360]: https://github.com/matrix-org/matrix-spec-proposals/pull/4360
+[MSC4480]: https://github.com/matrix-org/matrix-spec-proposals/pull/4480
+[MSC4508]: https://github.com/matrix-org/matrix-spec-proposals/pull/4508
 [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
+[MSC4538]: https://github.com/matrix-org/matrix-spec-proposals/pull/4538
+[MSC4543]: https://github.com/matrix-org/matrix-spec-proposals/pull/4543
+[MSC4548]: https://github.com/matrix-org/matrix-spec-proposals/pull/4548
+[MSC4551]: https://github.com/matrix-org/matrix-spec-proposals/pull/4551
 [MSC4559]: https://github.com/matrix-org/matrix-spec-proposals/pull/4559
 
 ## 0.25.2
