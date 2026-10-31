@@ -1,4 +1,4 @@
-//! `GET /_matrix/client/*/sync`
+//! `GET /_matrix/client/*/sync` and `POST /_matrix/client/*/sync`
 //!
 //! Get all new events from all rooms since the last sync or a given point in time.
 
@@ -9,6 +9,8 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "unstable-msc4186")]
 pub mod msc4186;
 pub mod v3;
+#[cfg(feature = "unstable-msc4186")]
+pub mod v4;
 
 /// Unread notifications count.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]

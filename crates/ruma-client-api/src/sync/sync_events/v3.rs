@@ -1,4 +1,4 @@
-//! `/v3/` ([spec])
+//! `GET /_matrix/client/v3/sync` ([spec])
 //!
 //! [spec]: https://spec.matrix.org/v1.19/client-server-api/#get_matrixclientv3sync
 
