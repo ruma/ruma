@@ -820,6 +820,24 @@ pub enum FeatureFlag {
     #[ruma_enum(rename = "org.matrix.simplified_msc3575")]
     Msc4186,
 
+    /// `org.matrix.simplified_msc3575.stable` ([MSC])
+    ///
+    /// Stable version of the `/sync` endpoint of MSC4186.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4186
+    #[cfg(feature = "unstable-msc4186")]
+    #[ruma_enum(rename = "org.matrix.simplified_msc3575.stable")]
+    Msc4186Stable,
+
+    /// `org.matrix.msc4262` ([MSC])
+    ///
+    /// Profile updates extension for `/sync`.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4262
+    #[cfg(feature = "unstable-msc4262")]
+    #[ruma_enum(rename = "org.matrix.msc4262")]
+    Msc4262,
+
     /// `uk.timedout.msc4323` ([MSC])
     ///
     /// Suspend and lock endpoints.
@@ -862,6 +880,96 @@ pub enum FeatureFlag {
     #[ruma_enum(rename = "uk.timedout.msc4494")]
     Msc4494,
 
+    /// `org.matrix.msc4508` ([MSC])
+    ///
+    /// Typing extension for `/sync`.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4508
+    #[cfg(feature = "unstable-msc4186")]
+    #[ruma_enum(rename = "org.matrix.msc4508")]
+    Msc4508,
+
+    /// `org.matrix.msc4508.stable` ([MSC])
+    ///
+    /// Stable version of the typing extension for `/sync`.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4508
+    #[cfg(feature = "unstable-msc4186")]
+    #[ruma_enum(rename = "org.matrix.msc4508.stable")]
+    Msc4508Stable,
+
+    /// `org.matrix.msc4538` ([MSC])
+    ///
+    /// To-device extension for `/sync`.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4538
+    #[cfg(feature = "unstable-msc4186")]
+    #[ruma_enum(rename = "org.matrix.msc4538")]
+    Msc4538,
+
+    /// `org.matrix.msc4538.stable` ([MSC])
+    ///
+    /// Stable version of the to-device extension for `/sync`.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4538
+    #[cfg(feature = "unstable-msc4186")]
+    #[ruma_enum(rename = "org.matrix.msc4538.stable")]
+    Msc4538Stable,
+
+    /// `org.matrix.msc4543` ([MSC])
+    ///
+    /// E2EE extension for `/sync`.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4543
+    #[cfg(feature = "unstable-msc4186")]
+    #[ruma_enum(rename = "org.matrix.msc4543")]
+    Msc4543,
+
+    /// `org.matrix.msc4543.stable` ([MSC])
+    ///
+    /// Stable version of the E2EE extension for `/sync`.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4543
+    #[cfg(feature = "unstable-msc4186")]
+    #[ruma_enum(rename = "org.matrix.msc4543.stable")]
+    Msc4543Stable,
+
+    /// `org.matrix.msc4548` ([MSC])
+    ///
+    /// Account data extension for `/sync`.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4548
+    #[cfg(feature = "unstable-msc4186")]
+    #[ruma_enum(rename = "org.matrix.msc4548")]
+    Msc4548,
+
+    /// `org.matrix.msc4548.stable` ([MSC])
+    ///
+    /// Stable version of the account data extension for `/sync`.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4548
+    #[cfg(feature = "unstable-msc4186")]
+    #[ruma_enum(rename = "org.matrix.msc4548.stable")]
+    Msc4548Stable,
+
+    /// `org.matrix.msc4551` ([MSC])
+    ///
+    /// Receipts extension for `/sync`.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4551
+    #[cfg(feature = "unstable-msc4186")]
+    #[ruma_enum(rename = "org.matrix.msc4551")]
+    Msc4551,
+
+    /// `org.matrix.msc4551.stable` ([MSC])
+    ///
+    /// Stable version of the receipts extension for `/sync`.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4551
+    #[cfg(feature = "unstable-msc4186")]
+    #[ruma_enum(rename = "org.matrix.msc4551.stable")]
+    Msc4551Stable,
+
     /// `org.continuwuity.presence_v2.msc4532` ([MSC])
     ///
     /// Revised Social Presence.
@@ -879,6 +987,24 @@ pub enum FeatureFlag {
     #[cfg(feature = "unstable-msc4536")]
     #[ruma_enum(rename = "org.matrix.msc4536")]
     Msc4536,
+
+    /// `org.continuwuity.presence_v2.msc4559` ([MSC])
+    ///
+    /// Presence extension for `/sync`.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4559
+    #[cfg(feature = "unstable-msc4559")]
+    #[ruma_enum(rename = "org.continuwuity.presence_v2.msc4559")]
+    Msc4559,
+
+    /// `org.continuwuity.presence_v2.msc4559.stable` ([MSC])
+    ///
+    /// Stable version of the presence extension for `/sync`.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4559
+    #[cfg(feature = "unstable-msc4559")]
+    #[ruma_enum(rename = "org.continuwuity.presence_v2.msc4559.stable")]
+    Msc4559Stable,
 
     /// `org.continuwuity.msc4560` ([MSC])
     ///
