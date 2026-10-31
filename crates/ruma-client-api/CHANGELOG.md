@@ -10,9 +10,17 @@ Breaking changes:
   `authenticated_media::get_media_config::v1` and `media::get_media_config::v3`
   modules is now an `Option<UInt>`, as `m.upload.size` is optional in the
   spec. `Response::new()` takes an `Option<UInt>` accordingly.
+- The sticky events sliding sync extension follows the latest version of [MSC4480]: the `since`
+  field of the request and the `next_batch` field of the response were removed, and the request
+  gained the `lists` and `rooms` fields.
+- The `ToDevice`, `E2EE` and `ThreadSubscriptions` request types of `sync::sync_events::msc4186`
+  are now the ones of `sync::sync_events::v4`: their `enabled` field is a `bool`, and their
+  `is_empty()` method is renamed to `is_disabled()`.
 
 Bug fixes:
 
+- The `presence` and `status` fields of the `PresenceUpdate` of the presence sliding sync extension
+  are optional, as defined in [MSC4559].
 - Deserializing `Capabilities` no longer fails when the server sends both
   `m.profile_fields` and `uk.tcpip.msc4133.profile_fields`. The stable name
   takes precedence.
@@ -46,9 +54,21 @@ Improvements:
   used by implementations of earlier versions of MSC4195 moved to the deprecated
   `RtcTransport::LegacyLiveKit` variant, which holds a deprecated `LegacyLiveKitRtcTransport`.
   This type can hold either or both of `url` and `livekit_service_url`.
+- Add `sync::sync_events::v4` for the `/v4/sync` endpoint of [MSC4186], behind the
+  `unstable-msc4186` cargo feature. Its extensions follow [MSC4508], [MSC4538], [MSC4543],
+  [MSC4548] and [MSC4551].
+- Add conversions from the `sync::sync_events::v4` request and response to the `msc4186` request
+  and response.
 
+[MSC4186]: https://github.com/matrix-org/matrix-spec-proposals/pull/4186
 [MSC4354]: https://github.com/matrix-org/matrix-spec-proposals/pull/4354
+[MSC4480]: https://github.com/matrix-org/matrix-spec-proposals/pull/4480
+[MSC4508]: https://github.com/matrix-org/matrix-spec-proposals/pull/4508
 [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
+[MSC4538]: https://github.com/matrix-org/matrix-spec-proposals/pull/4538
+[MSC4543]: https://github.com/matrix-org/matrix-spec-proposals/pull/4543
+[MSC4548]: https://github.com/matrix-org/matrix-spec-proposals/pull/4548
+[MSC4551]: https://github.com/matrix-org/matrix-spec-proposals/pull/4551
 [MSC4559]: https://github.com/matrix-org/matrix-spec-proposals/pull/4559
 
 ## 0.25.2
