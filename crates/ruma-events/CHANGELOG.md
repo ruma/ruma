@@ -11,6 +11,9 @@ Breaking changes:
 - `RoomKeyWithheldCode::Unauthorized` is now serialized as `m.unauthorised` rather than
   `m.unauthorized`, to match the Matrix spec and `RoomKeyWithheldCodeInfo::Unauthorized`. The
   previous `m.unauthorized` spelling is still accepted during deserialization of both types.
+- `RoomKeyWithheldCodeInfo::HistoryNotShared` now holds a `RoomKeyWithheldSessionData`, since the
+  Matrix spec requires the `room_id` and `session_id` fields for this code. The
+  `m.history_not_shared` code is now deserialized as this variant rather than as a custom code.
 
 Bug fixes:
 
