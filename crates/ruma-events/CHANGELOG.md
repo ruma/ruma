@@ -8,6 +8,9 @@ Breaking changes:
   required when using the `Deserialize` implementation of `Original(Sync)StateEvent`.
 - The `shared_history` field of `ToDeviceForwardedRoomKeyEventContent` was removed, since it is
   not part of the Matrix spec.
+- `RoomKeyWithheldCode::Unauthorized` is now serialized as `m.unauthorised` rather than
+  `m.unauthorized`, to match the Matrix spec and `RoomKeyWithheldCodeInfo::Unauthorized`. The
+  previous `m.unauthorized` spelling is still accepted during deserialization of both types.
 
 Bug fixes:
 
