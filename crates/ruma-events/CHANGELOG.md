@@ -18,6 +18,9 @@ Breaking changes:
 Improvements:
 
 - Add unstable support for [MSC4532] "Revised Social Presence".
+- Add the `withheld` field to `ToDeviceForwardedRoomKeyEventContent`, according to the Matrix spec.
+  It uses the new `ForwardedRoomKeyWithheldInfo` type, which can be constructed with
+  `ForwardedRoomKeyWithheldInfo::new()` or converted from a `&ToDeviceRoomKeyWithheldEventContent`.
 - Make `livekit_alias` optional on RTC member events.
 - Add the `url` and `server_name` fields from [MSC4195] to `LivekitFocus`. The `livekit_service_url`
   field (`service_url`) is now optional and deprecated. `LivekitFocus::new()` now only takes the `url`
