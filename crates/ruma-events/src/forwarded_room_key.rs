@@ -47,8 +47,9 @@ pub struct ToDeviceForwardedRoomKeyEventContent {
 
 /// Initial set of fields of `ToDeviceForwardedRoomKeyEventContent`.
 ///
-/// This struct will not be updated even if additional fields are added to `ConditionalPushRule` in
-/// a new (non-breaking) release of the Matrix specification.
+/// This struct will not be updated even if additional fields are added to
+/// `ToDeviceForwardedRoomKeyEventContent` in a new (non-breaking) release of the Matrix
+/// specification.
 #[derive(Debug)]
 #[allow(clippy::exhaustive_structs)]
 pub struct ToDeviceForwardedRoomKeyEventContentInit {
