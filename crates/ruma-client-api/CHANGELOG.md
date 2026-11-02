@@ -6,6 +6,10 @@ Breaking changes:
 
 - The `membership::get_mutual_rooms::unstable` module is renamed to `msc2666` to match the new
   unstable endpoint naming convention.
+- The `upload_size` field of the `Response` types of the
+  `authenticated_media::get_media_config::v1` and `media::get_media_config::v3`
+  modules is now an `Option<UInt>`, as `m.upload.size` is optional in the
+  spec. `Response::new()` takes an `Option<UInt>` accordingly.
 
 Bug fixes:
 
