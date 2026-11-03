@@ -2,5 +2,5 @@
 //!
 //! Send a request for a knock event template to a resident server.
 
-pub mod unstable;
+pub mod msc2403;
 pub mod v1;

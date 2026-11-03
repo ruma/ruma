@@ -2,9 +2,19 @@
 
 ## Unreleased
 
+Breaking changes:
+
+- The following modules are renamed to follow the new unstable endpoint naming convention:
+  - `authenticated_media::*::unstable` are renamed to `msc3916`.
+  - `event::get_event_by_timestamp::unstable` is renamed to `msc3030`.
+  - `membership::(create/prepare)_knock_event::unstable` were renamed to `msc2403`.
+  - `space::get_hierarchy::unstable` was renamed to `msc2946`.
+
 Improvements:
 
 - Add unstable support for [MSC4532] "Revised Social Presence".
+- The `event::get_stripped_state::unstable` module is renamed to `msc4560` to follow the new
+  unstable endpoint naming convention.
 
 [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
 

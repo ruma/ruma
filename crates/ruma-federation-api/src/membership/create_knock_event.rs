@@ -2,5 +2,5 @@
 //!
 //! Submits a signed knock event to the resident homeserver for it to accept into the room's graph.
 
-pub mod unstable;
+pub mod msc2403;
 pub mod v1;
