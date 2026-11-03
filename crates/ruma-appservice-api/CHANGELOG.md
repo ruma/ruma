@@ -2,9 +2,16 @@
 
 ## Unreleased
 
+Breaking changes:
+
+- The `ping::send_ping::unstable` module is renamed to `msc2659`, to follow our new unstable
+  endpoint naming convention.
+
 Improvements:
 
 - Add unstable support for [MSC4532] "Revised Social Presence".
+- The `media::preview_url::unstable` module is renamed to `msc4417`, to follow our new unstable
+  endpoint naming convention.
 
 [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
 

@@ -2,8 +2,8 @@
 //!
 //! Endpoint to query a preview for a given url.
 
-pub mod unstable {
-    //! `msc4417` ([MSC])
+pub mod msc4417 {
+    //! `/unstable/uk.half-shot.msc4417/` ([MSC])
     //!
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4417
 

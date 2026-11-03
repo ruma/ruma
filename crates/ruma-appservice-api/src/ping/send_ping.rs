@@ -2,7 +2,7 @@
 //!
 //! Endpoint to ping the application service.
 
-pub mod unstable {
+pub mod msc2659 {
     //! `/unstable/fi.mau.msc2659/` ([MSC])
     //!
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/2659
