@@ -2,8 +2,8 @@
 //!
 //! Removes the subscription state of the current user to a thread in a room.
 
-pub mod unstable {
-    //! `/unstable/` ([spec])
+pub mod msc4306 {
+    //! `/unstable/io.element.msc4306/` ([spec])
     //!
     //! [spec]: https://github.com/matrix-org/matrix-spec-proposals/pull/4306
 

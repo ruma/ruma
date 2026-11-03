@@ -6,10 +6,9 @@ use js_int::UInt;
 use ruma_common::OwnedUserId;
 use serde::{Deserialize, Serialize};
 
-pub mod v3;
-
 #[cfg(feature = "unstable-msc4186")]
-pub mod v5;
+pub mod msc4186;
+pub mod v3;
 
 /// Unread notifications count.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]

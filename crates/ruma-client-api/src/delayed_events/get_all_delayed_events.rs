@@ -2,8 +2,8 @@
 //!
 //! Get all of the user's delayed events.
 
-pub mod unstable {
-    //! `msc4140` ([MSC])
+pub mod msc4140 {
+    //! `/unstable/org.matrix.msc4140/` ([MSC])
     //!
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
 
@@ -23,13 +23,11 @@ pub mod unstable {
         }
     }
 
-    /// Request type for the
-    /// [`get_all_delayed_events`](crate::delayed_events::get_all_delayed_events) endpoint
+    /// Request type for the `get_all_delayed_events` endpoint.
     #[request]
     pub struct Request {}
 
-    /// Response type for the
-    /// [`get_all_delayed_events`](crate::delayed_events::get_all_delayed_events) endpoint
+    /// Response type for the `get_all_delayed_events` endpoint.
     #[response]
     pub struct Response {
         /// An array of objects describing scheduled delayed events owned by the requesting user
@@ -37,7 +35,7 @@ pub mod unstable {
     }
 
     impl Request {
-        /// Create a new Request
+        /// Create a new Request.
         pub fn new() -> Self {
             Self {}
         }

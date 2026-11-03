@@ -1,4 +1,4 @@
-//! `/v4/` ([MSC])
+//! `/unstable/org.matrix.msc3983/` ([MSC])
 //!
 //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/3983
 

@@ -2,7 +2,7 @@
 //!
 //! Get mutual rooms with another user.
 
-pub mod unstable {
+pub mod msc2666 {
     //! `GET /_matrix/client/unstable/uk.half-shot.msc2666/user/mutual_rooms` ([MSC])
     //!
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/2666

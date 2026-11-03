@@ -2,8 +2,8 @@
 //!
 //! Discover the RTC transports advertised by the homeserver.
 
-pub mod v1 {
-    //! `/v1/` ([MSC])
+pub mod msc4143 {
+    //! `/unstable/org.matrix.msc4143/` ([MSC])
     //!
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4143
 

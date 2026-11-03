@@ -2,8 +2,8 @@
 //!
 //! Get a rendezvous session.
 
-pub mod unstable {
-    //! `unstable/io.element.msc4388` ([MSC])
+pub mod msc4388 {
+    //! `/unstable/io.element.msc4388/` ([MSC])
     //!
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4388
 

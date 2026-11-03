@@ -2,8 +2,8 @@
 //!
 //! Send a delayed event (a scheduled message) to a room.
 
-pub mod unstable {
-    //! `msc4140` ([MSC])
+pub mod msc4140 {
+    //! `/unstable/org.matrix.msc4140/` ([MSC])
     //!
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
 
@@ -27,8 +27,8 @@ pub mod unstable {
             unstable("org.matrix.msc4140") => "/_matrix/client/unstable/org.matrix.msc4140/rooms/{room_id}/delayed_event/{event_type}/{txn_id}",
         }
     }
-    /// Request type for the [`send_delayed_event`](crate::delayed_events::send_delayed_event)
-    /// endpoint.
+
+    /// Request type for the `send_delayed_event` endpoint.
     #[request]
     pub struct Request {
         /// The room to send the event to.
@@ -77,8 +77,7 @@ pub mod unstable {
         pub content: Raw<AnyTimelineEventContent>,
     }
 
-    /// Response type for the
-    /// [`send_delayed_event`](crate::delayed_events::send_delayed_event) endpoint.
+    /// Response type for the `send_delayed_event` endpoint.
     #[response]
     pub struct Response {
         /// The `delay_id` generated for this delayed event. Used to interact with delayed events.
@@ -92,7 +91,7 @@ pub mod unstable {
         /// # Errors
         ///
         /// Since `Request` stores the request body in serialized form, this function can fail if
-        /// `T`s [`::serde::Serialize`] implementation can fail.
+        /// `T`s [`serde::Serialize`] implementation can fail.
         pub fn new(
             room_id: OwnedRoomId,
             txn_id: OwnedTransactionId,
@@ -136,8 +135,7 @@ pub mod unstable {
     }
 
     impl Response {
-        /// Creates a new `Response` with the tokens required to control the delayed event using the
-        /// [`crate::delayed_events::update_delayed_event::unstable_v2::Request`] request.
+        /// Creates a new `Response` with the token required to control the delayed event.
         pub fn new(delay_id: String) -> Self {
             Self { delay_id }
         }

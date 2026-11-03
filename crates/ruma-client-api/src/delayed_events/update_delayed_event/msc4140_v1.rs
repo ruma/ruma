@@ -1,6 +1,6 @@
-//! `msc4140` ([MSC])
+//! `/unstable/org.matrix.msc4140/` ([MSC])
 //!
-//! Old endpoint definition from MSC 4140. Does not correspond to the current state of the MSC.
+//! Old endpoint definition from MSC4140. Does not correspond to the current state of the MSC.
 //!
 //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/blob/3ee73abe5f81252b00877cfb5db941ee9aa6c18d/proposals/4140-delayed-events-futures.md
 
@@ -20,13 +20,13 @@ metadata! {
     }
 }
 
-/// Request type for the [`update_delayed_event`](crate::delayed_events::update_delayed_event)
-/// endpoint.
+/// Request type for the `update_delayed_event` endpoint.
 #[request]
 pub struct Request {
     /// The delay id that we want to update.
     #[ruma_api(path)]
     pub delay_id: String,
+
     /// Which kind of update we want to request for the delayed event.
     pub action: UpdateAction,
 }
@@ -38,13 +38,11 @@ impl Request {
     }
 }
 
-/// Response type for the [`update_delayed_event`](crate::delayed_events::update_delayed_event)
-/// endpoint.
+/// Response type for the `update_delayed_event` endpoint.
 #[response]
 pub struct Response {}
 impl Response {
-    /// Creates a new empty response for the
-    /// [`update_delayed_event`](crate::delayed_events::update_delayed_event) endpoint.
+    /// Creates a new empty response.
     pub fn new() -> Self {
         Self {}
     }

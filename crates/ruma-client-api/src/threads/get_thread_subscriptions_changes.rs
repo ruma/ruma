@@ -2,10 +2,10 @@
 //!
 //! Retrieve a paginated range of thread subscriptions across all rooms.
 
-pub mod unstable {
-    //! `/unstable/` ([spec])
+pub mod msc4308 {
+    //! `/unstable/io.element.msc4308/` ([MSC])
     //!
-    //! [spec]: https://github.com/matrix-org/matrix-spec-proposals/pull/4308
+    //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4308
 
     use std::collections::BTreeMap;
 

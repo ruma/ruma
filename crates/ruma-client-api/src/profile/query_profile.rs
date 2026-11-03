@@ -2,8 +2,8 @@
 //!
 //! Get profile information of multiple users.
 
-pub mod unstable {
-    //! `msc4536` ([MSC])
+pub mod msc4536 {
+    //! `/unstable/org.matrix.msc4536/` ([MSC])
     //!
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4536
 
@@ -77,7 +77,7 @@ mod tests {
     };
     use serde_json::{Value as JsonValue, json};
 
-    use super::unstable::{Request, Response};
+    use super::msc4536::{Request, Response};
     use crate::profile::{AvatarUrl, DisplayName, ProfileFieldName};
 
     #[test]
