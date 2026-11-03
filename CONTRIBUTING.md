@@ -186,11 +186,17 @@ mod v1 {
 
 This happens if the endpoint either has a single version, or a few versions of sufficiently small size.
 
+If the endpoint version is unstable, i.e. if it uses an unstable prefix that is defined in an MSC, the
+modules should look like the following;
+
+`endpoint_name::mscXXXX`
+
+Where `XXXX` is the number of the MSC.
+
 #### Endpoint Documentation Header
 
-Add a comment to the top of each endpoint file that includes the path
-and a link to the documentation of the spec. Replace the version
-marker (`v3`) with a `*`, like so;
+Add a comment to the top of each endpoint file that includes the path and a link to the documentation
+of the spec. Replace the version marker (`v3`) with a `*`, like so;
 
 ```rust
 //! `GET /_matrix/client/*/sync`
@@ -203,6 +209,16 @@ pub mod v3 {
     //! `/v3/` ([spec])
     //!
     //! [spec]: https://spec.matrix.org/v1.19/client-server-api/#get_matrixclientv3sync
+}
+```
+
+For an unstable endpoint, embed the unstable version and MSC link like so;
+
+```rs
+pub mod msc3030 {
+    //! `/unstable/org.matrix.msc3030/` ([MSC])
+    //!
+    //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/3030
 }
 ```
 
