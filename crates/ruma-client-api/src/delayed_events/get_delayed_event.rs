@@ -1,9 +1,9 @@
 //! `GET /_matrix/client/*/rooms/{roomId}/delayed_events/{delay_id}`
 //!
-//! Get the information about a delayed event.
+//! Get information about a delayed event.
 
-pub mod unstable {
-    //! `msc4140` ([MSC])
+pub mod msc4140 {
+    //! `/unstable/org.matrix.msc4140/` ([MSC])
     //!
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
 
@@ -23,8 +23,7 @@ pub mod unstable {
         }
     }
 
-    /// Request type for the [`get_delayed_event`](crate::delayed_events::get_delayed_event)
-    /// endpoint
+    /// Request type for the `get_delayed_event` endpoint.
     #[request]
     pub struct Request {
         /// The ID of the requested delayed event.
@@ -32,8 +31,7 @@ pub mod unstable {
         pub delay_id: String,
     }
 
-    /// Response type for the [`get_delayed_event`](crate::delayed_events::get_delayed_event)
-    /// endpoint
+    /// Response type for the `get_delayed_event` endpoint.
     #[response]
     pub struct Response {
         /// The returned delayed event information
@@ -42,14 +40,14 @@ pub mod unstable {
     }
 
     impl Request {
-        /// Create a new Request object
+        /// Create a new Request object.
         pub fn new(delay_id: String) -> Self {
             Self { delay_id }
         }
     }
 
     impl Response {
-        /// Create a new Response object
+        /// Create a new Response object.
         pub fn new(delayed_event: DelayedEventData) -> Self {
             Self { delayed_event }
         }

@@ -2,10 +2,10 @@
 //!
 //! Returns stripped state events in a room.
 
-pub mod unstable {
-    //! `/unstable/org.continuwuity.msc4560.stripped_state/` ([MSC4560])
+pub mod msc4560 {
+    //! `/unstable/org.continuwuity.msc4560.stripped_state/` ([MSC])
     //!
-    //! [MSC4560]: https://github.com/matrix-org/matrix-spec-proposals/pull/4560
+    //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4560
 
     use std::collections::BTreeSet;
 

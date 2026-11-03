@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+Breaking changes:
+
+- The `membership::get_mutual_rooms::unstable` module is renamed to `msc2666` to match the new
+  unstable endpoint naming convention.
+
 Bug fixes:
 
 - Deserializing `Capabilities` no longer fails when the server sends both
@@ -20,6 +25,20 @@ Improvements:
   of the LiveKit SFU instead of the `service_url` of the LiveKit JWT service.
   Constructing a `LiveKitRtcTransport` with the `service_url` is still possible
   with the deprecated `LiveKitRtcTransport::with_service_url()`.
+- The following modules are renamed to match the new unstable endpoint naming convention:
+  - `dehydrated_device::*::unstable` are renamed to `msc3814`.
+  - `delayed_events::*::unstable(_v1)` are renamed to `msc4140(_v1)`.
+  - `keys::claim_keys::v4` is renamed to `msc3983`.
+  - `profile::query_profile::unstable` is renamed to `msc4536`.
+  - `rendezvous::create_rendezvous_session::unstable_msc4108` is renamed to `msc4108` and
+    `rendezvous::*::unstable(_msc4388)` are renamed to `msc4388`.
+  - `retention::get_retention_configuration::unstable` is renamed to `msc1763`.
+  - `rtc::livekit::*::v1` are renamed to `msc4195`.
+  - `rtc::transports::v1` is renamed to `msc4143`.
+  - `state::get_stripped_state::unstable` is renamed to `msc4560`.
+  - `sync::sync_events::v5` is renamed to `msc4186`.
+  - `threads::get_thread_subscriptions_changes::unstable` is renamed to `msc4308` and the other
+    `threads::*::unstable` are renamed to `msc4306`.
 
 [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
 [MSC4559]: https://github.com/matrix-org/matrix-spec-proposals/pull/4559

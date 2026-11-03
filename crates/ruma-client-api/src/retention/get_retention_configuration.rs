@@ -2,8 +2,8 @@
 //!
 //! Get the configuration for the message retention policy.
 
-pub mod unstable {
-    //! `msc1763` ([MSC])
+pub mod msc1763 {
+    //! `/unstable/org.matrix.msc1763/` ([MSC])
     //!
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/1763
 
@@ -102,8 +102,10 @@ pub mod unstable {
         /// # Examples
         ///
         /// ```
-        /// # use std::time::Duration;
-        /// # use ruma_client_api::retention::get_retention_configuration::unstable::LifetimeLimits;
+        /// use std::time::Duration;
+        ///
+        /// use ruma_client_api::retention::get_retention_configuration::msc1763::LifetimeLimits;
+        ///
         /// # fn doctest() -> Option<()> {
         /// let content = LifetimeLimits::new()
         ///     .at_least(Duration::from_hours(24))?
@@ -135,8 +137,10 @@ pub mod unstable {
         /// # Examples
         ///
         /// ```
-        /// # use std::time::Duration;
-        /// # use ruma_client_api::retention::get_retention_configuration::unstable::LifetimeLimits;
+        /// use std::time::Duration;
+        ///
+        /// use ruma_client_api::retention::get_retention_configuration::msc1763::LifetimeLimits;
+        ///
         /// # fn doctest() -> Option<()> {
         /// let content =
         ///     LifetimeLimits::from_range(Duration::from_hours(24)..Duration::from_hours(24 * 10))?;

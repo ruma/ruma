@@ -2,8 +2,8 @@
 //!
 //! Get to-device events for a dehydrated device.
 
-pub mod unstable {
-    //! `msc3814` ([MSC])
+pub mod msc3814 {
+    //! `/unstable/org.matrix.msc3814.v1/` ([MSC])
     //!
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/3814
 

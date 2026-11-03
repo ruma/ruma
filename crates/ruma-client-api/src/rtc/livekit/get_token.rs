@@ -2,8 +2,8 @@
 //!
 //! Get a token to authenticate with a LiveKit SFU for a MatrixRTC slot.
 
-pub mod v1 {
-    //! `/v1/` ([MSC])
+pub mod msc4195 {
+    //! `/unstable/io.element.msc4195/` ([MSC])
     //!
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4195
 

@@ -1,11 +1,11 @@
-//! `POST /_matrix/client/unstable/org.matrix.simplified_msc3575/sync` ([MSC4186])
+//! `POST /_matrix/client/unstable/org.matrix.simplified_msc3575/sync` ([MSC])
 //!
 //! A simplified version of sliding sync ([MSC3575]).
 //!
 //! Get all new events in a sliding window of rooms since the last sync or a given point in time.
 //!
 //! [MSC3575]: https://github.com/matrix-org/matrix-spec-proposals/pull/3575
-//! [MSC4186]: https://github.com/matrix-org/matrix-spec-proposals/pull/4186
+//! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4186
 
 use std::{collections::BTreeMap, time::Duration};
 
@@ -658,7 +658,7 @@ pub mod response {
         UnreadNotificationsCount,
     };
     #[cfg(feature = "unstable-msc4308")]
-    use crate::threads::get_thread_subscriptions_changes::unstable::{
+    use crate::threads::get_thread_subscriptions_changes::msc4308::{
         ThreadSubscription, ThreadUnsubscription,
     };
 

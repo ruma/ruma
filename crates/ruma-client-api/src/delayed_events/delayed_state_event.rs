@@ -2,14 +2,17 @@
 //!
 //! Send a delayed state event (a scheduled state event) to a room.
 //!
-//! This endpoint implements a previous iteration of MSC4140 at commit [`3ee73ab`].
-//! At the time of writing, this matches the current implementation of Synapse but the latest
-//! iteration of the MSC uses the `send_delayed_event` endpoint instead.
+//! This endpoint implements a previous iteration of MSC4140 at commit [`3ee73ab`], which adds an
+//! unstable query parameter to [`send_state_event`]. At the time of writing, this matches the
+//! current implementation of Synapse but the latest iteration of the MSC uses the
+//! [`send_delayed_event`] endpoint instead.
 //!
 //! [`3ee73ab`]: https://github.com/matrix-org/matrix-spec-proposals/blob/3ee73abe5f81252b00877cfb5db941ee9aa6c18d/proposals/4140-delayed-events-futures.md
+//! [`send_state_event`]: crate::state::send_state_event
+//! [`send_delayed_event`]: super::send_delayed_event
 
-pub mod unstable {
-    //! `msc4140` ([MSC])
+pub mod msc4140 {
+    //! `/v3/` ([MSC])
     //!
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
 
@@ -34,8 +37,7 @@ pub mod unstable {
         }
     }
 
-    /// Request type for the [`delayed_state_event`](crate::delayed_events::delayed_state_event)
-    /// endpoint.
+    /// Request type for the `delayed_state_event` endpoint.
     #[request]
     pub struct Request {
         /// The room to send the event to.
@@ -62,8 +64,7 @@ pub mod unstable {
         pub body: Raw<AnyStateEventContent>,
     }
 
-    /// Response type for the [`delayed_state_event`](crate::delayed_events::delayed_state_event)
-    /// endpoint.
+    /// Response type for the `delayed_state_event` endpoint.
     #[response]
     pub struct Response {
         /// The `delay_id` generated for this delayed event. Used to interact with delayed events.
@@ -77,7 +78,7 @@ pub mod unstable {
         /// # Errors
         ///
         /// Since `Request` stores the request body in serialized form, this function can fail if
-        /// `T`s [`::serde::Serialize`] implementation can fail.
+        /// `T`s [`serde::Serialize`] implementation can fail.
         pub fn new<T>(
             room_id: OwnedRoomId,
             state_key: String,
@@ -110,8 +111,7 @@ pub mod unstable {
     }
 
     impl Response {
-        /// Creates a new `Response` with the tokens required to control the delayed event using the
-        /// [`crate::delayed_events::update_delayed_event::unstable_v1::Request`] request.
+        /// Creates a new `Response` with the token required to control the delayed event.
         pub fn new(delay_id: String) -> Self {
             Self { delay_id }
         }

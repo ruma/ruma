@@ -3,8 +3,8 @@
 //! Create a rendezvous session.
 
 #[cfg(feature = "unstable-msc4108")]
-pub mod unstable_msc4108 {
-    //! `unstable/org.matrix.msc4108` ([MSC])
+pub mod msc4108 {
+    //! `/unstable/org.matrix.msc4108/` ([MSC])
     //!
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4108
 
@@ -199,8 +199,8 @@ pub mod unstable_msc4108 {
 }
 
 #[cfg(feature = "unstable-msc4388")]
-pub mod unstable_msc4388 {
-    //! `unstable/io.element.msc4388` ([MSC])
+pub mod msc4388 {
+    //! `/unstable/io.element.msc4388/` ([MSC])
     //!
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4388
     use std::time::Duration;

@@ -1,6 +1,6 @@
 //! `POST /_matrix/client/*/delayed_events/{delayed_id}`
 //!
-//! Send a delayed event update. This can be a updateing/canceling/sending the associated delayed
+//! Send a delayed event update. This can be updating/canceling/sending the associated delayed
 //! event.
 
 use ruma_common::serde::StringEnum;
@@ -14,9 +14,11 @@ use crate::PrivOwnedStr;
 pub enum UpdateAction {
     /// Restart the delayed event timeout. (heartbeat ping)
     Restart,
+
     /// Send the delayed event immediately independent of the timeout state. (deletes all
     /// timers)
     Send,
+
     /// Delete the delayed event and never send it. (deletes all timers)
     Cancel,
 
@@ -24,10 +26,10 @@ pub enum UpdateAction {
     _Custom(PrivOwnedStr),
 }
 
-pub mod unstable_v1;
+pub mod msc4140_v1;
 
-pub mod unstable_v2 {
-    //! `msc3814` ([MSC])
+pub mod msc4140_v2 {
+    //! `/unstable/org.matrix.msc4140/` ([MSC])
     //!
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
 
@@ -47,13 +49,13 @@ pub mod unstable_v2 {
         }
     }
 
-    /// Request type for the [`update_delayed_event`](crate::delayed_events::update_delayed_event)
-    /// endpoint.
+    /// Request type for the `update_delayed_event` endpoint.
     #[request]
     pub struct Request {
         /// The delay id that we want to update.
         #[ruma_api(path)]
         pub delay_id: String,
+
         /// Which kind of update we want to request for the delayed event.
         #[ruma_api(path)]
         pub action: UpdateAction,
@@ -66,13 +68,11 @@ pub mod unstable_v2 {
         }
     }
 
-    /// Response type for the [`update_delayed_event`](crate::delayed_events::update_delayed_event)
-    /// endpoint.
+    /// Response type for the `update_delayed_event` endpoint.
     #[response]
     pub struct Response {}
     impl Response {
-        /// Creates a new empty response for the
-        /// [`update_delayed_event`](crate::delayed_events::update_delayed_event) endpoint.
+        /// Creates a new empty response.
         pub fn new() -> Self {
             Self {}
         }
