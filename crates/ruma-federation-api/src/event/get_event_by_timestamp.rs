@@ -2,5 +2,5 @@
 //!
 //! Get the ID of the event closest to the given timestamp.
 
-pub mod unstable;
+pub mod msc3030;
 pub mod v1;

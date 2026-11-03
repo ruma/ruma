@@ -2,5 +2,5 @@
 //!
 //! Retrieve content from the media store.
 
-pub mod unstable;
+pub mod msc3916;
 pub mod v1;
