@@ -25,69 +25,17 @@ impl MarkedUnreadEventContent {
     }
 }
 
-/// The content of a [`com.famedly.marked_unread`] event, the unstable version of
-/// [MarkedUnreadEventContent].
-///
-/// Whether the room has been explicitly marked as unread.
-///
-/// This event appears in the user's room account data for the room the marker is applicable for.
-///
-/// [`com.famedly.marked_unread`]: https://github.com/matrix-org/matrix-spec-proposals/pull/2867
-#[cfg(feature = "unstable-msc2867")]
-#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-#[ruma_event(type = "com.famedly.marked_unread", kind = RoomAccountData)]
-#[serde(transparent)]
-pub struct UnstableMarkedUnreadEventContent(pub MarkedUnreadEventContent);
-
-#[cfg(feature = "unstable-msc2867")]
-impl std::ops::Deref for UnstableMarkedUnreadEventContent {
-    type Target = MarkedUnreadEventContent;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-#[cfg(feature = "unstable-msc2867")]
-impl From<MarkedUnreadEventContent> for UnstableMarkedUnreadEventContent {
-    fn from(value: MarkedUnreadEventContent) -> Self {
-        Self(value)
-    }
-}
-
-#[cfg(feature = "unstable-msc2867")]
-impl From<UnstableMarkedUnreadEventContent> for MarkedUnreadEventContent {
-    fn from(value: UnstableMarkedUnreadEventContent) -> Self {
-        value.0
-    }
-}
-
-#[cfg(all(test, feature = "unstable-msc2867"))]
+#[cfg(test)]
 mod tests {
     use ruma_common::canonical_json::assert_to_canonical_json_eq;
     use serde_json::{from_value as from_json_value, json};
     use strass::assert_let;
 
-    use super::{MarkedUnreadEventContent, UnstableMarkedUnreadEventContent};
+    use super::MarkedUnreadEventContent;
     use crate::{AnyRoomAccountDataEvent, RoomAccountDataEvent};
 
     #[test]
     fn deserialize() {
-        let raw_unstable_marked_unread = json!({
-            "type": "com.famedly.marked_unread",
-            "content": {
-                "unread": true,
-            },
-        });
-        let unstable_marked_unread_account_data =
-            from_json_value::<AnyRoomAccountDataEvent>(raw_unstable_marked_unread).unwrap();
-        assert_let!(
-            AnyRoomAccountDataEvent::UnstableMarkedUnread(unstable_marked_unread) =
-                unstable_marked_unread_account_data
-        );
-        assert!(unstable_marked_unread.content.unread);
-
         let raw_marked_unread = json!({
             "type": "m.marked_unread",
             "content": {
@@ -105,24 +53,11 @@ mod tests {
     #[test]
     fn serialize() {
         let marked_unread = MarkedUnreadEventContent::new(true);
-        let marked_unread_account_data = RoomAccountDataEvent { content: marked_unread.clone() };
+        let marked_unread_account_data = RoomAccountDataEvent { content: marked_unread };
         assert_to_canonical_json_eq!(
             marked_unread_account_data,
             json!({
                 "type": "m.marked_unread",
-                "content": {
-                    "unread": true,
-                },
-            })
-        );
-
-        let unstable_marked_unread = UnstableMarkedUnreadEventContent::from(marked_unread);
-        let unstable_marked_unread_account_data =
-            RoomAccountDataEvent { content: unstable_marked_unread };
-        assert_to_canonical_json_eq!(
-            unstable_marked_unread_account_data,
-            json!({
-                "type": "com.famedly.marked_unread",
                 "content": {
                     "unread": true,
                 },
