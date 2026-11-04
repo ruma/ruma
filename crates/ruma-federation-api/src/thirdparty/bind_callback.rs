@@ -1,4 +1,4 @@
-//! `PUT /_matrix/federation/*/3pid/onbind`
+//! `POST /_matrix/federation/*/3pid/onbind`
 //!
 //! Used by identity servers to notify the homeserver that one of its users has bound a third party
 //! identifier successfully, including any pending room invites the identity server has been made
@@ -20,7 +20,7 @@ pub mod v1 {
     use serde::{Deserialize, Serialize};
 
     metadata! {
-        method: PUT,
+        method: POST,
         rate_limited: false,
         authentication: NoAuthentication,
         path: "/_matrix/federation/v1/3pid/onbind",
