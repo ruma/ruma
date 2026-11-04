@@ -52,6 +52,14 @@ pub enum Edu {
     #[serde(rename = "m.signing_key_update")]
     SigningKeyUpdate(SigningKeyUpdateContent),
 
+    /// An EDU that lets servers ask other servers to redact their cached copies of
+    /// a media file belonging to the sending server. ([MSC4322])
+    ///
+    /// [MSC4322]: https://github.com/matrix-org/matrix-spec-proposals/pull/4322
+    #[cfg(feature = "unstable-msc4322")]
+    #[serde(rename = "uk.timedout.msc4322.media_redaction")]
+    MediaRedaction(MediaRedactionContent),
+
     #[doc(hidden)]
     #[serde(untagged)]
     _Custom(CustomEdu),
@@ -78,6 +86,10 @@ impl<'de> Deserialize<'de> for Edu {
             "m.device_list_update" => Self::DeviceListUpdate(from_raw_json_value(&content)?),
             "m.direct_to_device" => Self::DirectToDevice(from_raw_json_value(&content)?),
             "m.signing_key_update" => Self::SigningKeyUpdate(from_raw_json_value(&content)?),
+            #[cfg(feature = "unstable-msc4322")]
+            "uk.timedout.msc4322.media_redaction" => {
+                Self::MediaRedaction(from_raw_json_value(&content)?)
+            }
             _ => Self::_Custom(CustomEdu { edu_type, content }),
         })
     }
@@ -391,6 +403,23 @@ impl SigningKeyUpdateContent {
     /// Creates a new `SigningKeyUpdateContent`.
     pub fn new(user_id: OwnedUserId) -> Self {
         Self { user_id, master_key: None, self_signing_key: None }
+    }
+}
+
+/// The content for an `m.media_redaction` EDU.
+#[cfg(feature = "unstable-msc4322")]
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct MediaRedactionContent {
+    /// The media ID of the mxc:// URI to redact (the path component).
+    media_id: String,
+}
+
+#[cfg(feature = "unstable-msc4322")]
+impl MediaRedactionContent {
+    /// Creates a new `MediaRedactionContent`.
+    pub fn new(media_id: String) -> Self {
+        Self { media_id }
     }
 }
 
@@ -714,5 +743,20 @@ mod tests {
         assert_eq!(delete.len(), 1);
 
         assert_to_canonical_json_eq!(edu, json);
+    }
+
+    #[cfg(feature = "unstable-msc4322")]
+    #[test]
+    fn msc4322_media_redaction_edu() {
+        let json = json!({
+            "content": {
+                "media_id": "meowmeowmeow"
+            },
+            "edu_type": "uk.timedout.msc4322.media_redaction",
+        });
+
+        let edu = serde_json::from_value::<Edu>(json.clone()).unwrap();
+        assert_let!(Edu::MediaRedaction(content) = &edu);
+        assert_eq!(content.media_id, "meowmeowmeow");
     }
 }

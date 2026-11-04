@@ -8,6 +8,8 @@ pub mod get_content_as_filename;
 pub mod get_content_thumbnail;
 pub mod get_media_config;
 pub mod get_media_preview;
+#[cfg(feature = "unstable-msc4322")]
+pub mod redact;
 
 /// Checks whether a given `Content-Type` is considered "safe" for having a `Content-Disposition` of
 /// `inline` returned on `/download`, as recommended by the [spec].

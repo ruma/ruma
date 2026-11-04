@@ -20,9 +20,11 @@ Improvements:
   of the LiveKit SFU instead of the `service_url` of the LiveKit JWT service.
   Constructing a `LiveKitRtcTransport` with the `service_url` is still possible
   with the deprecated `LiveKitRtcTransport::with_service_url()`.
+- Add unstable support for [MSC4322] "Simple Media Self-Redaction".
 
 [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
 [MSC4559]: https://github.com/matrix-org/matrix-spec-proposals/pull/4559
+[MSC4322]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
 
 ## 0.25.2
 
