@@ -103,9 +103,6 @@ event_enum! {
         "m.fully_read" => super::fully_read,
         "m.tag" => super::tag,
         "m.marked_unread" => super::marked_unread,
-        #[cfg(feature = "unstable-msc2867")]
-        #[ruma_enum(ident = UnstableMarkedUnread)]
-        "com.famedly.marked_unread" => super::marked_unread,
         #[cfg(feature = "unstable-msc4278")]
         "m.media_preview_config" => super::media_preview_config,
         #[cfg(feature = "unstable-msc4278")]
