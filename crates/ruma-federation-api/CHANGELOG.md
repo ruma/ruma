@@ -5,8 +5,10 @@
 Improvements:
 
 - Add unstable support for [MSC4532] "Revised Social Presence".
+- Add unstable support for [MSC4322] "Simple Media Self-Redaction".
 
 [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
+[MSC4322]: https://github.com/matrix-org/matrix-spec-proposals/pull/4322
 
 ## 0.16.1
 
