@@ -28,6 +28,20 @@ fn strict_mode_valid_input() {
 }
 
 #[test]
+fn strict_mode_keep_img_emoticon() {
+    let config = SanitizerConfig::strict();
+    let html = Html::parse(
+        "<img data-mx-emoticon height=\"32\" src=\"mxc://notareal.hs/abcdef\" alt=\":wave:\">",
+    );
+    html.sanitize_with(&config);
+
+    assert_eq!(
+        html.to_string(),
+        "<img alt=\":wave:\" data-mx-emoticon=\"\" height=\"32\" src=\"mxc://notareal.hs/abcdef\">"
+    );
+}
+
+#[test]
 fn strict_mode_elements_remove() {
     let config = SanitizerConfig::strict();
     let html = Html::parse(

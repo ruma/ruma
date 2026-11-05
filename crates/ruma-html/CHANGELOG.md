@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+Bug fixes:
+
+- Allow the `data-mx-emoticon` attribute on `img` elements when sanitizing, as
+  defined in the Matrix specification for image packs.
+
 ## 0.9.0
 
 Breaking changes:
