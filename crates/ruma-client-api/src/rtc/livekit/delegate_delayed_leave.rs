@@ -2,7 +2,7 @@
 //!
 //! Delegate the restarting of the delayed leave event of a MatrixRTC slot to the homeserver.
 
-pub mod mc4195 {
+pub mod msc4195 {
     //! `/unstable/io.element.msc4195/` ([MSC])
     //!
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4195
