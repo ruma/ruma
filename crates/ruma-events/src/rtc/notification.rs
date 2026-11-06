@@ -7,7 +7,7 @@
 
 use std::time::Duration;
 
-use js_int::UInt;
+use js_int::Int;
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events::{Mentions, relation::Reference};
 use ruma_macros::{EventContent, StringEnum};
@@ -94,18 +94,14 @@ impl RtcNotificationEventContent {
         origin_server_ts: MilliSecondsSinceUnixEpoch,
         max_sender_ts_offset: Option<u32>,
     ) -> MilliSecondsSinceUnixEpoch {
-        let (larger, smaller) = if self.sender_ts.get() > origin_server_ts.get() {
-            (self.sender_ts.get(), origin_server_ts.get())
-        } else {
-            (origin_server_ts.get(), self.sender_ts.get())
-        };
+        let sender_ts_offset =
+            i64::from(self.sender_ts.get()).abs_diff(i64::from(origin_server_ts.get()));
         let use_origin_server_ts =
-            larger.saturating_sub(smaller) > max_sender_ts_offset.unwrap_or(20_000).into();
+            sender_ts_offset > u64::from(max_sender_ts_offset.unwrap_or(20_000));
         let start_ts =
             if use_origin_server_ts { origin_server_ts.get() } else { self.sender_ts.get() };
-        MilliSecondsSinceUnixEpoch(
-            start_ts.saturating_add(UInt::from(self.lifetime.as_millis() as u32)),
-        )
+        let lt_millis = Int::try_from(self.lifetime.as_millis()).unwrap_or(Int::MAX);
+        MilliSecondsSinceUnixEpoch(start_ts.saturating_add(lt_millis))
     }
 }
 
@@ -146,7 +142,7 @@ pub enum CallIntent {
 mod tests {
     use std::time::Duration;
 
-    use js_int::{UInt, uint};
+    use js_int::{Int, int};
     use ruma_common::{
         MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, owned_event_id,
     };
@@ -159,7 +155,7 @@ mod tests {
     #[test]
     fn notification_event_serialization() {
         let mut content = RtcNotificationEventContent::new(
-            MilliSecondsSinceUnixEpoch(UInt::new(1_752_583_130_365).unwrap()),
+            MilliSecondsSinceUnixEpoch(Int::new(1_752_583_130_365).unwrap()),
             Duration::from_millis(30_000),
             NotificationType::Ring,
         );
@@ -181,7 +177,7 @@ mod tests {
     #[test]
     fn notification_event_call_intent_serialization() {
         let mut content = RtcNotificationEventContent::new(
-            MilliSecondsSinceUnixEpoch(UInt::new(0).unwrap()),
+            MilliSecondsSinceUnixEpoch(int!(0)),
             Duration::from_millis(30_000),
             NotificationType::Notification,
         );
@@ -248,44 +244,44 @@ mod tests {
     #[test]
     fn expiration_ts_computation() {
         let content = RtcNotificationEventContent::new(
-            MilliSecondsSinceUnixEpoch(UInt::new(100_365).unwrap()),
+            MilliSecondsSinceUnixEpoch(Int::new(100_365).unwrap()),
             Duration::from_millis(30_000),
             NotificationType::Ring,
         );
 
         // sender_ts is trustworthy
-        let origin_server_ts = MilliSecondsSinceUnixEpoch(uint!(120_000));
+        let origin_server_ts = MilliSecondsSinceUnixEpoch(int!(120_000));
         assert_eq!(
             content.expiration_ts(origin_server_ts, None),
-            MilliSecondsSinceUnixEpoch(uint!(130_365))
+            MilliSecondsSinceUnixEpoch(int!(130_365))
         );
 
         // sender_ts is not trustworthy (sender_ts too small), origin_server_ts is used instead
-        let origin_server_ts = MilliSecondsSinceUnixEpoch(uint!(200_000));
+        let origin_server_ts = MilliSecondsSinceUnixEpoch(int!(200_000));
         assert_eq!(
             content.expiration_ts(origin_server_ts, None),
-            MilliSecondsSinceUnixEpoch(uint!(230_000))
+            MilliSecondsSinceUnixEpoch(int!(230_000))
         );
 
         // sender_ts is not trustworthy (sender_ts too large), origin_server_ts is used instead
-        let origin_server_ts = MilliSecondsSinceUnixEpoch(uint!(50_000));
+        let origin_server_ts = MilliSecondsSinceUnixEpoch(int!(50_000));
         assert_eq!(
             content.expiration_ts(origin_server_ts, None),
-            MilliSecondsSinceUnixEpoch(uint!(80_000))
+            MilliSecondsSinceUnixEpoch(int!(80_000))
         );
 
         // using a custom max offset (result in origin_server_ts)
-        let origin_server_ts = MilliSecondsSinceUnixEpoch(uint!(130_200));
+        let origin_server_ts = MilliSecondsSinceUnixEpoch(int!(130_200));
         assert_eq!(
             content.expiration_ts(origin_server_ts, Some(100)),
-            MilliSecondsSinceUnixEpoch(uint!(160_200))
+            MilliSecondsSinceUnixEpoch(int!(160_200))
         );
 
         // using a custom max offset (result in sender_ts)
-        let origin_server_ts = MilliSecondsSinceUnixEpoch(uint!(100_300));
+        let origin_server_ts = MilliSecondsSinceUnixEpoch(int!(100_300));
         assert_eq!(
             content.expiration_ts(origin_server_ts, Some(100)),
-            MilliSecondsSinceUnixEpoch(uint!(130_365))
+            MilliSecondsSinceUnixEpoch(int!(130_365))
         );
     }
 }

@@ -1,7 +1,7 @@
 #![cfg(feature = "unstable-msc1767")]
 
 use assign::assign;
-use js_int::uint;
+use js_int::int;
 use ruma_common::{
     MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, owned_event_id,
     serde::CanBeEmpty,
@@ -271,7 +271,7 @@ fn message_event_deserialization() {
     );
     assert_eq!(message_event.event_id, "$event:notareal.hs");
     assert_eq!(message_event.content.text.find_plain(), Some("Hello, World!"));
-    assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(134_829_848)));
+    assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(int!(134_829_848)));
     assert_eq!(message_event.room_id, "!roomid:notareal.hs");
     assert_eq!(message_event.sender, "@user:notareal.hs");
     assert!(message_event.unsigned.is_empty());
@@ -316,7 +316,7 @@ fn emote_event_deserialization() {
     );
 
     assert_eq!(message_event.event_id, "$event:notareal.hs");
-    assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(134_829_848)));
+    assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(int!(134_829_848)));
     assert_eq!(message_event.room_id, "!roomid:notareal.hs");
     assert_eq!(message_event.sender, "@user:notareal.hs");
     assert!(message_event.unsigned.is_empty());

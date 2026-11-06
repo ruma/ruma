@@ -284,7 +284,7 @@ mod tests {
 
         // Call.
         let mut call = CallProfileField::new();
-        call.call_joined_ts = Some(SecondsSinceUnixEpoch(1_770_140_640.try_into().unwrap()));
+        call.call_joined_ts = Some(SecondsSinceUnixEpoch(1_770_140_640.into()));
         let value = ProfileFieldValue::Call(call);
         assert_to_canonical_json_eq!(
             value,
@@ -309,8 +309,7 @@ mod tests {
         // Call.
         let json = json!({ "org.matrix.msc4426.call": { "call_joined_ts": 1_168_380_060 } });
         let mut expected_call = CallProfileField::new();
-        expected_call.call_joined_ts =
-            Some(SecondsSinceUnixEpoch(1_168_380_060.try_into().unwrap()));
+        expected_call.call_joined_ts = Some(SecondsSinceUnixEpoch(1_168_380_060.into()));
         assert_eq!(
             from_json_value::<ProfileFieldValue>(json).unwrap(),
             ProfileFieldValue::Call(expected_call)

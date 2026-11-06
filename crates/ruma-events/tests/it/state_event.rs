@@ -1,5 +1,5 @@
 use assert_matches::assert_matches;
-use js_int::uint;
+use js_int::{int, uint};
 use ruma_common::{MilliSecondsSinceUnixEpoch, serde::CanBeEmpty};
 use ruma_events::{AnyStateEvent, AnySyncStateEvent, AnyTimelineEvent, StateEvent, SyncStateEvent};
 use serde_json::{from_value as from_json_value, json};
@@ -27,7 +27,7 @@ fn deserialize_room_name_with_prev_content() {
     assert_let!(Ok(AnyStateEvent::RoomName(StateEvent::Original(ev))) = from_json_value(json));
     assert_eq!(ev.content.name, "Somewhere");
     assert_eq!(ev.event_id, "$h29iv0s8:example.com");
-    assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
+    assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(int!(1)));
     assert_eq!(ev.room_id, "!roomid:room.com");
     assert_eq!(ev.sender, "@carl:example.com");
 
@@ -80,7 +80,7 @@ fn deserialize_sync_room_name_with_prev_content() {
     );
     assert_eq!(ev.content.name, "Somewhere");
     assert_eq!(ev.event_id, "$h29iv0s8:example.com");
-    assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
+    assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(int!(1)));
     assert_eq!(ev.sender, "@carl:example.com");
 
     let prev_content = ev.unsigned.prev_content.unwrap();
@@ -119,7 +119,7 @@ fn deserialize_avatar_without_prev_content() {
             from_json_value::<AnyStateEvent>(json_data)
     );
     assert_eq!(ev.event_id, "$h29iv0s8:example.com");
-    assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
+    assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(int!(1)));
     assert_eq!(ev.room_id, "!roomid:room.com");
     assert_eq!(ev.sender, "@carl:example.com");
     assert!(ev.unsigned.is_empty());
@@ -164,7 +164,7 @@ fn deserialize_member_event_with_top_level_membership_field() {
             from_json_value::<AnyTimelineEvent>(json_data)
     );
     assert_eq!(ev.event_id, "$h29iv0s8:example.com");
-    assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
+    assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(int!(1)));
     assert_eq!(ev.sender, "@example:localhost");
     assert_eq!(ev.content.displayname.as_deref(), Some("example"));
 }
@@ -197,7 +197,7 @@ fn deserialize_full_event_convert_to_sync() {
 
     assert_eq!(sync_ev.content.topic, "We welcome everybody");
     assert_eq!(sync_ev.event_id, "$h29iv0s8:example.com");
-    assert_eq!(sync_ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
+    assert_eq!(sync_ev.origin_server_ts, MilliSecondsSinceUnixEpoch(int!(1)));
     assert_eq!(
         sync_ev.unsigned.prev_content.unwrap().topic.as_deref(),
         Some("No one is welcome here")

@@ -296,7 +296,7 @@ pub struct CustomRedactionEvent {
 #[cfg(test)]
 mod tests {
     use assert_matches::assert_matches;
-    use js_int::uint;
+    use js_int::int;
     use serde_json::{from_value as from_json_value, json};
 
     use super::AnyRedactionEvent;
@@ -316,7 +316,7 @@ mod tests {
 
         let event = from_json_value::<AnyRedactionEvent>(json).unwrap();
         assert_eq!(event.event_id(), "$redactionevent");
-        assert_eq!(event.origin_server_ts().0, uint!(1));
+        assert_eq!(event.origin_server_ts().0, int!(1));
         assert_eq!(event.sender(), "@carl:example.com");
         assert_eq!(event.event_type(), TimelineEventType::RoomRedaction);
         assert_matches!(event, AnyRedactionEvent::RoomRedaction(_));
@@ -334,7 +334,7 @@ mod tests {
 
         let event = from_json_value::<AnyRedactionEvent>(json).unwrap();
         assert_eq!(event.event_id(), "$redactionevent");
-        assert_eq!(event.origin_server_ts().0, uint!(1));
+        assert_eq!(event.origin_server_ts().0, int!(1));
         assert_eq!(event.sender(), "@carl:example.com");
         assert_eq!(event.event_type().to_string(), "local.dev.custom_type");
     }
