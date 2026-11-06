@@ -256,13 +256,11 @@ mod tests {
     use assert_matches::assert_matches;
     use js_int::{int, uint};
     use ruma_common::{
-        MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId, device_id,
-        owned_device_id, owned_server_name, user_id,
+        MilliSecondsSinceUnixEpoch, OwnedEventId, OwnedRoomId, OwnedUserId,
+        canonical_json::assert_to_canonical_json_eq, device_id, owned_device_id, user_id,
     };
-    use serde_json::{
-        Value as JsonValue, from_value as from_json_value, json, to_value as to_json_value,
-    };
-    use strass::assert_let;
+    use serde_json::{Value as JsonValue, from_value as from_json_value, json};
+    use strass::{assert_let, assert_variant_eq};
 
     use super::{
         CallMemberEventContent,
@@ -285,7 +283,7 @@ mod tests {
             )),
             device_id: owned_device_id!("ABCDE"),
             expires: Duration::from_secs(3600),
-            foci_active: vec![Focus::Livekit(LivekitFocus {
+            foci_active: vec![Focus::LegacyLivekit(LivekitFocus {
                 alias: Some("1".to_owned()),
                 url: None,
                 server_name: None,
@@ -303,7 +301,7 @@ mod tests {
             ActiveFocus::Livekit(ActiveLivekitFocus {
                 focus_selection: FocusSelection::OldestMembership,
             }),
-            vec![Focus::Livekit(LivekitFocus {
+            vec![Focus::LegacyLivekit(LivekitFocus {
                 alias: Some("1".to_owned()),
                 url: None,
                 server_name: None,
@@ -384,7 +382,7 @@ mod tests {
             ActiveFocus::Livekit(ActiveLivekitFocus {
                 focus_selection: FocusSelection::OldestMembership,
             }),
-            vec![Focus::Livekit(LivekitFocus {
+            vec![Focus::LegacyLivekit(LivekitFocus {
                 alias: Some("room1".to_owned()),
                 url: None,
                 server_name: None,
@@ -434,7 +432,7 @@ mod tests {
             ActiveFocus::Livekit(ActiveLivekitFocus {
                 focus_selection: FocusSelection::OldestMembership,
             }),
-            vec![Focus::Livekit(LivekitFocus {
+            vec![Focus::LegacyLivekit(LivekitFocus {
                 alias: None,
                 url: None,
                 server_name: None,
@@ -476,41 +474,41 @@ mod tests {
     }
 
     #[test]
-    fn serde_livekit_focus_legacy() {
+    fn serde_legacy_livekit_focus_service_url_only() {
         let json = json!({
             "type": "livekit",
             "livekit_service_url": "https://livekit-jwt.example.com",
         });
 
         let focus = from_json_value::<Focus>(json.clone()).unwrap();
-        assert_let!(Focus::Livekit(livekit) = &focus);
+        assert_let!(Focus::LegacyLivekit(livekit) = &focus);
         assert_eq!(livekit.alias, None);
         assert_eq!(livekit.url, None);
         assert_eq!(livekit.server_name, None);
-        assert_eq!(livekit.service_url.as_deref(), Some("https://livekit-jwt.example.com"));
+        assert_variant_eq!(livekit.service_url, Some("https://livekit-jwt.example.com"));
 
-        assert_eq!(to_json_value(&focus).unwrap(), json);
+        assert_to_canonical_json_eq!(focus, json);
     }
 
     #[test]
-    fn serde_livekit_focus_url_only() {
+    fn serde_legacy_livekit_focus_url_only() {
         let json = json!({
             "type": "livekit",
             "url": "wss://livekit.example.com",
         });
 
         let focus = from_json_value::<Focus>(json.clone()).unwrap();
-        assert_let!(Focus::Livekit(livekit) = &focus);
+        assert_let!(Focus::LegacyLivekit(livekit) = &focus);
         assert_eq!(livekit.alias, None);
-        assert_eq!(livekit.url.as_deref(), Some("wss://livekit.example.com"));
+        assert_variant_eq!(livekit.url, Some("wss://livekit.example.com"));
         assert_eq!(livekit.server_name, None);
         assert_eq!(livekit.service_url, None);
 
-        assert_eq!(to_json_value(&focus).unwrap(), json);
+        assert_to_canonical_json_eq!(focus, json);
     }
 
     #[test]
-    fn serde_livekit_focus_all_fields() {
+    fn serde_legacy_livekit_focus_all_fields() {
         let json = json!({
             "type": "livekit",
             "url": "wss://livekit.bob.com",
@@ -520,13 +518,91 @@ mod tests {
         });
 
         let focus = from_json_value::<Focus>(json.clone()).unwrap();
-        assert_let!(Focus::Livekit(livekit) = &focus);
-        assert_eq!(livekit.alias.as_deref(), Some("room1"));
-        assert_eq!(livekit.url.as_deref(), Some("wss://livekit.bob.com"));
-        assert_eq!(livekit.server_name, Some(owned_server_name!("bob.com")));
-        assert_eq!(livekit.service_url.as_deref(), Some("https://livekit-jwt.bob.com"));
+        assert_let!(Focus::LegacyLivekit(livekit) = &focus);
+        assert_variant_eq!(livekit.alias, Some("room1"));
+        assert_variant_eq!(livekit.url, Some("wss://livekit.bob.com"));
+        assert_variant_eq!(livekit.server_name, Some("bob.com"));
+        assert_variant_eq!(livekit.service_url, Some("https://livekit-jwt.bob.com"));
 
-        assert_eq!(to_json_value(&focus).unwrap(), json);
+        assert_to_canonical_json_eq!(focus, json);
+    }
+
+    #[test]
+    fn livekit_focus_new() {
+        let url = "wss://livekit.local/".to_owned();
+        let focus = Focus::livekit(url.clone());
+        assert_eq!(focus, Focus::Livekit(LivekitFocus::new(url)));
+    }
+
+    #[test]
+    fn serde_livekit_focus() {
+        let json = json!({
+            "type": "m.livekit",
+            "url": "wss://livekit.example.com",
+        });
+
+        let focus = from_json_value::<Focus>(json.clone()).unwrap();
+        assert_eq!(focus, Focus::livekit("wss://livekit.example.com".to_owned()));
+        assert_let!(Focus::Livekit(livekit) = &focus);
+        assert_variant_eq!(livekit.url, Some("wss://livekit.example.com"));
+        assert_eq!(livekit.server_name, None);
+
+        assert_to_canonical_json_eq!(focus, json);
+    }
+
+    #[test]
+    fn serde_livekit_focus_with_server_name() {
+        let json = json!({
+            "type": "m.livekit",
+            "url": "wss://livekit.bob.com",
+            "server_name": "bob.com",
+        });
+
+        let focus = from_json_value::<Focus>(json.clone()).unwrap();
+        assert_let!(Focus::Livekit(livekit) = &focus);
+        assert_variant_eq!(livekit.url, Some("wss://livekit.bob.com"));
+        assert_variant_eq!(livekit.server_name, Some("bob.com"));
+
+        assert_to_canonical_json_eq!(focus, json);
+    }
+
+    #[test]
+    fn serde_livekit_focus_service_url_only() {
+        let json = json!({
+            "type": "m.livekit",
+            "livekit_service_url": "https://livekit-jwt.example.com",
+        });
+
+        let focus = from_json_value::<Focus>(json.clone()).unwrap();
+        assert_let!(Focus::Livekit(livekit) = &focus);
+        assert_eq!(livekit.url, None);
+        assert_variant_eq!(livekit.service_url, Some("https://livekit-jwt.example.com"));
+        assert_eq!(
+            *livekit,
+            LivekitFocus::with_service_url("https://livekit-jwt.example.com".to_owned())
+        );
+
+        assert_to_canonical_json_eq!(focus, json);
+    }
+
+    #[test]
+    fn serde_livekit_focus_all_fields() {
+        let json = json!({
+            "type": "m.livekit",
+            "url": "wss://livekit.bob.com",
+            "server_name": "bob.com",
+            "livekit_service_url": "https://livekit-jwt.bob.com",
+            "livekit_alias": "room1",
+        });
+
+        let focus = from_json_value::<Focus>(json.clone()).unwrap();
+        assert_let!(Focus::Livekit(livekit) = &focus);
+        assert_variant_eq!(livekit.alias, Some("room1"));
+        assert_variant_eq!(livekit.url, Some("wss://livekit.bob.com"));
+        assert_variant_eq!(livekit.server_name, Some("bob.com"));
+        assert_variant_eq!(livekit.service_url, Some("https://livekit-jwt.bob.com"));
+
+        assert_to_canonical_json_eq!(focus, json);
     }
 
     #[test]
@@ -542,7 +618,7 @@ mod tests {
             ActiveFocus::Livekit(ActiveLivekitFocus {
                 focus_selection: FocusSelection::OldestMembership,
             }),
-            vec![Focus::Livekit(LivekitFocus {
+            vec![Focus::LegacyLivekit(LivekitFocus {
                 alias: Some("room1".to_owned()),
                 url: None,
                 server_name: None,
@@ -642,7 +718,7 @@ mod tests {
                 )),
                 device_id: owned_device_id!("THIS_DEVICE"),
                 expires: Duration::from_secs(3600),
-                foci_active: vec![Focus::Livekit(LivekitFocus {
+                foci_active: vec![Focus::LegacyLivekit(LivekitFocus {
                     alias: Some("room1".to_owned()),
                     url: None,
                     server_name: None,
@@ -658,7 +734,7 @@ mod tests {
                 )),
                 device_id: owned_device_id!("OTHER_DEVICE"),
                 expires: Duration::from_secs(3600),
-                foci_active: vec![Focus::Livekit(LivekitFocus {
+                foci_active: vec![Focus::LegacyLivekit(LivekitFocus {
                     alias: Some("room2".to_owned()),
                     url: None,
                     server_name: None,
@@ -767,7 +843,7 @@ mod tests {
                 CallScope::Room,
             )),
             device_id: owned_device_id!("THIS_DEVICE"),
-            foci_preferred: [Focus::Livekit(LivekitFocus {
+            foci_preferred: [Focus::LegacyLivekit(LivekitFocus {
                 alias: Some("room1".to_owned()),
                 url: None,
                 server_name: None,

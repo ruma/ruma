@@ -10,15 +10,40 @@ use crate::PrivOwnedStr;
 ///
 /// A focus can be any server powering the MatrixRTC session (SFU,
 /// MCU). It serves as a node to redistribute RTC streams.
+#[allow(deprecated)]
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
-#[serde(tag = "type", rename_all = "snake_case")]
+#[serde(tag = "type")]
 pub enum Focus {
-    /// LiveKit is one possible type of SFU/Focus that can be used for a MatrixRTC session.
+    /// A LiveKit focus, as defined in the merged state of [MSC4195].
+    ///
+    /// [MSC4195]: https://github.com/matrix-org/matrix-spec-proposals/pull/4195
+    #[serde(rename = "m.livekit")]
     Livekit(LivekitFocus),
+
+    /// A LiveKit focus with the `livekit` type used by implementations of earlier versions of
+    /// [MSC4195].
+    ///
+    /// [MSC4195]: https://github.com/matrix-org/matrix-spec-proposals/pull/4195
+    #[serde(rename = "livekit")]
+    #[deprecated = "Use `Focus::Livekit` instead unless you require backwards compatibility with older versions of MSC4195."]
+    LegacyLivekit(LivekitFocus),
+}
+
+impl Focus {
+    /// Creates a new `Focus::Livekit` with the given SFU URL.
+    pub fn livekit(url: String) -> Self {
+        Self::Livekit(LivekitFocus::new(url))
+    }
 }
 
 /// The struct to describe LiveKit as a `preferred_foci`.
+///
+/// This is used for both the `m.livekit` and the legacy `livekit` focus types. Implementations of
+/// earlier versions of [MSC4195] may omit the `url` and use `livekit_service_url` instead,
+/// independently of the focus type.
+///
+/// [MSC4195]: https://github.com/matrix-org/matrix-spec-proposals/pull/4195
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct LivekitFocus {
