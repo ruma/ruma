@@ -12,14 +12,26 @@ pub mod livekit;
 pub mod transports;
 
 /// Information about a specific MatrixRTC transport.
+#[allow(deprecated)] // for the derives on the deprecated `LegacyLiveKit` variant
 #[derive(Clone, Debug, Serialize, PartialEq, Eq)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "type")]
 pub enum RtcTransport {
-    /// A LiveKit RTC transport.
+    /// A LiveKit RTC transport, as defined in the merged state of [MSC4195].
+    ///
+    /// [MSC4195]: https://github.com/matrix-org/matrix-spec-proposals/pull/4195
+    #[cfg(feature = "unstable-msc4195")]
+    #[serde(rename = "m.livekit")]
+    LiveKit(LiveKitRtcTransport),
+
+    /// A LiveKit RTC transport with the `livekit` type used by implementations of earlier
+    /// versions of [MSC4195].
+    ///
+    /// [MSC4195]: https://github.com/matrix-org/matrix-spec-proposals/pull/4195
     #[cfg(feature = "unstable-msc4195")]
     #[serde(rename = "livekit")]
-    LiveKit(LiveKitRtcTransport),
+    #[deprecated = "Use `RtcTransport::LiveKit` instead unless you require backwards compatibility with older versions of MSC4195."]
+    LegacyLiveKit(LegacyLiveKitRtcTransport),
 
     /// A custom RTC transport.
     #[doc(hidden)]
@@ -43,7 +55,12 @@ impl<'de> Deserialize<'de> for RtcTransport {
 
         Ok(match transport_type.as_str() {
             #[cfg(feature = "unstable-msc4195")]
-            "livekit" => Self::LiveKit(
+            "m.livekit" => Self::LiveKit(
+                serde_json::from_value(serde_json::Value::Object(obj)).map_err(D::Error::custom)?,
+            ),
+            #[cfg(feature = "unstable-msc4195")]
+            #[allow(deprecated)]
+            "livekit" => Self::LegacyLiveKit(
                 serde_json::from_value(serde_json::Value::Object(obj)).map_err(D::Error::custom)?,
             ),
             _ => Self::_Custom(CustomRtcTransport { transport_type, data: obj }),
@@ -65,7 +82,12 @@ impl RtcTransport {
     pub fn new(transport_type: &str, data: JsonObject) -> serde_json::Result<Self> {
         Ok(match transport_type {
             #[cfg(feature = "unstable-msc4195")]
-            "livekit" => Self::LiveKit(serde_json::from_value(serde_json::Value::Object(data))?),
+            "m.livekit" => Self::LiveKit(serde_json::from_value(serde_json::Value::Object(data))?),
+            #[cfg(feature = "unstable-msc4195")]
+            #[allow(deprecated)]
+            "livekit" => {
+                Self::LegacyLiveKit(serde_json::from_value(serde_json::Value::Object(data))?)
+            }
             _ => Self::_Custom(CustomRtcTransport {
                 transport_type: transport_type.to_owned(),
                 data,
@@ -83,7 +105,10 @@ impl RtcTransport {
     pub fn transport_type(&self) -> &str {
         match self {
             #[cfg(feature = "unstable-msc4195")]
-            Self::LiveKit(_) => "livekit",
+            Self::LiveKit(_) => "m.livekit",
+            #[cfg(feature = "unstable-msc4195")]
+            #[allow(deprecated)]
+            Self::LegacyLiveKit(_) => "livekit",
             Self::_Custom(custom) => &custom.transport_type,
         }
     }
@@ -110,19 +135,21 @@ impl RtcTransport {
         match self {
             #[cfg(feature = "unstable-msc4195")]
             Self::LiveKit(info) => Cow::Owned(serialize(info)),
+            #[cfg(feature = "unstable-msc4195")]
+            #[allow(deprecated)]
+            Self::LegacyLiveKit(info) => Cow::Owned(serialize(info)),
             Self::_Custom(info) => Cow::Borrowed(&info.data),
         }
     }
 }
 
-/// Information about a LiveKit RTC transport.
+/// Information about an `m.livekit` RTC transport.
 #[cfg(feature = "unstable-msc4195")]
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct LiveKitRtcTransport {
     /// The WebSocket URL of the LiveKit SFU.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub url: Option<String>,
+    pub url: String,
 
     /// The URL for the LiveKit JWT service.
     #[serde(rename = "livekit_service_url", skip_serializing_if = "Option::is_none")]
@@ -135,14 +162,7 @@ impl LiveKitRtcTransport {
     /// Creates a new `LiveKitRtcTransport` with the given SFU URL.
     #[allow(deprecated)]
     pub fn new(url: String) -> Self {
-        Self { url: Some(url), service_url: None }
-    }
-
-    /// Creates a new `LiveKitRtcTransport` with the given JWT service URL.
-    #[deprecated = "Use `LiveKitRtcTransport::new()` instead unless you require backwards compatibility with older versions of MSC4195."]
-    #[allow(deprecated)]
-    pub fn with_service_url(service_url: String) -> Self {
-        Self { url: None, service_url: Some(service_url) }
+        Self { url, service_url: None }
     }
 }
 
@@ -150,6 +170,43 @@ impl LiveKitRtcTransport {
 impl From<LiveKitRtcTransport> for RtcTransport {
     fn from(value: LiveKitRtcTransport) -> Self {
         Self::LiveKit(value)
+    }
+}
+
+/// Information about a legacy `livekit` RTC transport.
+#[cfg(feature = "unstable-msc4195")]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+#[deprecated = "Use `LiveKitRtcTransport` instead unless you require backwards compatibility with older versions of MSC4195."]
+pub struct LegacyLiveKitRtcTransport {
+    /// The WebSocket URL of the LiveKit SFU.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub url: Option<String>,
+
+    /// The URL for the LiveKit JWT service.
+    #[serde(rename = "livekit_service_url", skip_serializing_if = "Option::is_none")]
+    pub service_url: Option<String>,
+}
+
+#[cfg(feature = "unstable-msc4195")]
+#[allow(deprecated)]
+impl LegacyLiveKitRtcTransport {
+    /// Creates a new `LegacyLiveKitRtcTransport` with the given SFU URL.
+    pub fn new(url: String) -> Self {
+        Self { url: Some(url), service_url: None }
+    }
+
+    /// Creates a new `LegacyLiveKitRtcTransport` with the given JWT service URL.
+    pub fn with_service_url(service_url: String) -> Self {
+        Self { url: None, service_url: Some(service_url) }
+    }
+}
+
+#[cfg(feature = "unstable-msc4195")]
+#[allow(deprecated)]
+impl From<LegacyLiveKitRtcTransport> for RtcTransport {
+    fn from(value: LegacyLiveKitRtcTransport) -> Self {
+        Self::LegacyLiveKit(value)
     }
 }
 
@@ -177,7 +234,7 @@ mod tests {
     };
     use strass::assert_let;
 
-    use super::{LiveKitRtcTransport, RtcTransport};
+    use super::RtcTransport;
 
     #[test]
     fn serialize_roundtrip_custom_rtc_transport() {
@@ -209,14 +266,28 @@ mod tests {
         let url = "wss://livekit.local/".to_owned();
         let inner = LiveKitRtcTransport::new(url.clone());
         let transport = RtcTransport::from(inner);
-        assert_eq!(transport.transport_type(), "livekit");
+        assert_eq!(transport.transport_type(), "m.livekit");
         assert_eq!(transport, RtcTransport::livekit(url));
     }
 
     #[cfg(feature = "unstable-msc4195")]
     #[test]
+    #[allow(deprecated)]
+    fn legacy_livekit_transport_new_and_from_impl() {
+        use super::LegacyLiveKitRtcTransport;
+
+        let url = "wss://livekit.local/".to_owned();
+        let transport = RtcTransport::from(LegacyLiveKitRtcTransport::new(url.clone()));
+        assert_eq!(transport.transport_type(), "livekit");
+        assert_let!(RtcTransport::LegacyLiveKit(livekit) = transport);
+        assert_eq!(livekit.url, Some(url));
+        assert_eq!(livekit.service_url, None);
+    }
+
+    #[cfg(feature = "unstable-msc4195")]
+    #[test]
     fn serialize_roundtrip_livekit_sfu_transport() {
-        let transport_type = "livekit";
+        let transport_type = "m.livekit";
         let url = "wss://livekit.local/";
         let transport = RtcTransport::livekit(url.to_owned());
         let json = json!({
@@ -233,23 +304,76 @@ mod tests {
     #[test]
     #[allow(deprecated)]
     fn serialize_roundtrip_legacy_livekit_sfu_transport() {
+        use super::LegacyLiveKitRtcTransport;
+
+        let transport_type = "livekit";
+        let url = "wss://livekit.local/";
+        let transport = RtcTransport::LegacyLiveKit(LegacyLiveKitRtcTransport::new(url.to_owned()));
+        let json = json!({
+            "type": transport_type,
+            "url": url,
+        });
+
+        assert_eq!(transport.transport_type(), transport_type);
+        assert_eq!(to_json_value(&transport).unwrap(), json);
+        assert_eq!(from_json_value::<RtcTransport>(json).unwrap(), transport);
+    }
+
+    #[cfg(feature = "unstable-msc4195")]
+    #[test]
+    fn deserialize_livekit_sfu_transport_without_url_fails() {
+        let json = json!({
+            "type": "m.livekit",
+            "livekit_service_url": "https://livekit-jwt.local/",
+        });
+
+        from_json_value::<RtcTransport>(json).unwrap_err();
+    }
+
+    #[cfg(feature = "unstable-msc4195")]
+    #[test]
+    #[allow(deprecated)]
+    fn serialize_roundtrip_legacy_livekit_sfu_transport_with_service_url() {
+        use super::LegacyLiveKitRtcTransport;
+
         let livekit_service_url = "https://livekit-jwt.local/";
         let json = json!({
             "type": "livekit",
             "livekit_service_url": livekit_service_url,
         });
 
-        assert_let!(Ok(RtcTransport::LiveKit(livekit)) = from_json_value(json.clone()));
+        assert_let!(Ok(RtcTransport::LegacyLiveKit(livekit)) = from_json_value(json.clone()));
         assert_eq!(livekit.url, None);
         assert_eq!(livekit.service_url.as_deref(), Some(livekit_service_url));
-        assert_eq!(livekit, LiveKitRtcTransport::with_service_url(livekit_service_url.to_owned()));
+        assert_eq!(
+            livekit,
+            LegacyLiveKitRtcTransport::with_service_url(livekit_service_url.to_owned())
+        );
+        assert_eq!(to_json_value(RtcTransport::LegacyLiveKit(livekit)).unwrap(), json);
+    }
+
+    #[cfg(feature = "unstable-msc4195")]
+    #[test]
+    #[allow(deprecated)]
+    fn serialize_roundtrip_livekit_sfu_transport_with_url_and_service_url() {
+        let url = "wss://livekit.local/";
+        let livekit_service_url = "https://livekit-jwt.local/";
+        let json = json!({
+            "type": "m.livekit",
+            "url": url,
+            "livekit_service_url": livekit_service_url,
+        });
+
+        assert_let!(Ok(RtcTransport::LiveKit(livekit)) = from_json_value(json.clone()));
+        assert_eq!(livekit.url, url);
+        assert_eq!(livekit.service_url.as_deref(), Some(livekit_service_url));
         assert_eq!(to_json_value(RtcTransport::LiveKit(livekit)).unwrap(), json);
     }
 
     #[cfg(feature = "unstable-msc4195")]
     #[test]
     #[allow(deprecated)]
-    fn serialize_roundtrip_livekit_sfu_transport_with_legacy_field() {
+    fn serialize_roundtrip_legacy_livekit_sfu_transport_with_url_and_service_url() {
         let url = "wss://livekit.local/";
         let livekit_service_url = "https://livekit-jwt.local/";
         let json = json!({
@@ -258,9 +382,86 @@ mod tests {
             "livekit_service_url": livekit_service_url,
         });
 
-        assert_let!(Ok(RtcTransport::LiveKit(livekit)) = from_json_value(json.clone()));
+        assert_let!(Ok(RtcTransport::LegacyLiveKit(livekit)) = from_json_value(json.clone()));
         assert_eq!(livekit.url.as_deref(), Some(url));
         assert_eq!(livekit.service_url.as_deref(), Some(livekit_service_url));
-        assert_eq!(to_json_value(RtcTransport::LiveKit(livekit)).unwrap(), json);
+        assert_eq!(to_json_value(RtcTransport::LegacyLiveKit(livekit)).unwrap(), json);
+    }
+
+    #[cfg(feature = "unstable-msc4195")]
+    #[test]
+    fn new_livekit_sfu_transport_without_url_fails() {
+        assert_let!(
+            JsonValue::Object(data) = json!({
+                "livekit_service_url": "https://livekit-jwt.local/",
+            })
+        );
+
+        RtcTransport::new("m.livekit", data).unwrap_err();
+    }
+
+    #[cfg(feature = "unstable-msc4195")]
+    #[test]
+    #[allow(deprecated)]
+    fn new_livekit_sfu_transport_with_url_and_service_url() {
+        assert_let!(
+            JsonValue::Object(data) = json!({
+                "url": "wss://livekit.local/",
+                "livekit_service_url": "https://livekit-jwt.local/",
+            })
+        );
+
+        let transport = RtcTransport::new("m.livekit", data.clone()).unwrap();
+        assert_eq!(transport.transport_type(), "m.livekit");
+        assert_let!(RtcTransport::LiveKit(livekit) = &transport);
+        assert_eq!(livekit.url, "wss://livekit.local/");
+        assert_eq!(livekit.service_url.as_deref(), Some("https://livekit-jwt.local/"));
+        assert_eq!(*transport.data(), data);
+    }
+
+    #[cfg(feature = "unstable-msc4195")]
+    #[test]
+    #[allow(deprecated)]
+    fn new_legacy_livekit_sfu_transport_with_service_url() {
+        assert_let!(
+            JsonValue::Object(data) = json!({
+                "livekit_service_url": "https://livekit-jwt.local/",
+            })
+        );
+
+        let transport = RtcTransport::new("livekit", data.clone()).unwrap();
+        assert_eq!(transport.transport_type(), "livekit");
+        assert_let!(RtcTransport::LegacyLiveKit(livekit) = &transport);
+        assert_eq!(livekit.url, None);
+        assert_eq!(livekit.service_url.as_deref(), Some("https://livekit-jwt.local/"));
+        assert_eq!(*transport.data(), data);
+    }
+
+    #[cfg(feature = "unstable-msc4195")]
+    #[test]
+    #[allow(deprecated)]
+    fn serialize_roundtrip_livekit_and_legacy_livekit_sfu_transports() {
+        use super::LegacyLiveKitRtcTransport;
+
+        let json = json!([
+            { "type": "livekit", "livekit_service_url": "https://livekit-jwt.local/" },
+            { "type": "livekit", "url": "wss://livekit.local/" },
+            { "type": "m.livekit", "url": "wss://livekit.local/" },
+        ]);
+
+        let transports = from_json_value::<Vec<RtcTransport>>(json.clone()).unwrap();
+        assert_eq!(
+            transports,
+            [
+                RtcTransport::LegacyLiveKit(LegacyLiveKitRtcTransport::with_service_url(
+                    "https://livekit-jwt.local/".to_owned(),
+                )),
+                RtcTransport::LegacyLiveKit(LegacyLiveKitRtcTransport::new(
+                    "wss://livekit.local/".to_owned(),
+                )),
+                RtcTransport::livekit("wss://livekit.local/".to_owned()),
+            ]
+        );
+        assert_eq!(to_json_value(&transports).unwrap(), json);
     }
 }
