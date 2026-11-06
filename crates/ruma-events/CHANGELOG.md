@@ -9,6 +9,11 @@ Breaking changes:
 - The `shared_history` field of `ToDeviceForwardedRoomKeyEventContent` was removed, since it is
   not part of the Matrix spec.
 
+Bug fixes:
+
+- `SessionMembershipData` no longer fails to deserialize when `foci_preferred` is missing. Before,
+  such call member events were deserialized as `CallMemberEventContent::Empty`.
+
 Improvements:
 
 - Add unstable support for [MSC4532] "Revised Social Presence".
