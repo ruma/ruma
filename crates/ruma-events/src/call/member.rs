@@ -531,6 +531,7 @@ mod tests {
     fn livekit_focus_new() {
         let url = "wss://livekit.local/".to_owned();
         let focus = Focus::livekit(url.clone());
+        assert_eq!(focus.focus_type(), "m.livekit");
         assert_eq!(focus, Focus::Livekit(LivekitFocus::new(url)));
     }
 
@@ -603,6 +604,95 @@ mod tests {
         assert_variant_eq!(livekit.service_url, Some("https://livekit-jwt.bob.com"));
 
         assert_to_canonical_json_eq!(focus, json);
+    }
+
+    #[test]
+    fn new_livekit_focus_service_url_only() {
+        assert_let!(
+            JsonValue::Object(data) = json!({
+                "livekit_service_url": "https://livekit-jwt.example.com",
+            })
+        );
+
+        let focus = Focus::new("m.livekit", data.clone()).unwrap();
+        assert_let!(Focus::Livekit(livekit) = &focus);
+        assert_variant_eq!(livekit.service_url, Some("https://livekit-jwt.example.com"));
+        assert_eq!(*focus.data(), data);
+    }
+
+    #[test]
+    fn serde_custom_focus() {
+        let focus_type = "local.custom.focus";
+        assert_let!(
+            JsonValue::Object(focus_data) = json!({
+                "foo": "bar",
+                "baz": true,
+            })
+        );
+        let focus = Focus::new(focus_type, focus_data.clone()).unwrap();
+        let json = json!({
+            "type": focus_type,
+            "foo": "bar",
+            "baz": true,
+        });
+
+        assert_eq!(focus.focus_type(), focus_type);
+        assert_eq!(*focus.data().as_ref(), focus_data);
+        assert_to_canonical_json_eq!(focus, json.clone());
+        assert_eq!(from_json_value::<Focus>(json).unwrap(), focus);
+    }
+
+    #[test]
+    fn deserialize_call_member_event_content_with_custom_foci_preferred() {
+        let json = json!({
+            "application": "m.call",
+            "call_id": "123456",
+            "scope": "m.room",
+            "expires": 3_600_000,
+            "device_id": "THIS_DEVICE",
+            "focus_active": {
+                "type": "livekit",
+                "focus_selection": "oldest_membership",
+            },
+            "foci_preferred": [
+                {
+                    "type": "local.custom.focus",
+                    "url": "https://custom.example.com",
+                }
+            ],
+        });
+
+        assert_let!(
+            Ok(CallMemberEventContent::SessionContent(content)) =
+                from_json_value::<CallMemberEventContent>(json)
+        );
+        assert_eq!(content.foci_preferred.len(), 1);
+        assert_eq!(content.foci_preferred[0].focus_type(), "local.custom.focus");
+    }
+
+    #[test]
+    fn serde_livekit_legacy_livekit_and_custom_foci() {
+        let json = json!([
+            { "type": "livekit", "livekit_service_url": "https://livekit-jwt.example.com" },
+            { "type": "m.livekit", "livekit_service_url": "https://livekit-jwt.example.com" },
+            { "type": "livekit", "url": "wss://livekit.example.com" },
+            { "type": "m.livekit", "url": "wss://livekit.example.com" },
+            { "type": "local.custom.focus", "foo": "bar" },
+        ]);
+
+        let service_url_focus =
+            LivekitFocus::with_service_url("https://livekit-jwt.example.com".to_owned());
+        let foci = from_json_value::<Vec<Focus>>(json.clone()).unwrap();
+        assert_eq!(foci.len(), 5);
+        assert_eq!(foci[0], Focus::LegacyLivekit(service_url_focus.clone()));
+        assert_eq!(foci[1], Focus::Livekit(service_url_focus));
+        assert_eq!(
+            foci[2],
+            Focus::LegacyLivekit(LivekitFocus::new("wss://livekit.example.com".to_owned()))
+        );
+        assert_eq!(foci[3], Focus::livekit("wss://livekit.example.com".to_owned()));
+        assert_eq!(foci[4].focus_type(), "local.custom.focus");
+        assert_to_canonical_json_eq!(foci, json);
     }
 
     #[test]
