@@ -1,8 +1,10 @@
 //! Types for MatrixRTC Focus/SFU configurations.
 
-use ruma_common::OwnedServerName;
+use std::borrow::Cow;
+
+use ruma_common::{OwnedServerName, serde::JsonObject};
 use ruma_macros::StringEnum;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 
 use crate::PrivOwnedStr;
 
@@ -11,7 +13,7 @@ use crate::PrivOwnedStr;
 /// A focus can be any server powering the MatrixRTC session (SFU,
 /// MCU). It serves as a node to redistribute RTC streams.
 #[allow(deprecated)]
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, PartialEq, Eq)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 #[serde(tag = "type")]
 pub enum Focus {
@@ -28,12 +30,92 @@ pub enum Focus {
     #[serde(rename = "livekit")]
     #[deprecated = "Use `Focus::Livekit` instead unless you require backwards compatibility with older versions of MSC4195."]
     LegacyLivekit(LivekitFocus),
+
+    /// A custom focus.
+    #[doc(hidden)]
+    #[serde(untagged)]
+    _Custom(CustomFocus),
+}
+
+impl<'de> Deserialize<'de> for Focus {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        use serde::de::Error;
+
+        let mut obj = JsonObject::deserialize(deserializer)?;
+        let focus_type = match obj.remove("type") {
+            Some(serde_json::Value::String(s)) => s,
+            Some(_) => return Err(D::Error::custom("`type` must be a string")),
+            None => return Err(D::Error::missing_field("type")),
+        };
+
+        Self::new(&focus_type, obj).map_err(D::Error::custom)
+    }
 }
 
 impl Focus {
+    /// A constructor to create a custom focus.
+    ///
+    /// Prefer to use the public variants of `Focus` where possible; this constructor is meant to
+    /// be used for unsupported focus types only and does not allow setting arbitrary data for
+    /// supported ones.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the `focus_type` is known and deserialization of `data` to the
+    /// corresponding `Focus` variant fails.
+    pub fn new(focus_type: &str, data: JsonObject) -> serde_json::Result<Self> {
+        Ok(match focus_type {
+            "m.livekit" => Self::Livekit(serde_json::from_value(serde_json::Value::Object(data))?),
+            #[allow(deprecated)]
+            "livekit" => {
+                Self::LegacyLivekit(serde_json::from_value(serde_json::Value::Object(data))?)
+            }
+            _ => Self::_Custom(CustomFocus { focus_type: focus_type.to_owned(), data }),
+        })
+    }
+
     /// Creates a new `Focus::Livekit` with the given SFU URL.
     pub fn livekit(url: String) -> Self {
         Self::Livekit(LivekitFocus::new(url))
+    }
+
+    /// Returns the type of this focus.
+    pub fn focus_type(&self) -> &str {
+        match self {
+            Self::Livekit(_) => "m.livekit",
+            #[allow(deprecated)]
+            Self::LegacyLivekit(_) => "livekit",
+            Self::_Custom(custom) => &custom.focus_type,
+        }
+    }
+
+    /// Returns the associated data.
+    ///
+    /// The returned JSON object won't contain the `type` field, please use
+    /// [`.focus_type()`][Self::focus_type] to access that.
+    ///
+    /// Prefer to use the public variants of `Focus` where possible; this method is meant to be
+    /// used for custom focus types only.
+    pub fn data(&self) -> Cow<'_, JsonObject> {
+        match self {
+            Self::Livekit(info) => Cow::Owned(serialize_focus_data(info)),
+            #[allow(deprecated)]
+            Self::LegacyLivekit(info) => Cow::Owned(serialize_focus_data(info)),
+            Self::_Custom(info) => Cow::Borrowed(&info.data),
+        }
+    }
+}
+
+/// Serializes the data of a known focus type to a JSON object.
+fn serialize_focus_data<T: Serialize>(object: &T) -> JsonObject {
+    use serde_json::Value as JsonValue;
+
+    match serde_json::to_value(object).expect("focus type serialization to succeed") {
+        JsonValue::Object(object) => object,
+        _ => panic!("all focus types must serialize to objects"),
     }
 }
 
@@ -90,6 +172,22 @@ impl LivekitFocus {
     pub fn with_service_url(service_url: String) -> Self {
         Self { alias: None, url: None, server_name: None, service_url: Some(service_url) }
     }
+}
+
+/// Information about a custom focus.
+///
+/// This type does not implement `Deserialize` to prevent users from constructing the `_Custom`
+/// variant of [`Focus`] for a known `type`. Deserialize through [`Focus`] instead.
+#[doc(hidden)]
+#[derive(Clone, Debug, Serialize, PartialEq, Eq)]
+pub struct CustomFocus {
+    /// The type of focus.
+    #[serde(rename = "type")]
+    focus_type: String,
+
+    /// Remaining focus data.
+    #[serde(flatten)]
+    data: JsonObject,
 }
 
 /// Data to define the actively used Focus.

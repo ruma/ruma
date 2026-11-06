@@ -22,6 +22,8 @@ Improvements:
   implementations of earlier versions of MSC4195 moved to the deprecated `Focus::LegacyLivekit`
   variant. Both variants hold a `LivekitFocus`, so the `livekit_service_url` field remains
   supported independently of the focus type.
+- `Focus` can now hold foci of unknown types. Use its `new()`, `focus_type()` and `data()`
+  methods to construct and access them.
 
 [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
 [MSC4195]: https://github.com/matrix-org/matrix-spec-proposals/pull/4195
