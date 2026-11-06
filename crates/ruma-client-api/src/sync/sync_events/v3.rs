@@ -438,6 +438,7 @@ pub struct Timeline {
     pub prev_batch: Option<String>,
 
     /// A list of events.
+    #[serde(default)]
     pub events: Vec<Raw<AnySyncTimelineEvent>>,
 }
 
@@ -786,6 +787,11 @@ mod tests {
         let timeline_default_deserialized =
             from_json_value::<Timeline>(json!({ "events": [] })).unwrap();
         assert!(!timeline_default_deserialized.limited);
+
+        let timeline_missing_events_deserialized =
+            from_json_value::<Timeline>(json!({ "limited": true })).unwrap();
+        assert!(timeline_missing_events_deserialized.limited);
+        assert!(timeline_missing_events_deserialized.events.is_empty());
     }
 
     #[cfg(feature = "unstable-msc4354")]

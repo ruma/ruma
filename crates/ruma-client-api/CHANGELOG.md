@@ -13,6 +13,7 @@ Breaking changes:
 
 Bug fixes:
 
+- `sync::sync_events::v3::Timeline::events` is now optional when deserializing.
 - Deserializing `Capabilities` no longer fails when the server sends both
   `m.profile_fields` and `uk.tcpip.msc4133.profile_fields`. The stable name
   takes precedence.
