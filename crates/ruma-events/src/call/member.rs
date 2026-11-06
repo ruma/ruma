@@ -671,6 +671,27 @@ mod tests {
     }
 
     #[test]
+    fn deserialize_call_member_event_content_without_foci_preferred() {
+        let json = json!({
+            "application": "m.call",
+            "call_id": "123456",
+            "scope": "m.room",
+            "expires": 3_600_000,
+            "device_id": "THIS_DEVICE",
+            "focus_active": {
+                "type": "livekit",
+                "focus_selection": "multi_sfu",
+            },
+        });
+
+        assert_let!(
+            Ok(CallMemberEventContent::SessionContent(content)) =
+                from_json_value::<CallMemberEventContent>(json)
+        );
+        assert_eq!(content.foci_preferred, []);
+    }
+
+    #[test]
     fn serde_livekit_legacy_livekit_and_custom_foci() {
         let json = json!([
             { "type": "livekit", "livekit_service_url": "https://livekit-jwt.example.com" },

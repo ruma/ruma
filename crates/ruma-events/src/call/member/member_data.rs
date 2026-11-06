@@ -260,6 +260,7 @@ pub struct SessionMembershipData {
     pub device_id: OwnedDeviceId,
 
     /// A list of the foci that this membership proposes to use.
+    #[serde(default)]
     pub foci_preferred: Vec<Focus>,
 
     /// Data required to determine the currently used focus by this member.
