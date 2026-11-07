@@ -16,6 +16,8 @@ Bug fixes:
 - Deserializing `Capabilities` no longer fails when the server sends both
   `m.profile_fields` and `uk.tcpip.msc4133.profile_fields`. The stable name
   takes precedence.
+- The `sticky_duration_ms` field of `delayed_events::send_delayed_event::msc4140::Request` is now
+  sent in the request body instead of the query string, as required by [MSC4354].
 
 Improvements:
 
@@ -45,6 +47,7 @@ Improvements:
   `RtcTransport::LegacyLiveKit` variant, which holds a deprecated `LegacyLiveKitRtcTransport`.
   This type can hold either or both of `url` and `livekit_service_url`.
 
+[MSC4354]: https://github.com/matrix-org/matrix-spec-proposals/pull/4354
 [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
 [MSC4559]: https://github.com/matrix-org/matrix-spec-proposals/pull/4559
 

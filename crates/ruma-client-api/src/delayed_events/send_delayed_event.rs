@@ -62,7 +62,6 @@ pub mod msc4140 {
         ///
         /// See [MSC4354 sticky events](https://github.com/matrix-org/matrix-spec-proposals/pull/4354).
         #[cfg(feature = "unstable-msc4354")]
-        #[ruma_api(query)]
         #[serde(
             skip_serializing_if = "Option::is_none",
             rename = "org.matrix.msc4354.sticky_duration_ms"
@@ -224,11 +223,15 @@ pub mod msc4140 {
                 .unwrap();
             let (parts, body) = request.into_parts();
             assert_eq!(
-                "https://homeserver.tld/_matrix/client/unstable/org.matrix.msc4140/rooms/!roomid:example.org/delayed_event/m.room.message/1234?org.matrix.msc4354.sticky_duration_ms=300000",
+                "https://homeserver.tld/_matrix/client/unstable/org.matrix.msc4140/rooms/!roomid:example.org/delayed_event/m.room.message/1234",
                 parts.uri
             );
             assert_eq!(
-                json!({"content":{"msgtype":"m.text","body":"test"}, "delay_ms": 30000}),
+                json!({
+                    "content": {"msgtype":"m.text","body":"test"},
+                    "delay_ms": 30000,
+                    "org.matrix.msc4354.sticky_duration_ms": 300_000,
+                }),
                 serde_json::from_slice::<JsonValue>(&body).unwrap()
             );
         }
@@ -278,8 +281,41 @@ pub mod msc4140 {
             );
         }
 
-        /// Without the query parameter the delayed event is scheduled as a regular, non-sticky
-        /// event.
+        /// The sticky duration is read from the request body.
+        #[cfg(feature = "unstable-msc4354")]
+        #[test]
+        fn deserialize_send_delayed_sticky_event_request() {
+            use ruma_events::sticky::StickyDurationMs;
+
+            let uri = http::Uri::builder()
+                .scheme("https")
+                .authority("matrix.org")
+                .path_and_query(
+                    "/_matrix/client/unstable/org.matrix.msc4140/rooms/!roomid:example.org/delayed_event/m.room.message/5678",
+                )
+                .build()
+                .unwrap();
+
+            let body = json!({
+                "content": {"msgtype":"m.text","body":"test"},
+                "delay_ms": 103,
+                "org.matrix.msc4354.sticky_duration_ms": 300_000,
+            });
+
+            let req = Request::try_from_http_request(
+                http::Request::builder()
+                    .method("PUT")
+                    .uri(uri)
+                    .body(body.to_string().as_bytes())
+                    .unwrap(),
+                &["!roomid:example.org", "m.room.message", "5678"],
+            )
+            .unwrap();
+
+            assert_eq!(req.sticky_duration_ms, Some(StickyDurationMs::new_clamped(300_000_u32)));
+        }
+
+        /// Without the body field the delayed event is scheduled as a regular, non-sticky event.
         #[cfg(feature = "unstable-msc4354")]
         #[test]
         fn deserialize_send_delayed_event_request_without_sticky() {
