@@ -3,9 +3,9 @@
 //! Retrieve a paginated range of thread updates across all joined rooms.
 
 pub mod msc4360 {
-    //! `/unstable/` ([spec])
+    //! `/unstable/io.element.msc4360/` ([MSC])
     //!
-    //! [spec]: https://github.com/matrix-org/matrix-spec-proposals/pull/4360
+    //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4360
 
     use std::collections::BTreeMap;
 
@@ -96,14 +96,11 @@ pub mod msc4360 {
     }
 
     /// An update to a thread.
-    #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+    #[derive(Clone, Debug, Serialize, Deserialize)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct ThreadUpdate {
         /// The thread root event, with the bundled `m.thread` aggregation.
-        ///
-        /// In the sliding sync extension, it is only present if `include_roots` is set.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub thread_root: Option<Raw<AnySyncTimelineEvent>>,
+        pub thread_root: Raw<AnySyncTimelineEvent>,
 
         /// A token to paginate the other updates in this thread with the `/relations` endpoint.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -111,9 +108,9 @@ pub mod msc4360 {
     }
 
     impl ThreadUpdate {
-        /// Creates an empty `ThreadUpdate`.
-        pub fn new() -> Self {
-            Default::default()
+        /// Creates a new `ThreadUpdate` with the given thread root.
+        pub fn new(thread_root: Raw<AnySyncTimelineEvent>) -> Self {
+            Self { thread_root, prev_batch: None }
         }
     }
 }

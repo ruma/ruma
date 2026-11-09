@@ -825,12 +825,12 @@ pub mod response {
     pub use super::v4::response::Profiles;
     #[cfg(feature = "unstable-msc4308")]
     pub use super::v4::response::ThreadSubscriptions;
-    #[cfg(feature = "unstable-msc4360")]
-    pub use super::v4::response::Threads;
     #[cfg(feature = "unstable-msc4559")]
     pub use super::v4::response::{Presence, PresenceUpdate};
     #[cfg(feature = "unstable-msc4480")]
     pub use super::v4::response::{StickyEvents, StickyEventsRoom};
+    #[cfg(feature = "unstable-msc4360")]
+    pub use super::v4::response::{ThreadUpdate, Threads};
     use super::{
         super::DeviceLists, AnySyncStateEvent, AnySyncTimelineEvent, BTreeMap, Deserialize,
         JsOption, OwnedMxcUri, OwnedRoomId, OwnedUserId, Raw, Serialize, UInt,

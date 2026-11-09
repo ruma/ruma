@@ -870,8 +870,6 @@ pub mod response {
     use crate::threads::get_thread_subscriptions_changes::msc4308::{
         ThreadSubscription, ThreadUnsubscription,
     };
-    #[cfg(feature = "unstable-msc4360")]
-    use crate::threads::get_thread_updates::msc4360::ThreadUpdate;
 
     /// The details of a list (see [`super::Response::lists`]).
     #[derive(Clone, Debug, Default, Deserialize, Serialize)]
@@ -1483,6 +1481,32 @@ pub mod response {
         }
     }
 
+    /// An update to a thread in the threads extension response.
+    ///
+    /// According to [MSC4360](https://github.com/matrix-org/matrix-spec-proposals/pull/4360).
+    #[cfg(feature = "unstable-msc4360")]
+    #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+    pub struct ThreadUpdate {
+        /// The thread root event, with the bundled `m.thread` aggregation.
+        ///
+        /// Only present if `include_roots` is set in the request.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub thread_root: Option<Raw<AnySyncTimelineEvent>>,
+
+        /// A token to paginate the other updates in this thread with the `/relations` endpoint.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub prev_batch: Option<String>,
+    }
+
+    #[cfg(feature = "unstable-msc4360")]
+    impl ThreadUpdate {
+        /// Creates an empty `ThreadUpdate`.
+        pub fn new() -> Self {
+            Default::default()
+        }
+    }
+
     /// Profiles extension response.
     ///
     /// According to [MSC4262](https://github.com/matrix-org/matrix-spec-proposals/pull/4262).
@@ -1833,8 +1857,6 @@ mod tests {
     #[cfg(feature = "unstable-msc4360")]
     #[test]
     fn threads_extension_serde() {
-        use ruma_common::owned_event_id;
-
         use super::request;
 
         let mut extensions = Extensions::new();
@@ -1857,8 +1879,7 @@ mod tests {
         .unwrap();
 
         let threads = extensions.threads;
-        let update = &threads.updates[&owned_room_id!("!room:example.com")]
-            [&owned_event_id!("$root:example.com")];
+        let update = &threads.updates["!room:example.com"]["$root:example.com"];
         assert!(update.thread_root.is_none());
         assert_eq!(update.prev_batch.as_deref(), Some("t1"));
         assert_eq!(threads.prev_batch.as_deref(), Some("t2"));
