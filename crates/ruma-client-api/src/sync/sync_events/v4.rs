@@ -353,6 +353,15 @@ pub mod request {
         )]
         pub thread_subscriptions: ThreadSubscriptions,
 
+        /// Configure the threads extension.
+        #[cfg(feature = "unstable-msc4360")]
+        #[serde(
+            default,
+            skip_serializing_if = "Threads::is_disabled",
+            rename = "io.element.msc4360.threads"
+        )]
+        pub threads: Threads,
+
         /// Configure the profiles extension.
         #[cfg(feature = "unstable-msc4262")]
         #[serde(
@@ -401,6 +410,8 @@ pub mod request {
                 typing,
                 #[cfg(feature = "unstable-msc4308")]
                 thread_subscriptions,
+                #[cfg(feature = "unstable-msc4360")]
+                threads,
                 #[cfg(feature = "unstable-msc4262")]
                 profiles,
                 #[cfg(feature = "unstable-msc4480")]
@@ -421,6 +432,11 @@ pub mod request {
             #[cfg(feature = "unstable-msc4308")]
             {
                 empty &= thread_subscriptions.is_disabled();
+            }
+
+            #[cfg(feature = "unstable-msc4360")]
+            {
+                empty &= threads.is_disabled();
             }
 
             #[cfg(feature = "unstable-msc4262")]
@@ -635,6 +651,42 @@ pub mod request {
         }
     }
 
+    /// Threads extension configuration.
+    ///
+    /// According to [MSC4360](https://github.com/matrix-org/matrix-spec-proposals/pull/4360).
+    #[cfg(feature = "unstable-msc4360")]
+    #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+    pub struct Threads {
+        /// Whether this extension is enabled.
+        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+        pub enabled: bool,
+
+        /// Whether to include the thread root events in the response.
+        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
+        pub include_roots: bool,
+
+        /// Maximum number of thread updates to receive in the response.
+        ///
+        /// Defaults to 100.
+        /// Servers may impose a smaller limit than what is requested here.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub limit: Option<UInt>,
+    }
+
+    #[cfg(feature = "unstable-msc4360")]
+    impl Threads {
+        /// Creates a disabled `Threads`.
+        pub fn new() -> Self {
+            Default::default()
+        }
+
+        /// Whether this extension is disabled.
+        pub fn is_disabled(&self) -> bool {
+            !self.enabled
+        }
+    }
+
     /// User profiles extension configuration.
     ///
     /// According to [MSC4262](https://github.com/matrix-org/matrix-spec-proposals/pull/4262).
@@ -793,7 +845,7 @@ impl Response {
 
 /// HTTP types related to a [`Response`].
 pub mod response {
-    #[cfg(feature = "unstable-msc4308")]
+    #[cfg(any(feature = "unstable-msc4308", feature = "unstable-msc4360"))]
     use ruma_common::OwnedEventId;
     #[cfg(feature = "unstable-msc4559")]
     use ruma_common::presence::PresenceStatus;
@@ -818,6 +870,8 @@ pub mod response {
     use crate::threads::get_thread_subscriptions_changes::msc4308::{
         ThreadSubscription, ThreadUnsubscription,
     };
+    #[cfg(feature = "unstable-msc4360")]
+    use crate::threads::get_thread_updates::msc4360::ThreadUpdate;
 
     /// The details of a list (see [`super::Response::lists`]).
     #[derive(Clone, Debug, Default, Deserialize, Serialize)]
@@ -1129,6 +1183,15 @@ pub mod response {
         )]
         pub thread_subscriptions: ThreadSubscriptions,
 
+        /// Threads extension response.
+        #[cfg(feature = "unstable-msc4360")]
+        #[serde(
+            default,
+            skip_serializing_if = "Threads::is_empty",
+            rename = "io.element.msc4360.threads"
+        )]
+        pub threads: Threads,
+
         /// Profiles extension response.
         #[cfg(feature = "unstable-msc4262")]
         #[serde(
@@ -1173,6 +1236,8 @@ pub mod response {
                 typing,
                 #[cfg(feature = "unstable-msc4308")]
                 thread_subscriptions,
+                #[cfg(feature = "unstable-msc4360")]
+                threads,
                 #[cfg(feature = "unstable-msc4262")]
                 profiles,
                 #[cfg(feature = "unstable-msc4480")]
@@ -1191,6 +1256,11 @@ pub mod response {
             #[cfg(feature = "unstable-msc4308")]
             {
                 empty &= thread_subscriptions.is_empty();
+            }
+
+            #[cfg(feature = "unstable-msc4360")]
+            {
+                empty &= threads.is_empty();
             }
 
             #[cfg(feature = "unstable-msc4262")]
@@ -1377,6 +1447,39 @@ pub mod response {
         pub fn is_empty(&self) -> bool {
             let Self { subscribed, unsubscribed, prev_batch } = self;
             subscribed.is_empty() && unsubscribed.is_empty() && prev_batch.is_none()
+        }
+    }
+
+    /// Threads extension response.
+    ///
+    /// According to [MSC4360](https://github.com/matrix-org/matrix-spec-proposals/pull/4360).
+    #[cfg(feature = "unstable-msc4360")]
+    #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+    pub struct Threads {
+        /// The updated threads, by room ID and thread root event ID.
+        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+        pub updates: BTreeMap<OwnedRoomId, BTreeMap<OwnedEventId, ThreadUpdate>>,
+
+        /// A token to paginate the thread updates that were not included in this response, with
+        /// the `/thread_updates` endpoint.
+        ///
+        /// Only set when there are more updates to fetch.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub prev_batch: Option<String>,
+    }
+
+    #[cfg(feature = "unstable-msc4360")]
+    impl Threads {
+        /// Creates an empty `Threads`.
+        pub fn new() -> Self {
+            Default::default()
+        }
+
+        /// Whether all fields are empty or `None`.
+        pub fn is_empty(&self) -> bool {
+            let Self { updates, prev_batch } = self;
+            updates.is_empty() && prev_batch.is_none()
         }
     }
 
@@ -1725,6 +1828,40 @@ mod tests {
         assert_eq!(sticky_events.rooms.len(), 1);
         let room = sticky_events.rooms.values().next().unwrap();
         assert_eq!(room.events.len(), 1);
+    }
+
+    #[cfg(feature = "unstable-msc4360")]
+    #[test]
+    fn threads_extension_serde() {
+        use ruma_common::owned_event_id;
+
+        use super::request;
+
+        let mut extensions = Extensions::new();
+        extensions.threads = request::Threads { enabled: true, include_roots: true, limit: None };
+        assert_to_canonical_json_eq!(
+            extensions,
+            json!({ "io.element.msc4360.threads": { "enabled": true, "include_roots": true } })
+        );
+
+        let extensions: response::Extensions = from_json_value(json!({
+            "io.element.msc4360.threads": {
+                "updates": {
+                    "!room:example.com": {
+                        "$root:example.com": { "prev_batch": "t1" },
+                    },
+                },
+                "prev_batch": "t2",
+            },
+        }))
+        .unwrap();
+
+        let threads = extensions.threads;
+        let update = &threads.updates[&owned_room_id!("!room:example.com")]
+            [&owned_event_id!("$root:example.com")];
+        assert!(update.thread_root.is_none());
+        assert_eq!(update.prev_batch.as_deref(), Some("t1"));
+        assert_eq!(threads.prev_batch.as_deref(), Some("t2"));
     }
 
     #[cfg(feature = "unstable-msc4559")]
