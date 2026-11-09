@@ -112,8 +112,9 @@ pub mod request {
     #[derive(Clone, Debug, Default, Serialize, Deserialize)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct List {
-        /// The ranges of rooms we're interested in.
-        pub ranges: Vec<(UInt, UInt)>,
+        /// The range of rooms we're interested in.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub range: Option<(UInt, UInt)>,
 
         /// The details to be included per room.
         #[serde(flatten)]
@@ -136,6 +137,12 @@ pub mod request {
         #[serde(skip_serializing_if = "Option::is_none")]
         pub is_dm: Option<bool>,
 
+        /// Filter the room based on the space they belong to.
+        ///
+        /// If multiple spaces are present, a room can be part of any one of the listed spaces.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub spaces: Vec<String>,
+
         /// Whether to return only encrypted rooms (as determined by the existence of an
         /// `m.room.encryption` state event), only unencrypted rooms, or both.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -143,7 +150,7 @@ pub mod request {
 
         /// Whether to return only invited rooms, only joined rooms, or both.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub is_invite: Option<bool>,
+        pub is_invited: Option<bool>,
 
         /// Only list rooms with these create-types, or all.
         ///
@@ -158,16 +165,26 @@ pub mod request {
         /// `not_room_types` wins and the corresponding rooms are not included.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
         pub not_room_types: Vec<RoomTypeFilter>,
+
+        /// Only list rooms with these tags, or all.
+        ///
+        /// If multiple tags are present, a room can have any one of the listed tags.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub tags: Vec<String>,
+
+        /// Only list rooms that do not have these tags, or all.
+        ///
+        /// Takes priority over `tags`.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub not_tags: Vec<String>,
     }
 
     /// Sliding sync request room subscription (see [`super::Request::room_subscriptions`]).
     #[derive(Clone, Debug, Default, Serialize, Deserialize)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct RoomSubscription {
-        /// Required state for each returned room. An array of event type and
-        /// state key tuples.
-        #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        pub required_state: Vec<(StateEventType, String)>,
+        /// Required state for each returned room.
+        pub required_state: RequiredStateRequest,
 
         /// The maximum number of timeline events to return per room.
         pub timeline_limit: UInt,
@@ -177,12 +194,62 @@ pub mod request {
     #[derive(Clone, Debug, Default, Serialize, Deserialize)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct RoomDetails {
-        /// Required state for each returned room. An array of event type and state key tuples.
-        #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        pub required_state: Vec<(StateEventType, String)>,
+        /// Required state for each returned room.
+        pub required_state: RequiredStateRequest,
 
         /// The maximum number of timeline events to return per room.
         pub timeline_limit: UInt,
+    }
+
+    /// The required state for each room returned.
+    #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+    pub struct RequiredStateRequest {
+        /// The set of state to return (unless filtered out by `exclude`), if any.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub include: Vec<RequiredStateElement>,
+
+        /// The set of state to filter out before returning, if any.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub exclude: Vec<RequiredStateElement>,
+
+        /// Whether to enable lazy loaded membership behaviour.  Defaults to false.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub lazy_members: Option<bool>,
+    }
+
+    /// A description of which state events to match (see [`RequiredStateRequest`]).
+    #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+    pub struct RequiredStateElement {
+        /// The event type to match. If omitted, matches all types.
+        #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
+        pub event_type: Option<StateEventType>,
+
+        /// The event state key to match. If omitted, matches all state keys.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub state_key: Option<String>,
+    }
+
+    /// Match the given state event type and state key
+    impl From<(StateEventType, String)> for RequiredStateElement {
+        fn from(val: (StateEventType, String)) -> Self {
+            Self { event_type: Some(val.0), state_key: Some(val.1) }
+        }
+    }
+
+    /// Match the given state event type and state key
+    impl From<(StateEventType, &str)> for RequiredStateElement {
+        fn from(val: (StateEventType, &str)) -> Self {
+            Self { event_type: Some(val.0), state_key: Some(val.1.to_owned()) }
+        }
+    }
+
+    /// Match the given state event type, with any state key
+    impl From<StateEventType> for RequiredStateElement {
+        fn from(val: StateEventType) -> Self {
+            Self { event_type: Some(val), state_key: None }
+        }
     }
 
     /// Sliding sync request extensions (see [`super::Request::extensions`]).
@@ -611,7 +678,7 @@ pub mod response {
         ThreadSubscription, ThreadUnsubscription,
     };
 
-    /// A sliding sync response updates to joiend rooms (see
+    /// A sliding sync response updates to joined rooms (see
     /// [`super::Response::lists`]).
     #[derive(Clone, Debug, Default, Deserialize, Serialize)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
@@ -624,6 +691,14 @@ pub mod response {
     #[derive(Clone, Debug, Default, Deserialize, Serialize)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Room {
+        /// The current membership of the user.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub membership: Option<String>,
+
+        /// The name of the lists that match this room
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub lists: Vec<String>,
+
         /// The name as calculated by the server.
         ///
         /// If the `unstable-compat-lax-syncv5-deser` feature is enabled,
@@ -657,11 +732,15 @@ pub mod response {
         /// If this is `Some(_)`, this is a not-yet-accepted invite containing
         /// the given stripped state events.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub invite_state: Option<Vec<Raw<AnyStrippedStateEvent>>>,
+        pub stripped_state: Option<Vec<Raw<AnyStrippedStateEvent>>>,
 
         /// Number of unread notifications.
         #[serde(flatten, default, skip_serializing_if = "UnreadNotificationsCount::is_empty")]
         pub unread_notifications: UnreadNotificationsCount,
+
+        /// If we're returning more historic events due to the timeline limit having increased.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub expanded_timeline: Option<bool>,
 
         /// Message-like events and live state events.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -669,6 +748,7 @@ pub mod response {
 
         /// State events as configured by the request.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        // FIXME: should also allow StateStub
         pub required_state: Vec<Raw<AnySyncStateEvent>>,
 
         /// The `prev_batch` allowing you to paginate through the messages
