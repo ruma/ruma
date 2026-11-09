@@ -59,6 +59,7 @@ Improvements:
   [MSC4548] and [MSC4551].
 - Add conversions from the `sync::sync_events::v4` request and response to the `msc4186` request
   and response.
+- Add support for stable RTC transports discovery endpoint (`rtc::transports::v1`).
 
 [MSC4186]: https://github.com/matrix-org/matrix-spec-proposals/pull/4186
 [MSC4354]: https://github.com/matrix-org/matrix-spec-proposals/pull/4354
