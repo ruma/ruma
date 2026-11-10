@@ -2,7 +2,7 @@
 
 use std::time::Duration;
 
-use js_int::uint;
+use js_int::int;
 use ruma_common::{
     MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, serde::CanBeEmpty,
 };
@@ -127,7 +127,7 @@ fn beacon_info_start_event_content_deserialization() {
 
     assert_eq!(event_content.description.as_deref(), Some("Kylie's live location"));
     assert!(event_content.live);
-    assert_eq!(event_content.ts, MilliSecondsSinceUnixEpoch(uint!(1_636_829_458)));
+    assert_eq!(event_content.ts, MilliSecondsSinceUnixEpoch(int!(1_636_829_458)));
     assert_eq!(event_content.timeout, Duration::from_secs(60));
     assert_eq!(event_content.asset.type_, AssetType::Self_);
 }
@@ -149,13 +149,13 @@ fn state_event_deserialization() {
     assert_let!(AnyStateEvent::BeaconInfo(StateEvent::Original(ev)) = event);
 
     assert_eq!(ev.content.description.as_deref(), Some("Kylie's live location"));
-    assert_eq!(ev.content.ts, MilliSecondsSinceUnixEpoch(uint!(1_636_829_458)));
+    assert_eq!(ev.content.ts, MilliSecondsSinceUnixEpoch(int!(1_636_829_458)));
     assert_eq!(ev.content.timeout, Duration::from_secs(60));
     assert_eq!(ev.content.asset.type_, AssetType::Self_);
     assert!(ev.content.live);
 
     assert_eq!(ev.event_id, "$beacon_event_id:example.com");
-    assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1_636_829_458)));
+    assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(int!(1_636_829_458)));
     assert_eq!(ev.room_id, "!roomid:example.com");
     assert_eq!(ev.sender, "@example:example.com");
     assert_eq!(ev.state_key, "@example:example.com");

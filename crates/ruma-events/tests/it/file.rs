@@ -1,6 +1,6 @@
 #![cfg(feature = "unstable-msc3551")]
 
-use js_int::uint;
+use js_int::{int, uint};
 use ruma_common::{
     MilliSecondsSinceUnixEpoch,
     canonical_json::assert_to_canonical_json_eq,
@@ -203,7 +203,7 @@ fn message_event_deserialization() {
     assert_eq!(content.file.name, "my_file.txt");
     assert_eq!(content.file.mimetype.as_deref(), Some("text/plain"));
     assert_eq!(content.file.size, Some(uint!(774)));
-    assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(134_829_848)));
+    assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(int!(134_829_848)));
     assert_eq!(message_event.room_id, "!roomid:notareal.hs");
     assert_eq!(message_event.sender, "@user:notareal.hs");
     assert!(message_event.unsigned.is_empty());

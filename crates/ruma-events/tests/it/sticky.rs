@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use js_int::uint;
+use js_int::int;
 use ruma_common::{MilliSecondsSinceUnixEpoch, serde::CanBeEmpty};
 use ruma_events::{AnyMessageLikeEvent, MessageLikeEvent, sticky::StickyDurationMs};
 use serde_json::{from_value as from_json_value, json};
@@ -47,7 +47,7 @@ fn deserialize_sticky_event() {
     );
 
     assert_eq!(message_event.event_id, "$h29iv0s8:example.com");
-    assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
+    assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(int!(1)));
     assert_eq!(message_event.room_id, "!roomid:room.com");
     assert_eq!(message_event.sender, "@alice:example.com");
     assert!(message_event.unsigned.is_empty());

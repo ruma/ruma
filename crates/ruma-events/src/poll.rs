@@ -10,7 +10,7 @@ use std::{
 };
 
 use indexmap::IndexMap;
-use js_int::{UInt, uint};
+use js_int::{UInt, int};
 use ruma_common::{MilliSecondsSinceUnixEpoch, UserId};
 
 use self::{start::PollContentBlock, unstable_start::UnstablePollStartContentBlock};
@@ -120,7 +120,7 @@ where
         })
         .fold(BTreeMap::new(), |mut acc, data| {
             let response =
-                acc.entry(data.sender).or_insert((MilliSecondsSinceUnixEpoch(uint!(0)), None));
+                acc.entry(data.sender).or_insert((MilliSecondsSinceUnixEpoch(int!(0)), None));
 
             // Only keep the latest selections for each user.
             if response.0 < data.origin_server_ts {

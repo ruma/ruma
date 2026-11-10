@@ -1,4 +1,4 @@
-use js_int::uint;
+use js_int::int;
 use ruma_common::{
     MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, owned_event_id,
     room_version_rules::RedactionRules, serde::CanBeEmpty,
@@ -64,7 +64,7 @@ fn deserialize_redaction() {
     assert_eq!(ev.content.reason.as_deref(), Some("being very unfriendly"));
     assert_eq!(ev.event_id, "$h29iv0s8:example.com");
     assert_eq!(ev.redacts.unwrap(), "$nomorev1:example.com");
-    assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
+    assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(int!(1)));
     assert_eq!(ev.room_id, "!roomid:room.com");
     assert_eq!(ev.sender, "@carl:example.com");
     assert!(ev.unsigned.is_empty());

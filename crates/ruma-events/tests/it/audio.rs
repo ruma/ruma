@@ -2,7 +2,7 @@
 
 use std::time::Duration;
 
-use js_int::uint;
+use js_int::{int, uint};
 use ruma_common::{
     MilliSecondsSinceUnixEpoch,
     canonical_json::assert_to_canonical_json_eq,
@@ -285,7 +285,7 @@ fn message_event_deserialization() {
     );
 
     assert_eq!(message_event.event_id, "$event:notareal.hs");
-    assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(134_829_848)));
+    assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(int!(134_829_848)));
     assert_eq!(message_event.room_id, "!roomid:notareal.hs");
     assert_eq!(message_event.sender, "@user:notareal.hs");
     assert!(message_event.unsigned.is_empty());

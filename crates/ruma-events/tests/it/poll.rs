@@ -3,7 +3,7 @@
 use std::{collections::BTreeMap, ops::Range};
 
 use assert_matches::assert_matches;
-use js_int::{UInt, uint};
+use js_int::{Int, UInt, int, uint};
 use ruma_common::{
     MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, owned_event_id,
 };
@@ -688,7 +688,7 @@ fn unstable_end_event_deserialization() {
 fn new_poll_response(
     event_id: &str,
     user_id: &str,
-    ts: UInt,
+    ts: Int,
     selections: &[&str],
 ) -> OriginalSyncPollResponseEvent {
     from_json_value(json!({
@@ -789,13 +789,13 @@ fn compute_results() {
         new_poll_response(
             "$multi_event_1",
             "@multi_user_1:localhost",
-            uint!(2000),
+            int!(2000),
             &["poutine", "wings"],
         ),
         new_poll_response(
             "$multi_event_2",
             "@multi_user_2:localhost",
-            uint!(2200),
+            int!(2200),
             &["poutine", "italian"],
         ),
     ]);
@@ -829,13 +829,13 @@ fn compute_results() {
         new_poll_response(
             "$multi_same_event_1",
             "@multi_same_user_1:localhost",
-            uint!(3000),
+            int!(3000),
             &["poutine", "poutine"],
         ),
         new_poll_response(
             "$multi_same_event_2",
             "@multi_same_user_2:localhost",
-            uint!(3300),
+            int!(3300),
             &["pizza", "pizza"],
         ),
     ]);
@@ -859,9 +859,9 @@ fn compute_results() {
     let changing_user_3 = "@changing_user_3:localhost";
 
     responses.extend(vec![
-        new_poll_response("$valid_for_now_event_1", changing_user_1, uint!(4000), &["wings"]),
-        new_poll_response("$valid_for_now_event_2", changing_user_2, uint!(4100), &["wings"]),
-        new_poll_response("$valid_for_now_event_3", changing_user_3, uint!(4200), &["wings"]),
+        new_poll_response("$valid_for_now_event_1", changing_user_1, int!(4000), &["wings"]),
+        new_poll_response("$valid_for_now_event_2", changing_user_2, int!(4100), &["wings"]),
+        new_poll_response("$valid_for_now_event_3", changing_user_3, int!(4200), &["wings"]),
     ]);
 
     let counted =
@@ -893,7 +893,7 @@ fn compute_results() {
     responses.push(new_poll_response(
         "$change_vote_event",
         changing_user_1,
-        uint!(4400),
+        int!(4400),
         &["italian"],
     ));
 
@@ -912,12 +912,7 @@ fn compute_results() {
     assert_eq!(*results.get("wings").unwrap(), uint!(8));
 
     // Change with no selection.
-    responses.push(new_poll_response(
-        "$no_selection_vote_event",
-        changing_user_1,
-        uint!(4500),
-        &[],
-    ));
+    responses.push(new_poll_response("$no_selection_vote_event", changing_user_1, int!(4500), &[]));
 
     let counted =
         compile_poll_results(&poll.content.poll, responses.iter().map(|r| r.data()), None);
@@ -937,7 +932,7 @@ fn compute_results() {
     responses.push(new_poll_response(
         "$invalid_vote_event",
         changing_user_2,
-        uint!(4500),
+        int!(4500),
         &["indian"],
     ));
 
@@ -956,7 +951,7 @@ fn compute_results() {
     assert_eq!(*results.get("wings").unwrap(), uint!(7));
 
     // Response older than most recent one is ignored.
-    responses.push(new_poll_response("$past_event", changing_user_3, uint!(1), &["pizza"]));
+    responses.push(new_poll_response("$past_event", changing_user_3, int!(1), &["pizza"]));
 
     let counted =
         compile_poll_results(&poll.content.poll, responses.iter().map(|r| r.data()), None);
@@ -974,7 +969,7 @@ fn compute_results() {
 
     // Response later than end_timestamp is ignored.
     let now = MilliSecondsSinceUnixEpoch::now();
-    let future_ts = now.0 + uint!(100_000);
+    let future_ts = now.0 + int!(100_000);
     responses.push(new_poll_response("$future_event", changing_user_3, future_ts, &["pizza"]));
 
     let counted =

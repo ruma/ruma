@@ -93,12 +93,12 @@ fn deserialize_stripped_state_events() {
 #[test]
 #[cfg(feature = "unstable-msc4319")]
 fn deserialize_stripped_state_msc4319_format() {
-    use js_int::uint;
+    use js_int::int;
     use ruma_common::{MilliSecondsSinceUnixEpoch, user_id};
     use ruma_events::room::member::MembershipState;
 
     let user_id = user_id!("@patrick:localhost");
-    let origin_server_ts = MilliSecondsSinceUnixEpoch(uint!(1_000_000));
+    let origin_server_ts = MilliSecondsSinceUnixEpoch(int!(1_000_000));
 
     let event_json = json!({
         "content": {

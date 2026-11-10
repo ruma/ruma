@@ -67,7 +67,7 @@ impl From<RedactedStateRoomEncryptedEventContent>
 
 #[cfg(test)]
 mod tests {
-    use js_int::uint;
+    use js_int::int;
     use ruma_common::canonical_json::assert_to_canonical_json_eq;
     use serde_json::{from_value as from_json_value, json};
     use strass::assert_let;
@@ -152,7 +152,7 @@ mod tests {
 
         assert_eq!(ev.sender, "@example:example.com");
         assert_eq!(ev.room_id, "!roomid:example.com");
-        assert_eq!(ev.origin_server_ts.0, uint!(1_234_567_890));
+        assert_eq!(ev.origin_server_ts.0, int!(1_234_567_890));
         assert_eq!(ev.state_key, "");
     }
 }
