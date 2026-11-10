@@ -109,6 +109,17 @@ pub enum ErrorKind {
     /// The connection to the application service timed out.
     ConnectionTimeout,
 
+    /// `M_DELAY_TOO_LARGE`
+    ///
+    /// The requested delay of a [delayed event] exceeds the maximum allowed by the server.
+    ///
+    /// This uses the unstable prefix defined in [MSC4140].
+    ///
+    /// [delayed event]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
+    /// [MSC4140]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
+    #[cfg(feature = "unstable-msc4140")]
+    DelayTooLarge,
+
     /// `M_DUPLICATE_ANNOTATION`
     ///
     /// The request is an attempt to send a [duplicate annotation].
@@ -457,6 +468,8 @@ impl ErrorKind {
             ErrorKind::ConflictingUnsubscription => ErrorCode::ConflictingUnsubscription,
             ErrorKind::ConnectionFailed => ErrorCode::ConnectionFailed,
             ErrorKind::ConnectionTimeout => ErrorCode::ConnectionTimeout,
+            #[cfg(feature = "unstable-msc4140")]
+            ErrorKind::DelayTooLarge => ErrorCode::DelayTooLarge,
             ErrorKind::DuplicateAnnotation => ErrorCode::DuplicateAnnotation,
             ErrorKind::Exclusive => ErrorCode::Exclusive,
             ErrorKind::Forbidden => ErrorCode::Forbidden,
@@ -840,6 +853,18 @@ pub enum ErrorCode {
     ///
     /// The connection to the application service timed out.
     ConnectionTimeout,
+
+    /// `M_DELAY_TOO_LARGE`
+    ///
+    /// The requested delay of a [delayed event] exceeds the maximum allowed by the server.
+    ///
+    /// This uses the unstable prefix defined in [MSC4140].
+    ///
+    /// [delayed event]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
+    /// [MSC4140]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
+    #[cfg(feature = "unstable-msc4140")]
+    #[ruma_enum(rename = "ORG.MATRIX.MSC4140_DELAY_TOO_LARGE")]
+    DelayTooLarge,
 
     /// `M_DUPLICATE_ANNOTATION`
     ///

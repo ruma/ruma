@@ -239,6 +239,8 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
             ErrorCode::ConflictingUnsubscription => ErrorKind::ConflictingUnsubscription,
             ErrorCode::ConnectionFailed => ErrorKind::ConnectionFailed,
             ErrorCode::ConnectionTimeout => ErrorKind::ConnectionTimeout,
+            #[cfg(feature = "unstable-msc4140")]
+            ErrorCode::DelayTooLarge => ErrorKind::DelayTooLarge,
             ErrorCode::DuplicateAnnotation => ErrorKind::DuplicateAnnotation,
             ErrorCode::Exclusive => ErrorKind::Exclusive,
             ErrorCode::Forbidden => ErrorKind::Forbidden,
@@ -535,6 +537,8 @@ impl Serialize for ErrorKind {
             Self::UnknownPos => {}
             #[cfg(feature = "unstable-msc4388")]
             Self::ConcurrentWrite => {}
+            #[cfg(feature = "unstable-msc4140")]
+            Self::DelayTooLarge => {}
         }
         st.end()
     }
