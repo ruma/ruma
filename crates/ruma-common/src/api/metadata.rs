@@ -811,6 +811,24 @@ pub enum FeatureFlag {
     #[ruma_enum(rename = "org.matrix.msc4140")]
     Msc4140,
 
+    /// `org.matrix.msc4143` ([MSC])
+    ///
+    /// MatrixRTC.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4143
+    #[cfg(feature = "unstable-msc4143")]
+    #[ruma_enum(rename = "org.matrix.msc4143")]
+    Msc4143,
+
+    /// `org.matrix.msc4143.stable` ([MSC])
+    ///
+    /// Stable version of MatrixRTC.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4143
+    #[cfg(feature = "unstable-msc4143")]
+    #[ruma_enum(rename = "org.matrix.msc4143.stable")]
+    Msc4143Stable,
+
     /// `org.matrix.simplified_msc3575` ([MSC])
     ///
     /// Simplified Sliding Sync.
