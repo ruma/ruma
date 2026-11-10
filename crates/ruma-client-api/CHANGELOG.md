@@ -31,6 +31,8 @@ Improvements:
 
 - Updated support for unstable MSC4388 with new `txn_id` field on update requests.
 - Delay fields in `send_delayed_event` requests are now `delay_ms` instead of `delay`.
+- `delayed_events::update_delayed_event::msc4140_v2` now requires an access token, as all
+  delayed event endpoints are authenticated in the latest version of [MSC4140].
 - Add unstable support for [MSC4532] "Revised Social Presence".
 - Add unstable support for the `presence` sliding sync extension, as defined in [MSC4559].
 - The following modules are renamed to match the new unstable endpoint naming convention:
