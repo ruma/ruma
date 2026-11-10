@@ -663,7 +663,6 @@ pub mod request {
         pub enabled: bool,
 
         /// Whether to include the thread root events in the response.
-        #[serde(default, skip_serializing_if = "ruma_common::serde::is_default")]
         pub include_roots: bool,
 
         /// Maximum number of thread updates to receive in the response.
