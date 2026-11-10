@@ -34,7 +34,7 @@ pub mod msc4140_v2 {
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
 
     use ruma_common::{
-        api::{auth_scheme::NoAccessToken, request, response},
+        api::{auth_scheme::AccessToken, request, response},
         metadata,
     };
 
@@ -43,7 +43,7 @@ pub mod msc4140_v2 {
     metadata! {
         method: POST,
         rate_limited: true,
-        authentication: NoAccessToken,
+        authentication: AccessToken,
         history: {
             unstable("org.matrix.msc4140") => "/_matrix/client/unstable/org.matrix.msc4140/delayed_events/{delay_id}/{action}",
         }
@@ -99,7 +99,7 @@ pub mod msc4140_v2 {
                 Request::new("1234".to_owned(), UpdateAction::Cancel)
                     .try_into_http_request(
                         "https://homeserver.tld",
-                        SendAccessToken::None,
+                        SendAccessToken::IfRequired("auth_tok"),
                         Cow::Owned(supported),
                     )
                     .unwrap();
@@ -111,6 +111,7 @@ pub mod msc4140_v2 {
                 parts.uri
             );
             assert_eq!("POST", parts.method);
+            assert_eq!(parts.headers.get(http::header::AUTHORIZATION).unwrap(), "Bearer auth_tok");
             assert_eq!(json!({}), serde_json::from_slice::<JsonValue>(&body).unwrap());
         }
     }
