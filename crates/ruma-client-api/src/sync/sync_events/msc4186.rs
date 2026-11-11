@@ -135,6 +135,8 @@ pub mod request {
 
     #[cfg(feature = "unstable-msc4308")]
     pub use super::v4::request::ThreadSubscriptions;
+    #[cfg(feature = "unstable-msc4360")]
+    pub use super::v4::request::Threads;
     pub use super::v4::request::{E2EE, ToDevice};
     use super::{BTreeMap, Deserialize, OwnedRoomId, Serialize, StateEventType, UInt, v4};
 
@@ -322,6 +324,15 @@ pub mod request {
         )]
         pub thread_subscriptions: ThreadSubscriptions,
 
+        /// Configure the threads extension.
+        #[cfg(feature = "unstable-msc4360")]
+        #[serde(
+            default,
+            skip_serializing_if = "Threads::is_disabled",
+            rename = "io.element.msc4360.threads"
+        )]
+        pub threads: Threads,
+
         /// Configure the profiles extension.
         #[cfg(feature = "unstable-msc4262")]
         #[serde(
@@ -365,6 +376,8 @@ pub mod request {
                 typing,
                 #[cfg(feature = "unstable-msc4308")]
                 thread_subscriptions,
+                #[cfg(feature = "unstable-msc4360")]
+                threads,
                 #[cfg(feature = "unstable-msc4262")]
                 profiles,
                 #[cfg(feature = "unstable-msc4480")]
@@ -385,6 +398,11 @@ pub mod request {
             #[cfg(feature = "unstable-msc4308")]
             {
                 empty &= thread_subscriptions.is_disabled();
+            }
+
+            #[cfg(feature = "unstable-msc4360")]
+            {
+                empty &= threads.is_disabled();
             }
 
             #[cfg(feature = "unstable-msc4262")]
@@ -416,6 +434,8 @@ pub mod request {
                 typing,
                 #[cfg(feature = "unstable-msc4308")]
                 thread_subscriptions,
+                #[cfg(feature = "unstable-msc4360")]
+                threads,
                 #[cfg(feature = "unstable-msc4262")]
                 profiles,
                 #[cfg(feature = "unstable-msc4480")]
@@ -445,6 +465,8 @@ pub mod request {
                 },
                 #[cfg(feature = "unstable-msc4308")]
                 thread_subscriptions,
+                #[cfg(feature = "unstable-msc4360")]
+                threads,
                 #[cfg(feature = "unstable-msc4262")]
                 profiles: Profiles {
                     enabled: enabled_from_v4(profiles.enabled),
@@ -807,6 +829,8 @@ pub mod response {
     pub use super::v4::response::{Presence, PresenceUpdate};
     #[cfg(feature = "unstable-msc4480")]
     pub use super::v4::response::{StickyEvents, StickyEventsRoom};
+    #[cfg(feature = "unstable-msc4360")]
+    pub use super::v4::response::{ThreadUpdate, Threads};
     use super::{
         super::DeviceLists, AnySyncStateEvent, AnySyncTimelineEvent, BTreeMap, Deserialize,
         JsOption, OwnedMxcUri, OwnedRoomId, OwnedUserId, Raw, Serialize, UInt,
@@ -1051,6 +1075,15 @@ pub mod response {
         )]
         pub thread_subscriptions: ThreadSubscriptions,
 
+        /// Threads extension response.
+        #[cfg(feature = "unstable-msc4360")]
+        #[serde(
+            default,
+            skip_serializing_if = "Threads::is_empty",
+            rename = "io.element.msc4360.threads"
+        )]
+        pub threads: Threads,
+
         /// Profiles extension response.
         #[cfg(feature = "unstable-msc4262")]
         #[serde(
@@ -1092,6 +1125,8 @@ pub mod response {
                 typing,
                 #[cfg(feature = "unstable-msc4308")]
                 thread_subscriptions,
+                #[cfg(feature = "unstable-msc4360")]
+                threads,
                 #[cfg(feature = "unstable-msc4262")]
                 profiles,
                 #[cfg(feature = "unstable-msc4480")]
@@ -1110,6 +1145,11 @@ pub mod response {
             #[cfg(feature = "unstable-msc4308")]
             {
                 empty &= thread_subscriptions.is_empty();
+            }
+
+            #[cfg(feature = "unstable-msc4360")]
+            {
+                empty &= threads.is_empty();
             }
 
             #[cfg(feature = "unstable-msc4262")]
@@ -1141,6 +1181,8 @@ pub mod response {
                 typing,
                 #[cfg(feature = "unstable-msc4308")]
                 thread_subscriptions,
+                #[cfg(feature = "unstable-msc4360")]
+                threads,
                 #[cfg(feature = "unstable-msc4262")]
                 profiles,
                 #[cfg(feature = "unstable-msc4480")]
@@ -1199,6 +1241,8 @@ pub mod response {
                 },
                 #[cfg(feature = "unstable-msc4308")]
                 thread_subscriptions,
+                #[cfg(feature = "unstable-msc4360")]
+                threads,
                 #[cfg(feature = "unstable-msc4262")]
                 profiles,
                 #[cfg(feature = "unstable-msc4480")]

@@ -60,9 +60,13 @@ Improvements:
 - Add conversions from the `sync::sync_events::v4` request and response to the `msc4186` request
   and response.
 - Add support for stable RTC transports discovery endpoint (`rtc::transports::v1`).
+- Add unstable support for [MSC4360] "Threads extension to Sliding Sync", with the `threads`
+  extension of `sync::sync_events::v4` and `sync::sync_events::msc4186` and the
+  `threads::get_thread_updates` endpoint.
 
 [MSC4186]: https://github.com/matrix-org/matrix-spec-proposals/pull/4186
 [MSC4354]: https://github.com/matrix-org/matrix-spec-proposals/pull/4354
+[MSC4360]: https://github.com/matrix-org/matrix-spec-proposals/pull/4360
 [MSC4480]: https://github.com/matrix-org/matrix-spec-proposals/pull/4480
 [MSC4508]: https://github.com/matrix-org/matrix-spec-proposals/pull/4508
 [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
