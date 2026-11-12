@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 #[ruma_event(type = "m.recent_emoji", kind = GlobalAccountData)]
 pub struct RecentEmojiEventContent {
     /// The list of recently used emojis, ordered by last usage time.
-    #[serde(default, deserialize_with = "ruma_common::serde::ignore_invalid_vec_items")]
+    #[serde(default, deserialize_with = "ruma_common::serde::ignore_invalid_sequence_items")]
     pub recent_emoji: Vec<RecentEmoji>,
 }
 

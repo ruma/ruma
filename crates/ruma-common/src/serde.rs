@@ -103,44 +103,53 @@ where
     }))
 }
 
-/// Helper function for ignoring invalid items in a `Vec`, instead letting them cause the entire
-/// `Vec` to fail deserialization
-pub fn ignore_invalid_vec_items<'de, D, T>(deserializer: D) -> Result<Vec<T>, D::Error>
+/// Helper function for ignoring invalid items in a sequence, instead of letting them cause the
+/// entire sequence to fail deserialization.
+///
+/// The output `A` type is any type that implements `Default` and `Extend<T>`, so it should work
+/// with `Vec<T>` and `BTreeSet<T>` for example.
+pub fn ignore_invalid_sequence_items<'de, D, A, T>(deserializer: D) -> Result<A, D::Error>
 where
     D: Deserializer<'de>,
+    A: Default + Extend<T>,
     T: Deserialize<'de>,
 {
-    struct SkipInvalid<T>(PhantomData<T>);
+    struct SkipInvalid<A, T>(PhantomData<A>, PhantomData<T>);
 
-    impl<'de, T> Visitor<'de> for SkipInvalid<T>
+    impl<'de, A, T> Visitor<'de> for SkipInvalid<A, T>
     where
+        A: Default + Extend<T>,
         T: Deserialize<'de>,
     {
-        type Value = Vec<T>;
+        type Value = A;
 
         fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-            formatter.write_str("Vec with possibly invalid items")
+            formatter.write_str("sequence with possibly invalid items")
         }
 
-        fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+        fn visit_seq<S>(self, mut seq: S) -> Result<Self::Value, S::Error>
         where
-            A: SeqAccess<'de>,
+            S: SeqAccess<'de>,
         {
-            let mut vec = Vec::new();
+            let mut array = A::default();
+            let mut i = 0_usize;
 
             while let Some(result) = seq.next_element::<T>().transpose() {
-                let Ok(elem) = result else {
+                let Ok(item) = result.inspect_err(|error| {
+                    debug!("deserialization error, ignoring item {i} in sequence: {error}");
+                }) else {
                     continue;
                 };
 
-                vec.push(elem);
+                array.extend(Some(item));
+                i += 1;
             }
 
-            Ok(vec)
+            Ok(array)
         }
     }
 
-    deserializer.deserialize_seq(SkipInvalid(PhantomData))
+    deserializer.deserialize_seq(SkipInvalid(PhantomData, PhantomData))
 }
 
 /// Deserialize a `Raw<T>` and reject any value whose top-level JSON shape is not an object.
