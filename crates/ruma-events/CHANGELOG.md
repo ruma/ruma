@@ -29,6 +29,8 @@ Improvements:
   supported independently of the focus type.
 - `Focus` can now hold foci of unknown types. Use its `new()`, `focus_type()` and `data()`
   methods to construct and access them.
+- `Mentions` ignores invalid user IDs during deserialization. The deserialization error of invalid
+  items is logged at the debug level.
 
 [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
 [MSC4195]: https://github.com/matrix-org/matrix-spec-proposals/pull/4195

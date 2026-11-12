@@ -276,7 +276,11 @@ pub struct Mentions {
     /// The list of mentioned users.
     ///
     /// Defaults to an empty `BTreeSet`.
-    #[serde(default, skip_serializing_if = "BTreeSet::is_empty")]
+    #[serde(
+        default,
+        skip_serializing_if = "BTreeSet::is_empty",
+        deserialize_with = "ruma_common::serde::ignore_invalid_sequence_items"
+    )]
     pub user_ids: BTreeSet<OwnedUserId>,
 
     /// Whether the whole room is mentioned.
@@ -309,3 +313,32 @@ impl Mentions {
 }
 
 ruma_common::priv_owned_str!(uniffi);
+
+#[cfg(test)]
+mod tests {
+    use std::collections::BTreeSet;
+
+    use ruma_common::owned_user_id;
+    use serde_json::{from_value as from_json_value, json};
+
+    use super::Mentions;
+
+    #[test]
+    fn deserialize_mentions_ignores_invalid_user_ids() {
+        let alice = owned_user_id!("@alice:mymatrix.localhost");
+        let bob = owned_user_id!("@bob:theirmatrix.localhost");
+
+        let json = json!({
+            "user_ids": [
+                alice,
+                "not_a_user_id",
+                bob,
+                "@invalid_user_id:~",
+            ],
+        });
+
+        let mentions = from_json_value::<Mentions>(json).unwrap();
+        assert_eq!(mentions.user_ids, BTreeSet::from([alice, bob]));
+        assert!(!mentions.room);
+    }
+}
