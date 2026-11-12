@@ -9,6 +9,8 @@ Breaking changes:
   implementation, and deserializing it is no longer infallible.
 - The `IdDst` derive macro now requires the type to be `#[repr(transparent)]`, because the generated
   code transmutes `&str` into a reference to the type, which is only sound with this representation.
+- `serde::ignore_invalid_vec_items()` is renamed to `ignore_invalid_sequence_items` and is now generic
+  over the sequence type, allowing to use it with `BTreeSet<T>` as well as `Vec<T>`, for example.
 
 Improvements:
 

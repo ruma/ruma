@@ -185,7 +185,7 @@ pub struct CustomJoinRule {
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct Restricted {
     /// Allow rules which describe conditions that allow joining a room.
-    #[serde(default, deserialize_with = "crate::serde::ignore_invalid_vec_items")]
+    #[serde(default, deserialize_with = "crate::serde::ignore_invalid_sequence_items")]
     pub allow: Vec<AllowRule>,
 }
 
