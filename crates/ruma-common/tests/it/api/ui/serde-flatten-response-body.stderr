@@ -19,6 +19,8 @@ help: the trait `IncomingResponse` is not implemented for `Response`
 note: required by a bound in `ruma_common::api::OutgoingRequest::IncomingResponse`
   --> src/api.rs
    |
+   | pub trait OutgoingRequest: Metadata + Clone {
+...
    |     type IncomingResponse: IncomingResponse<EndpointError = Self::EndpointError>;
    |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `OutgoingRequest::IncomingResponse`
    = note: this error originates in the derive macro `::ruma_common::exports::ruma_macros::Request` (in Nightly builds, run with -Z macro-backtrace for more info)
@@ -42,6 +44,8 @@ help: the trait `OutgoingResponse` is implemented for `ruma_common::api::error::
 note: required by a bound in `ruma_common::api::IncomingRequest::OutgoingResponse`
   --> src/api.rs
    |
+   | pub trait IncomingRequest: Metadata {
+...
    |     type OutgoingResponse: OutgoingResponse;
    |                            ^^^^^^^^^^^^^^^^ required by this bound in `IncomingRequest::OutgoingResponse`
    = note: this error originates in the derive macro `::ruma_common::exports::ruma_macros::Request` (in Nightly builds, run with -Z macro-backtrace for more info)
