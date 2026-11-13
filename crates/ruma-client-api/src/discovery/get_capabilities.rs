@@ -154,6 +154,14 @@ pub mod v3 {
         )]
         pub account_moderation: AccountModerationCapability,
 
+        /// Capability to indicate if the user can request URL previews.
+        #[serde(
+            rename = "m.preview_url",
+            default,
+            skip_serializing_if = "PreviewUrlCapability::is_default"
+        )]
+        pub preview_url: PreviewUrlCapability,
+
         /// Capability to indicate if the user can perform administrative actions. ([MSC4540])
         ///
         /// [MSC4540]: https://github.com/matrix-org/matrix-spec-proposals/pull/4540
@@ -194,6 +202,8 @@ pub mod v3 {
                 forget_forced_upon_leave: ForgetForcedUponLeaveCapability,
                 #[serde(rename = "m.account_moderation", default)]
                 account_moderation: AccountModerationCapability,
+                #[serde(rename = "m.preview_url", default)]
+                preview_url: PreviewUrlCapability,
                 #[cfg(feature = "unstable-msc4540")]
                 #[serde(rename = "org.continuwuity.msc4540.admin", default)]
                 admin: AdminCapability,
@@ -220,6 +230,7 @@ pub mod v3 {
                 profile_fields: helper.profile_fields,
                 forget_forced_upon_leave: helper.forget_forced_upon_leave,
                 account_moderation: helper.account_moderation,
+                preview_url: helper.preview_url,
                 #[cfg(feature = "unstable-msc4540")]
                 admin: helper.admin,
                 custom_capabilities: helper.custom_capabilities,
@@ -258,6 +269,7 @@ pub mod v3 {
                     Some(Cow::Owned(serialize(&self.forget_forced_upon_leave)))
                 }
                 "m.account_moderation" => Some(Cow::Owned(serialize(&self.account_moderation))),
+                "m.preview_url" => Some(Cow::Owned(serialize(&self.preview_url))),
                 #[cfg(feature = "unstable-msc4540")]
                 "org.continuwuity.msc4540.admin" => Some(Cow::Owned(serialize(&self.admin))),
                 _ => self.custom_capabilities.get(capability).map(Cow::Borrowed),
@@ -288,6 +300,7 @@ pub mod v3 {
                 "m.account_moderation" => {
                     self.account_moderation = from_json_value(value)?;
                 }
+                "m.preview_url" => self.preview_url = from_json_value(value)?,
                 #[cfg(feature = "unstable-msc4540")]
                 "org.continuwuity.msc4540.admin" => self.admin = from_json_value(value)?,
                 _ => {
@@ -580,6 +593,32 @@ pub mod v3 {
         }
     }
 
+    /// Information about the `m.preview_url` capability.
+    #[derive(Clone, Debug, Serialize, Deserialize)]
+    #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+    pub struct PreviewUrlCapability {
+        /// `true` if the user can request URL previews, `false` otherwise.
+        pub enabled: bool,
+    }
+
+    impl PreviewUrlCapability {
+        /// Creates a new `PreviewUrlCapability` with the given enabled flag.
+        pub fn new(enabled: bool) -> Self {
+            Self { enabled }
+        }
+
+        /// Returns whether all fields have their default value.
+        pub fn is_default(&self) -> bool {
+            self.enabled
+        }
+    }
+
+    impl Default for PreviewUrlCapability {
+        fn default() -> Self {
+            Self { enabled: true }
+        }
+    }
+
     /// Information about the `m.admin` capability. ([MSC4540])
     ///
     /// [MSC4540]: https://github.com/matrix-org/matrix-spec-proposals/pull/4540
@@ -628,9 +667,9 @@ pub mod v3 {
         #[allow(deprecated)]
         use super::{
             AccountModerationCapability, Capabilities, ChangePasswordCapability,
-            ForgetForcedUponLeaveCapability, GetLoginTokenCapability, ProfileFieldsCapability,
-            RoomVersionStability, RoomVersionsCapability, SetAvatarUrlCapability,
-            SetDisplayNameCapability, ThirdPartyIdChangesCapability,
+            ForgetForcedUponLeaveCapability, GetLoginTokenCapability, PreviewUrlCapability,
+            ProfileFieldsCapability, RoomVersionStability, RoomVersionsCapability,
+            SetAvatarUrlCapability, SetDisplayNameCapability, ThirdPartyIdChangesCapability,
         };
 
         /// Capabilities with every typed field set to a non-default value.
@@ -649,6 +688,7 @@ pub mod v3 {
                 profile_fields: Some(ProfileFieldsCapability::new(true)),
                 forget_forced_upon_leave: ForgetForcedUponLeaveCapability::new(true),
                 account_moderation: AccountModerationCapability::new(true, true),
+                preview_url: PreviewUrlCapability::new(false),
                 #[cfg(feature = "unstable-msc4540")]
                 admin: super::AdminCapability::new([OAuthClientScope::ApiFullAccess].into()),
                 custom_capabilities: Default::default(),
