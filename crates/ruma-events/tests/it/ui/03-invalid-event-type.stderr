@@ -23,3 +23,8 @@ help: a derive helper attribute with a similar name exists
 7 - #[not_ruma_event(type = "m.macro.test", kind = State)]
 7 + #[ruma_event(type = "m.macro.test", kind = State)]
   |
+help: the derive macros `Event` and `EventContent` accept the similarly named `ruma_event` attribute
+  |
+7 - #[not_ruma_event(type = "m.macro.test", kind = State)]
+7 + #[ruma_event(type = "m.macro.test", kind = State)]
+  |
