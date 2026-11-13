@@ -235,6 +235,9 @@ pub enum RoomTypeFilter {
     /// The default room type, defined without a `room_type`.
     Default,
 
+    /// A moderation policy list.
+    Policy,
+
     /// A space.
     Space,
 
@@ -256,6 +259,7 @@ impl RoomTypeFilter {
     pub fn as_str(&self) -> Option<&str> {
         match self {
             RoomTypeFilter::Default => None,
+            RoomTypeFilter::Policy => Some("m.policy"),
             RoomTypeFilter::Space => Some("m.space"),
             #[cfg(feature = "unstable-msc3417")]
             RoomTypeFilter::Call => Some("org.matrix.msc3417.call"),
@@ -272,6 +276,7 @@ where
         match s {
             None => Self::Default,
             Some(s) => match s.as_ref() {
+                "m.policy" => Self::Policy,
                 "m.space" => Self::Space,
                 #[cfg(feature = "unstable-msc3417")]
                 "org.matrix.msc3417.call" => Self::Call,
@@ -286,6 +291,7 @@ impl From<Option<RoomType>> for RoomTypeFilter {
         match t {
             None => Self::Default,
             Some(s) => match s {
+                RoomType::Policy => Self::Policy,
                 RoomType::Space => Self::Space,
                 #[cfg(feature = "unstable-msc3417")]
                 RoomType::Call => Self::Call,
@@ -304,7 +310,14 @@ mod tests {
     use crate::{assert_to_canonical_json_eq, room::RoomType};
 
     #[test]
-    fn test_from_room_type() {
+    fn test_from_policy_room_type() {
+        let test = RoomType::Policy;
+        let other: RoomTypeFilter = RoomTypeFilter::from(Some(test));
+        assert_eq!(other, RoomTypeFilter::Policy);
+    }
+
+    #[test]
+    fn test_from_space_room_type() {
         let test = RoomType::Space;
         let other: RoomTypeFilter = RoomTypeFilter::from(Some(test));
         assert_eq!(other, RoomTypeFilter::Space);
@@ -396,13 +409,14 @@ mod tests {
             generic_search_term: None,
             room_types: vec![
                 RoomTypeFilter::Default,
+                RoomTypeFilter::Policy,
                 RoomTypeFilter::Space,
                 Some("custom_type").into(),
             ],
         };
         assert_to_canonical_json_eq!(
             filter,
-            json!({ "room_types": [null, "m.space", "custom_type"] }),
+            json!({ "room_types": [null, "m.policy", "m.space", "custom_type"] }),
         );
     }
 
@@ -421,13 +435,14 @@ mod tests {
 
     #[test]
     fn deserialize_filter_room_types() {
-        let json = json!({ "room_types": [null, "m.space", "custom_type"] });
+        let json = json!({ "room_types": [null, "m.policy", "m.space", "custom_type"] });
         let filter = from_json_value::<Filter>(json).unwrap();
-        assert_eq!(filter.room_types.len(), 3);
+        assert_eq!(filter.room_types.len(), 4);
         assert_eq!(filter.room_types[0], RoomTypeFilter::Default);
-        assert_eq!(filter.room_types[1], RoomTypeFilter::Space);
-        assert_matches!(&filter.room_types[2], RoomTypeFilter::_Custom(_));
-        assert_eq!(filter.room_types[2].as_str(), Some("custom_type"));
+        assert_eq!(filter.room_types[1], RoomTypeFilter::Policy);
+        assert_eq!(filter.room_types[2], RoomTypeFilter::Space);
+        assert_matches!(&filter.room_types[3], RoomTypeFilter::_Custom(_));
+        assert_eq!(filter.room_types[3].as_str(), Some("custom_type"));
     }
 
     #[test]

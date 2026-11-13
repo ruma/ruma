@@ -18,6 +18,10 @@ use crate::{
 #[derive(Clone, StringEnum)]
 #[non_exhaustive]
 pub enum RoomType {
+    /// Defines the room as a moderation policy list.
+    #[ruma_enum(rename = "m.policy")]
+    Policy,
+
     /// Defines the room as a space.
     #[ruma_enum(rename = "m.space")]
     Space,

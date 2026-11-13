@@ -21,6 +21,7 @@ Improvements:
   [MSC4538], [MSC4543], [MSC4548], [MSC4551] and [MSC4559].
 - Add `ErrorKind::DelayTooLarge` and `ErrorCode::DelayTooLarge` for the unstable
   `ORG.MATRIX.MSC4140_DELAY_TOO_LARGE` error code of [MSC4140].
+- Add `RoomType::Policy` and `RoomTypeFilter::Policy` for the `m.policy` room type.
 
 [MSC4140]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
 [MSC4186]: https://github.com/matrix-org/matrix-spec-proposals/pull/4186

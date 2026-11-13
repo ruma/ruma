@@ -191,6 +191,29 @@ mod tests {
     }
 
     #[test]
+    fn policy_serialization() {
+        #[allow(deprecated)]
+        let content = RoomCreateEventContent {
+            creator: Some(owned_user_id!("@carl:example.com")),
+            federate: false,
+            room_version: RoomVersionId::V4,
+            predecessor: None,
+            room_type: Some(RoomType::Policy),
+            additional_creators: Vec::new(),
+        };
+
+        assert_to_canonical_json_eq!(
+            content,
+            json!({
+                "creator": "@carl:example.com",
+                "m.federate": false,
+                "room_version": "4",
+                "type": "m.policy",
+            }),
+        );
+    }
+
+    #[test]
     fn space_serialization() {
         #[allow(deprecated)]
         let content = RoomCreateEventContent {
@@ -252,6 +275,24 @@ mod tests {
         assert_eq!(content.room_version, RoomVersionId::V4);
         assert_matches!(content.predecessor, None);
         assert_eq!(content.room_type, None);
+    }
+
+    #[test]
+    #[allow(deprecated)]
+    fn policy_deserialization() {
+        let json = json!({
+            "creator": "@carl:example.com",
+            "m.federate": true,
+            "room_version": "4",
+            "type": "m.policy"
+        });
+
+        let content = from_json_value::<RoomCreateEventContent>(json).unwrap();
+        assert_eq!(content.creator.unwrap(), "@carl:example.com");
+        assert!(content.federate);
+        assert_eq!(content.room_version, RoomVersionId::V4);
+        assert_matches!(content.predecessor, None);
+        assert_eq!(content.room_type, Some(RoomType::Policy));
     }
 
     #[test]
