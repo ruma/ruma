@@ -8,6 +8,8 @@ Breaking changes:
   required when using the `Deserialize` implementation of `Original(Sync)StateEvent`.
 - The `shared_history` field of `ToDeviceForwardedRoomKeyEventContent` was removed, since it is
   not part of the Matrix spec.
+- Remove support for the unstable `com.famedly.marked_unread` room account data and the
+  `unstable-msc2867` cargo feature. The stable `m.marked_unread` event should be used instead.
 
 Bug fixes:
 
