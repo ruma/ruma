@@ -8,6 +8,12 @@ Breaking changes:
   required when using the `Deserialize` implementation of `Original(Sync)StateEvent`.
 - The `shared_history` field of `ToDeviceForwardedRoomKeyEventContent` was removed, since it is
   not part of the Matrix spec.
+- `RoomKeyWithheldCode::Unauthorized` is now serialized as `m.unauthorised` rather than
+  `m.unauthorized`, to match the Matrix spec and `RoomKeyWithheldCodeInfo::Unauthorized`. The
+  previous `m.unauthorized` spelling is still accepted during deserialization of both types.
+- `RoomKeyWithheldCodeInfo::HistoryNotShared` now holds a `RoomKeyWithheldSessionData`, since the
+  Matrix spec requires the `room_id` and `session_id` fields for this code. The
+  `m.history_not_shared` code is now deserialized as this variant rather than as a custom code.
 
 Bug fixes:
 
@@ -17,6 +23,9 @@ Bug fixes:
 Improvements:
 
 - Add unstable support for [MSC4532] "Revised Social Presence".
+- Add the `withheld` field to `ToDeviceForwardedRoomKeyEventContent`, according to the Matrix spec.
+  It uses the new `ForwardedRoomKeyWithheldInfo` type, which can be constructed with
+  `ForwardedRoomKeyWithheldInfo::new()` or converted from a `&ToDeviceRoomKeyWithheldEventContent`.
 - Make `livekit_alias` optional on RTC member events.
 - Add the `url` and `server_name` fields from [MSC4195] to `LivekitFocus`. The `livekit_service_url`
   field (`service_url`) is now optional and deprecated. `LivekitFocus::new()` now only takes the `url`
