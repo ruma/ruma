@@ -65,10 +65,12 @@ Improvements:
 - Add unstable support for [MSC4360] "Threads extension to Sliding Sync", with the `threads`
   extension of `sync::sync_events::v4` and `sync::sync_events::msc4186` and the
   `threads::get_thread_updates` endpoint.
+- Add the `m.preview_url` capability, according to [MSC4452] / Matrix 1.20.
 
 [MSC4186]: https://github.com/matrix-org/matrix-spec-proposals/pull/4186
 [MSC4354]: https://github.com/matrix-org/matrix-spec-proposals/pull/4354
 [MSC4360]: https://github.com/matrix-org/matrix-spec-proposals/pull/4360
+[MSC4452]: https://github.com/matrix-org/matrix-spec-proposals/pull/4452
 [MSC4480]: https://github.com/matrix-org/matrix-spec-proposals/pull/4480
 [MSC4508]: https://github.com/matrix-org/matrix-spec-proposals/pull/4508
 [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
