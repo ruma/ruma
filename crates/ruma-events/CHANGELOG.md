@@ -31,6 +31,8 @@ Improvements:
   methods to construct and access them.
 - `Mentions` ignores invalid user IDs during deserialization. The deserialization error of invalid
   items is logged at the debug level.
+- Add the `prev_sender` field to `StateUnsigned` and `RoomMemberUnsigned`, due to a clarification
+  in the Matrix spec.
 
 [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
 [MSC4195]: https://github.com/matrix-org/matrix-spec-proposals/pull/4195

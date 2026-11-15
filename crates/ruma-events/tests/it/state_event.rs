@@ -88,6 +88,28 @@ fn deserialize_sync_room_name_with_prev_content() {
 }
 
 #[test]
+fn deserialize_room_name_with_prev_sender() {
+    let json = json!({
+        "content": {
+            "name": "Somewhere",
+        },
+        "event_id": "$h29iv0s8:example.com",
+        "origin_server_ts": 1,
+        "room_id": "!roomid:room.com",
+        "sender": "@carl:example.com",
+        "state_key": "",
+        "type": "m.room.name",
+        "unsigned": {
+            "prev_sender": "@alice:example.com",
+        },
+    });
+
+    assert_let!(Ok(AnyStateEvent::RoomName(StateEvent::Original(ev))) = from_json_value(json));
+    assert_variant_eq!(ev.unsigned.prev_sender, Some("@alice:example.com"));
+    assert!(!ev.unsigned.is_empty());
+}
+
+#[test]
 fn deserialize_avatar_without_prev_content() {
     let json_data = json!({
         "content": {
