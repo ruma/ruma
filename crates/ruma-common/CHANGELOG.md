@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.21.0
+
 Breaking changes:
 
 - `OAuthClientScope` now requires that custom values are valid OAuth scopes.
