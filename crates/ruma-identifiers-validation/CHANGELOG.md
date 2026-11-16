@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.14.1
+
+Improvements:
+
+- Add `oauth_scope::validate()`.
+- Add `acr::validate()`.
+
 ## 0.14.0
 
 Breaking changes:
