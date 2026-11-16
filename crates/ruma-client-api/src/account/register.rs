@@ -126,6 +126,7 @@ pub mod v3 {
         /// Will be the same as the corresponding parameter in the request, if one was specified.
         ///
         /// Required if the request's `inhibit_login` was set to `false`.
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub device_id: Option<OwnedDeviceId>,
 
         /// A [refresh token] for the account.
