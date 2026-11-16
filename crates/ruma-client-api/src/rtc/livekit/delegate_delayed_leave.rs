@@ -2,8 +2,8 @@
 //!
 //! Delegate the restarting of the delayed leave event of a MatrixRTC slot to the homeserver.
 
-pub mod msc4195 {
-    //! `/unstable/io.element.msc4195/` ([MSC])
+pub mod v1 {
+    //! `/v1/` ([MSC], not yet documented in spec)
     //!
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4195
 
@@ -19,6 +19,7 @@ pub mod msc4195 {
         authentication: AccessToken,
         history: {
             unstable => "/_matrix/client/unstable/io.element.msc4195/rtc/livekit/delegate_delayed_leave",
+            stable("org.matrix.msc4195.stable") => "/_matrix/client/v1/rtc/livekit/delegate_delayed_leave",
         }
     }
 
@@ -68,18 +69,22 @@ pub mod msc4195 {
 
     #[cfg(all(test, feature = "client"))]
     mod tests {
-        use std::borrow::Cow;
+        use std::{borrow::Cow, collections::BTreeSet};
 
         use ruma_common::{
-            api::{OutgoingRequestExt as _, SupportedVersions, auth_scheme::SendAccessToken},
+            api::{
+                FeatureFlag, OutgoingRequestExt as _, SupportedVersions,
+                auth_scheme::SendAccessToken,
+            },
             owned_room_id,
         };
         use serde_json::json;
 
         use super::Request;
 
-        #[test]
-        fn serialize_request() {
+        fn serialize_request(
+            supported: SupportedVersions,
+        ) -> (http::request::Parts, serde_json::Value) {
             let request = Request::new(
                 "wss://livekit.example.com".to_owned(),
                 owned_room_id!("!tDLCaLXijNtYcJZEey:example.com"),
@@ -87,9 +92,6 @@ pub mod msc4195 {
                 "xyzABCDEF10123".to_owned(),
                 "1234567890".to_owned(),
             );
-
-            let supported =
-                SupportedVersions { versions: Default::default(), features: Default::default() };
 
             let (parts, body) = request
                 .try_into_http_request::<Vec<u8>>(
@@ -101,21 +103,49 @@ pub mod msc4195 {
                 .into_parts();
             let body: serde_json::Value = serde_json::from_slice(&body).unwrap();
 
+            (parts, body)
+        }
+
+        fn expected_body() -> serde_json::Value {
+            json!({
+                "url": "wss://livekit.example.com",
+                "room_id": "!tDLCaLXijNtYcJZEey:example.com",
+                "slot_id": "the_id",
+                "member_id": "xyzABCDEF10123",
+                "delay_id": "1234567890",
+            })
+        }
+
+        #[test]
+        fn serialize_request_unstable() {
+            let supported =
+                SupportedVersions { versions: Default::default(), features: Default::default() };
+
+            let (parts, body) = serialize_request(supported);
+
             assert_eq!("POST", parts.method.as_str());
             assert_eq!(
                 "https://homeserver.tld/_matrix/client/unstable/io.element.msc4195/rtc/livekit/delegate_delayed_leave",
                 parts.uri.to_string()
             );
+            assert_eq!(body, expected_body());
+        }
+
+        #[test]
+        fn serialize_request_stable() {
+            let supported = SupportedVersions {
+                versions: Default::default(),
+                features: BTreeSet::from([FeatureFlag::Msc4195Stable]),
+            };
+
+            let (parts, body) = serialize_request(supported);
+
+            assert_eq!("POST", parts.method.as_str());
             assert_eq!(
-                body,
-                json!({
-                    "url": "wss://livekit.example.com",
-                    "room_id": "!tDLCaLXijNtYcJZEey:example.com",
-                    "slot_id": "the_id",
-                    "member_id": "xyzABCDEF10123",
-                    "delay_id": "1234567890",
-                })
+                "https://homeserver.tld/_matrix/client/v1/rtc/livekit/delegate_delayed_leave",
+                parts.uri.to_string()
             );
+            assert_eq!(body, expected_body());
         }
     }
 
@@ -125,13 +155,10 @@ pub mod msc4195 {
 
         use super::Request;
 
-        #[test]
-        fn deserialize_request() {
+        fn deserialize_request(uri: &str) -> Request {
             let request = http::Request::builder()
                 .method("POST")
-                .uri(
-                    "/_matrix/client/unstable/io.element.msc4195/rtc/livekit/delegate_delayed_leave",
-                )
+                .uri(uri)
                 .body(
                     br#"{
                         "url": "wss://livekit.example.org",
@@ -143,13 +170,30 @@ pub mod msc4195 {
                 )
                 .unwrap();
 
-            let request = Request::try_from_http_request(request, &[] as &[&str]).unwrap();
+            Request::try_from_http_request(request, &[] as &[&str]).unwrap()
+        }
 
+        fn assert_request(request: &Request) {
             assert_eq!(request.url, "wss://livekit.example.org");
             assert_eq!(request.room_id, "!tDLCaLXijNtYcJZEey:example.org");
             assert_eq!(request.slot_id, "the_id");
             assert_eq!(request.member_id, "xyzABCDEF10123");
             assert_eq!(request.delay_id, "1234567890");
+        }
+
+        #[test]
+        fn deserialize_request_unstable() {
+            let request = deserialize_request(
+                "/_matrix/client/unstable/io.element.msc4195/rtc/livekit/delegate_delayed_leave",
+            );
+            assert_request(&request);
+        }
+
+        #[test]
+        fn deserialize_request_stable() {
+            let request =
+                deserialize_request("/_matrix/client/v1/rtc/livekit/delegate_delayed_leave");
+            assert_request(&request);
         }
     }
 }

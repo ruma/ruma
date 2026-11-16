@@ -847,6 +847,15 @@ pub enum FeatureFlag {
     #[ruma_enum(rename = "org.matrix.simplified_msc3575.stable")]
     Msc4186Stable,
 
+    /// `org.matrix.msc4195.stable` ([MSC])
+    ///
+    /// Stable version of the LiveKit transport for MatrixRTC.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4195
+    #[cfg(feature = "unstable-msc4195")]
+    #[ruma_enum(rename = "org.matrix.msc4195.stable")]
+    Msc4195Stable,
+
     /// `org.matrix.msc4262` ([MSC])
     ///
     /// Profile updates extension for `/sync`.
