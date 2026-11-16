@@ -73,7 +73,7 @@ jobs:
         crate: ${{ fromJSON(needs.changes.outputs.crates) }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -148,7 +148,7 @@ jobs:
         features: [stable, unstable]
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Install rust stable toolchain
         uses: dtolnay/rust-toolchain@stable
