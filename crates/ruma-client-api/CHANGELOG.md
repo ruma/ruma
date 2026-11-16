@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+Bug fixes:
+
+- Optional fields that are not nullable in the spec are no longer serialized as `null` when they
+  are `None`. This applies to the `display_name` and `last_seen_ip` fields of `device::Device`, the
+  `identifier` field of `session::login::v3::ApplicationService`, the `device_id` field of
+  `account::register::v3::Response`, the `ip`, `last_seen` and `user_agent` fields of
+  `admin::get_user_info::v3::ConnectionInfo`, the `icon` and `brand` fields of
+  `session::get_login_types::v3::IdentityProvider`, the `key` field of
+  `search::search_events::v3::Grouping`, and the `session` field of the `uiaa` auth data types.
+
 Improvements:
 
 - Add support for the stable delayed events endpoints of [MSC4140], used when the server

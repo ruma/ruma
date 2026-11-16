@@ -104,12 +104,15 @@ pub mod v3 {
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct ConnectionInfo {
         /// Most recently seen IP address of the session.
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub ip: Option<String>,
 
         /// Time when that the session was last active.
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub last_seen: Option<MilliSecondsSinceUnixEpoch>,
 
         /// User agent string last seen in the session.
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub user_agent: Option<String>,
     }
 

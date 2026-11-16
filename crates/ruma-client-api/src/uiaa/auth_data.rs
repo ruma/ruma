@@ -211,6 +211,7 @@ pub struct Password {
     pub password: String,
 
     /// The value of the session key given by the homeserver, if any.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub session: Option<String>,
 }
 
@@ -244,6 +245,7 @@ pub struct ReCaptcha {
     pub response: String,
 
     /// The value of the session key given by the homeserver, if any.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub session: Option<String>,
 }
 
@@ -275,6 +277,7 @@ pub struct EmailIdentity {
     pub thirdparty_id_creds: ThirdpartyIdCredentials,
 
     /// The value of the session key given by the homeserver, if any.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub session: Option<String>,
 }
 
@@ -292,6 +295,7 @@ pub struct Msisdn {
     pub thirdparty_id_creds: ThirdpartyIdCredentials,
 
     /// The value of the session key given by the homeserver, if any.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub session: Option<String>,
 }
 
@@ -305,6 +309,7 @@ pub struct Msisdn {
 #[serde(tag = "type", rename = "m.login.dummy")]
 pub struct Dummy {
     /// The value of the session key given by the homeserver, if any.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub session: Option<String>,
 }
 
@@ -328,6 +333,7 @@ pub struct RegistrationToken {
     pub token: String,
 
     /// The value of the session key given by the homeserver, if any.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub session: Option<String>,
 }
 
@@ -376,6 +382,7 @@ impl FallbackAcknowledgement {
 #[serde(tag = "type", rename = "m.login.terms")]
 pub struct Terms {
     /// The value of the session key given by the homeserver, if any.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub session: Option<String>,
 }
 
@@ -394,6 +401,7 @@ impl Terms {
 #[serde(tag = "type", rename = "m.oauth")]
 pub struct OAuth {
     /// The value of the session key given by the homeserver, if any.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub session: Option<String>,
 }
 
@@ -414,6 +422,7 @@ pub struct CustomAuthData {
     auth_type: String,
 
     /// The value of the session key given by the homeserver, if any.
+    #[serde(skip_serializing_if = "Option::is_none")]
     session: Option<String>,
 
     /// Extra data.
