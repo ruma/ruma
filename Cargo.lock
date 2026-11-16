@@ -2068,7 +2068,7 @@ dependencies = [
 
 [[package]]
 name = "ruma-identity-service-api"
-version = "0.16.1"
+version = "0.17.0"
 dependencies = [
  "http",
  "js_int",

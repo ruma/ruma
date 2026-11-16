@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.17.0
+
+Breaking changes:
+
+- Upgrade `ruma-common` and `ruma-events`.
+
 ## 0.16.1
 
 Bug fixes:
