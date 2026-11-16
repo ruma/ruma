@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.18.0
+
 Breaking changes:
 
 - The `ping::send_ping::unstable` module is renamed to `msc2659`, to follow our new unstable
