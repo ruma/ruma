@@ -1,6 +1,6 @@
 use assert_matches::assert_matches;
 use js_int::int;
-use ruma_common::serde::test::serde_json_eq;
+use ruma_common::serde::{CanBeEmpty, test::serde_json_eq};
 use ruma_events::{
     AnyMessageLikeEvent, AnyPossiblyRedactedStateEventContent, AnyStateEvent,
     AnySyncEphemeralRoomEvent, AnySyncMessageLikeEvent, AnySyncStateEvent, AnySyncTimelineEvent,
@@ -9,9 +9,11 @@ use ruma_events::{
     OriginalSyncMessageLikeEvent, OriginalSyncStateEvent, RoomAccountDataEventType, StateEvent,
     StateEventType, SyncMessageLikeEvent, SyncStateEvent, ToDeviceEventType,
     room::{
+        member::{MembershipState, RoomMemberEventContent},
         message::{MessageType, RoomMessageEventContent},
         name::RoomNameEventContent,
         power_levels::RoomPowerLevelsEventContent,
+        redaction::SyncRoomRedactionEvent,
     },
 };
 use serde_json::{Value as JsonValue, from_value as from_json_value, json};
@@ -280,4 +282,226 @@ fn serialize_and_deserialize_from_display_form() {
     serde_json_eq(ToDeviceEventType::KeyVerificationKey, json!("m.key.verification.key"));
     serde_json_eq(StateEventType::RoomCreate, json!("m.room.create"));
     serde_json_eq(EphemeralRoomEventType::Typing, json!("m.typing"));
+}
+
+fn timeline_event_with_unsigned(
+    event_type: &str,
+    content: JsonValue,
+    unsigned: JsonValue,
+) -> JsonValue {
+    json!({
+        "content": content,
+        "event_id": "$152037280074GZeOm:localhost",
+        "origin_server_ts": 1,
+        "sender": "@example:localhost",
+        "type": event_type,
+        "unsigned": unsigned,
+    })
+}
+
+fn redacted_because() -> JsonValue {
+    json!({
+        "type": "m.room.redaction",
+        "content": { "reason": "redacted because" },
+        "redacts": "$152037280074GZeOm:localhost",
+        "event_id": "$h29iv0s8:example.com",
+        "origin_server_ts": 1,
+        "sender": "@carl:example.com",
+    })
+}
+
+#[test]
+fn unsigned_membership_any_original_message_like() {
+    let json = timeline_event_with_unsigned(
+        "m.room.message",
+        json!({ "body": "baba", "msgtype": "m.text" }),
+        json!({ "membership": "join" }),
+    );
+
+    let event = from_json_value::<AnySyncTimelineEvent>(json).unwrap();
+    assert_matches!(event, AnySyncTimelineEvent::MessageLike(_));
+    assert_eq!(event.unsigned_membership(), Some(&MembershipState::Join));
+}
+
+#[test]
+fn unsigned_membership_any_redacted_message_like() {
+    let json = timeline_event_with_unsigned(
+        "m.room.message",
+        json!({}),
+        json!({ "membership": "leave", "redacted_because": redacted_because() }),
+    );
+
+    let event = from_json_value::<AnySyncMessageLikeEvent>(json).unwrap();
+    assert_matches!(event, AnySyncMessageLikeEvent::RoomMessage(SyncMessageLikeEvent::Redacted(_)));
+    assert_eq!(event.unsigned_membership(), Some(&MembershipState::Leave));
+    assert_eq!(event.transaction_id(), None);
+}
+
+#[test]
+fn unsigned_membership_any_room_redaction() {
+    let json = timeline_event_with_unsigned(
+        "m.room.redaction",
+        json!({ "redacts": "$other:localhost" }),
+        json!({ "membership": "join" }),
+    );
+
+    let event = from_json_value::<AnySyncMessageLikeEvent>(json).unwrap();
+    assert_matches!(event, AnySyncMessageLikeEvent::RoomRedaction(_));
+    assert_eq!(event.unsigned_membership(), Some(&MembershipState::Join));
+}
+
+#[test]
+fn unsigned_membership_any_custom_event_and_value() {
+    let json = timeline_event_with_unsigned(
+        "dev.ruma.custom",
+        json!({}),
+        json!({ "membership": "dev.ruma.custom_membership" }),
+    );
+
+    let event = from_json_value::<AnySyncMessageLikeEvent>(json).unwrap();
+    assert_matches!(event, AnySyncMessageLikeEvent::_Custom(_));
+    assert_eq!(event.unsigned_membership().map(|m| m.as_str()), Some("dev.ruma.custom_membership"));
+}
+
+#[test]
+fn unsigned_membership_any_state() {
+    let mut json = timeline_event_with_unsigned(
+        "m.room.member",
+        json!({ "membership": "join" }),
+        json!({ "membership": "invite" }),
+    );
+    json["state_key"] = json!("@other:localhost");
+    json["room_id"] = json!("!room:localhost");
+
+    let event = from_json_value::<AnyTimelineEvent>(json).unwrap();
+    assert_matches!(event, AnyTimelineEvent::State(AnyStateEvent::RoomMember(_)));
+    assert_eq!(event.unsigned_membership(), Some(&MembershipState::Invite));
+}
+
+#[test]
+fn unsigned_membership_any_redacted_state() {
+    let mut json = timeline_event_with_unsigned(
+        "m.room.name",
+        json!({}),
+        json!({ "membership": "ban", "redacted_because": redacted_because() }),
+    );
+    json["state_key"] = json!("");
+
+    let event = from_json_value::<AnySyncTimelineEvent>(json).unwrap();
+    assert_matches!(
+        event,
+        AnySyncTimelineEvent::State(AnySyncStateEvent::RoomName(SyncStateEvent::Redacted(_)))
+    );
+    assert_eq!(event.unsigned_membership(), Some(&MembershipState::Ban));
+}
+
+#[test]
+fn unsigned_membership_any_redacted_room_redaction() {
+    let json = timeline_event_with_unsigned(
+        "m.room.redaction",
+        json!({}),
+        json!({ "membership": "knock", "redacted_because": redacted_because() }),
+    );
+
+    let event = from_json_value::<AnySyncMessageLikeEvent>(json).unwrap();
+    assert_matches!(
+        event,
+        AnySyncMessageLikeEvent::RoomRedaction(SyncRoomRedactionEvent::Redacted(_))
+    );
+    assert_eq!(event.unsigned_membership(), Some(&MembershipState::Knock));
+}
+
+#[test]
+fn unsigned_membership_typed_message_like() {
+    let original = timeline_event_with_unsigned(
+        "m.room.message",
+        json!({ "body": "baba", "msgtype": "m.text" }),
+        json!({ "membership": "join" }),
+    );
+    let event = from_json_value::<SyncMessageLikeEvent<RoomMessageEventContent>>(original).unwrap();
+    assert_eq!(event.unsigned_membership(), Some(&MembershipState::Join));
+    assert_let!(SyncMessageLikeEvent::Original(ev) = event);
+    assert!(!ev.unsigned.is_empty());
+
+    let mut redacted = timeline_event_with_unsigned(
+        "m.room.message",
+        json!({}),
+        json!({ "membership": "leave", "redacted_because": redacted_because() }),
+    );
+    redacted["room_id"] = json!("!room:localhost");
+    let event = from_json_value::<MessageLikeEvent<RoomMessageEventContent>>(redacted).unwrap();
+    assert_matches!(event, MessageLikeEvent::Redacted(_));
+    assert_eq!(event.unsigned_membership(), Some(&MembershipState::Leave));
+}
+
+#[test]
+fn unsigned_membership_typed_state() {
+    let mut original = timeline_event_with_unsigned(
+        "m.room.member",
+        json!({ "membership": "join" }),
+        json!({ "membership": "invite" }),
+    );
+    original["state_key"] = json!("@other:localhost");
+    let event = from_json_value::<SyncStateEvent<RoomMemberEventContent>>(original).unwrap();
+    // `membership()` is the membership in the content, for the user in the `state_key`.
+    assert_eq!(*event.membership(), MembershipState::Join);
+    assert_let!(SyncStateEvent::Original(ev) = event);
+    assert_eq!(ev.unsigned.membership, Some(MembershipState::Invite));
+    assert!(!ev.unsigned.is_empty());
+
+    let mut original = timeline_event_with_unsigned(
+        "m.room.name",
+        json!({ "name": "Somewhere" }),
+        json!({ "membership": "join" }),
+    );
+    original["state_key"] = json!("");
+    let event = from_json_value::<SyncStateEvent<RoomNameEventContent>>(original).unwrap();
+    assert_let!(SyncStateEvent::Original(ev) = event);
+    assert_eq!(ev.unsigned.membership, Some(MembershipState::Join));
+    assert!(!ev.unsigned.is_empty());
+
+    let mut redacted = timeline_event_with_unsigned(
+        "m.room.name",
+        json!({}),
+        json!({ "membership": "ban", "redacted_because": redacted_because() }),
+    );
+    redacted["state_key"] = json!("");
+    redacted["room_id"] = json!("!room:localhost");
+    let event = from_json_value::<StateEvent<RoomNameEventContent>>(redacted).unwrap();
+    assert_let!(StateEvent::Redacted(ev) = event);
+    assert_eq!(ev.unsigned.membership, Some(MembershipState::Ban));
+}
+
+#[test]
+fn unsigned_membership_typed_room_redaction() {
+    let original = timeline_event_with_unsigned(
+        "m.room.redaction",
+        json!({ "redacts": "$other:localhost" }),
+        json!({ "membership": "join" }),
+    );
+    let event = from_json_value::<SyncRoomRedactionEvent>(original).unwrap();
+    assert_eq!(event.unsigned_membership(), Some(&MembershipState::Join));
+    assert_let!(SyncRoomRedactionEvent::Original(ev) = event);
+    assert!(!ev.unsigned.is_empty());
+
+    let redacted = timeline_event_with_unsigned(
+        "m.room.redaction",
+        json!({}),
+        json!({ "membership": "leave", "redacted_because": redacted_because() }),
+    );
+    let event = from_json_value::<SyncRoomRedactionEvent>(redacted).unwrap();
+    assert_matches!(event, SyncRoomRedactionEvent::Redacted(_));
+    assert_eq!(event.unsigned_membership(), Some(&MembershipState::Leave));
+}
+
+#[test]
+fn unsigned_membership_any_missing() {
+    let json = timeline_event_with_unsigned(
+        "m.room.message",
+        json!({ "body": "baba", "msgtype": "m.text" }),
+        json!({}),
+    );
+
+    let event = from_json_value::<AnySyncTimelineEvent>(json).unwrap();
+    assert_eq!(event.unsigned_membership(), None);
 }

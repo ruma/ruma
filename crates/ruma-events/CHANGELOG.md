@@ -6,6 +6,8 @@ Improvements:
 
 - Remove support for the unstable `com.famedly.marked_unread` room account data and the
   `unstable-msc2867` cargo feature. The stable `m.marked_unread` event should be used instead.
+- Add `membership` to unsigned data and an `unsigned_membership()` accessor to timeline event
+  enums, according to Matrix 1.11.
 
 ## 0.36.0
 

@@ -311,6 +311,7 @@ impl<'a> EventEnumVariation<'a> {
         let state_key_accessor = self.expand_state_key_accessor();
         let relations_accessor = self.expand_relations_accessor();
         let transaction_id_accessor = self.expand_transaction_id_accessor();
+        let membership_accessor = self.expand_membership_accessor();
 
         quote! {
             #[automatically_derived]
@@ -325,6 +326,7 @@ impl<'a> EventEnumVariation<'a> {
                 #relations_accessor
                 #state_key_accessor
                 #transaction_id_accessor
+                #membership_accessor
             }
         }
     }
@@ -486,6 +488,45 @@ impl<'a> EventEnumVariation<'a> {
                     Self::_Custom(event) => {
                         event.as_original().and_then(|ev| ev.unsigned.transaction_id.as_deref())
                     }
+                }
+            }
+        })
+    }
+
+    /// Generate an accessor for the `unsigned.membership` field for this enum, if present.
+    fn expand_membership_accessor(&self) -> Option<TokenStream> {
+        if !self.maybe_redacted() {
+            return None;
+        }
+
+        let ruma_events = self.ruma_events;
+        let variants = &self.variants;
+        let variant_attrs = &self.variant_attrs;
+
+        // The possibly-redacted message-like enums have an `unsigned_membership()` accessor. The
+        // state ones cannot have it because the `Unsigned` type of the content is generic, so we
+        // need to access the field of the concrete type here.
+        let accessor = if self.kind == EventEnumKind::MessageLike {
+            quote! { event.unsigned_membership() }
+        } else {
+            let event_struct = &self.event_struct;
+            quote! {
+                match event {
+                    #ruma_events::#event_struct::Original(ev) => ev.unsigned.membership.as_ref(),
+                    #ruma_events::#event_struct::Redacted(ev) => ev.unsigned.membership.as_ref(),
+                }
+            }
+        };
+
+        Some(quote! {
+            /// Returns the requesting user's `unsigned.membership` at this event, even if redacted.
+            pub fn unsigned_membership(&self) -> Option<&#ruma_events::room::member::MembershipState> {
+                match self {
+                    #(
+                        #( #variant_attrs )*
+                        Self::#variants(event) => #accessor,
+                    )*
+                    Self::_Custom(event) => #accessor,
                 }
             }
         })

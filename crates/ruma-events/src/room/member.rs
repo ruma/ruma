@@ -915,6 +915,24 @@ pub struct RoomMemberUnsigned {
     #[serde(default)]
     pub knock_room_state: Vec<Raw<AnyStrippedStateEvent>>,
 
+    /// The room membership of the user making the request, at the time of the event.
+    ///
+    /// This is the `membership` of the requesting user's `m.room.member` state at the point of the
+    /// event, including any changes caused by the event, and not their current membership. It is
+    /// set to `leave` if the user had no `m.room.member` state at that point.
+    ///
+    /// Homeservers should populate it wherever practical, but it may be missing. It is not
+    /// normally present in events pushed to application services.
+    ///
+    /// The event's `content.membership` is the membership of the user in the `state_key`, while
+    /// this field is the membership of the user who made the request. The two are equal when the
+    /// `state_key` is the requesting user.
+    ///
+    /// See the [spec] for more details.
+    ///
+    /// [spec]: https://spec.matrix.org/v1.19/client-server-api/#room-event-format
+    pub membership: Option<MembershipState>,
+
     /// [Bundled aggregations] of related child events.
     ///
     /// [Bundled aggregations]: https://spec.matrix.org/v1.19/client-server-api/#aggregations-of-child-events
@@ -944,6 +962,7 @@ impl CanBeEmpty for RoomMemberUnsigned {
             prev_sender,
             invite_room_state,
             knock_room_state,
+            membership,
             relations,
         } = self;
 
@@ -954,6 +973,7 @@ impl CanBeEmpty for RoomMemberUnsigned {
             && prev_sender.is_none()
             && invite_room_state.is_empty()
             && knock_room_state.is_empty()
+            && membership.is_none()
             && relations.is_empty()
     }
 }
