@@ -13,11 +13,14 @@ Breaking changes:
 Improvements:
 
 - Add unstable support for [MSC4532] "Revised Social Presence".
+- Add `rtc::livekit::get_token::v1` for the stable path of the `get_token` endpoint from
+  [MSC4195], behind the `unstable-msc4195` feature.
 - The `event::get_stripped_state::unstable` module is renamed to `msc4560` to follow the new
   unstable endpoint naming convention.
 - The `thirdparty::bind_callback` endpoint (`/_matrix/federation/v1/3pid/onbind`) now uses the
   `POST` HTTP method instead of `PUT`, due to a clarification in the spec.
 
+[MSC4195]: https://github.com/matrix-org/matrix-spec-proposals/pull/4195
 [MSC4532]: https://github.com/matrix-org/matrix-spec-proposals/pull/4532
 
 ## 0.16.1
