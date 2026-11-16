@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.36.0
+
 Breaking changes:
 
 - The `DeserializeOwned` bound on the `StaticStateEventContent::Unsigned` associated type is only

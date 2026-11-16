@@ -1995,7 +1995,7 @@ dependencies = [
 
 [[package]]
 name = "ruma-events"
-version = "0.35.2"
+version = "0.36.0"
 dependencies = [
  "as_variant",
  "assert_matches",
