@@ -54,7 +54,7 @@ unstable-msc4121 = []
 unstable-msc4140 = ["ruma-common/unstable-msc4140"]
 unstable-msc4143 = ["ruma-common/unstable-msc4143"]
 unstable-msc4186 = ["ruma-common/unstable-msc4186"]
-unstable-msc4195 = ["unstable-msc4143"]
+unstable-msc4195 = ["unstable-msc4143", "ruma-common/unstable-msc4195"]
 # Profile Updates Sliding Sync Extension
 unstable-msc4262 = ["ruma-common/unstable-msc4262"]
 unstable-msc4293 = ["ruma-events/unstable-msc4293"]
