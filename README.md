@@ -42,7 +42,7 @@ You can also find a small number of examples in our dedicated
 
 ## Status
 
-Ruma 0.15.0 supports all events and REST endpoints of Matrix 1.18.
+Ruma 0.18.0 supports all events and REST endpoints of Matrix 1.19.
 
 Only room versions enforcing canonical JSON (introduced with room version 6) are
 supported. Room versions 1 through 5 are supported on a best effort basis, but a
