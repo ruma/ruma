@@ -15,7 +15,7 @@ use super::{
     MessageLikeUnsigned, PossiblyRedactedStateEventContent, RedactContent,
     RedactedMessageLikeEventContent, RedactedStateEventContent, RedactedUnsigned,
     RedactionDeHelper, RoomAccountDataEventContent, StateEventType, StaticStateEventContent,
-    ToDeviceEventContent,
+    ToDeviceEventContent, room::member::MembershipState,
 };
 #[cfg(feature = "unstable-msc4354")]
 use crate::sticky::StickyObject;
@@ -997,6 +997,14 @@ impl_possibly_redacted_event!(
         pub fn as_original(&self) -> Option<&OriginalMessageLikeEvent<C>> {
             as_variant!(self, Self::Original)
         }
+
+        /// Returns the requesting user's `unsigned.membership` at this event, even if redacted.
+        pub fn unsigned_membership(&self) -> Option<&MembershipState> {
+            match self {
+                Self::Original(ev) => ev.unsigned.membership.as_ref(),
+                Self::Redacted(ev) => ev.unsigned.membership.as_ref(),
+            }
+        }
     }
 );
 
@@ -1007,6 +1015,14 @@ impl_possibly_redacted_event!(
         /// Get the inner `OriginalSyncMessageLikeEvent` if this is an unredacted event.
         pub fn as_original(&self) -> Option<&OriginalSyncMessageLikeEvent<C>> {
             as_variant!(self, Self::Original)
+        }
+
+        /// Returns the requesting user's `unsigned.membership` at this event, even if redacted.
+        pub fn unsigned_membership(&self) -> Option<&MembershipState> {
+            match self {
+                Self::Original(ev) => ev.unsigned.membership.as_ref(),
+                Self::Redacted(ev) => ev.unsigned.membership.as_ref(),
+            }
         }
 
         /// Convert this sync event into a full event (one with a `room_id` field).

@@ -344,6 +344,12 @@ pub fn event_enum(input: TokenStream) -> TokenStream {
 /// the kind is `State`. Only necessary if the `StateUnsigned` type is not appropriate for this
 /// type.
 ///
+/// If the event is used as a variant in the `event_enum!` macro, the custom type must have the
+/// following public fields, which are read by the accessors of the generated enums:
+///
+/// - `transaction_id: Option<OwnedTransactionId>`
+/// - `membership: Option<MembershipState>`
+///
 /// ### `custom_redacted`
 ///
 /// If the kind requires a `Redacted{}EventContent` type and a `RedactContent` implementation and it

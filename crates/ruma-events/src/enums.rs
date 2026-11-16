@@ -11,7 +11,7 @@ use ruma_macros::{EventEnumFromEvent, event_enum};
 use serde::{Deserialize, Serialize, de};
 use serde_json::value::RawValue as RawJsonValue;
 
-use super::room::encrypted;
+use super::room::{encrypted, member::MembershipState};
 
 /// Event types that servers should send as [stripped state] to help clients identify a room when
 /// they can't access the full room state.
@@ -325,6 +325,9 @@ impl AnyTimelineEvent {
         /// Returns this event's `transaction_id` from inside `unsigned`, if there is one.
         pub fn transaction_id(&self) -> Option<&TransactionId>;
 
+        /// Returns the requesting user's `unsigned.membership` at this event, even if redacted.
+        pub fn unsigned_membership(&self) -> Option<&MembershipState>;
+
         /// Returns whether this event is in its redacted form or not.
         pub fn is_redacted(&self) -> bool;
     }
@@ -364,6 +367,9 @@ impl AnySyncTimelineEvent {
 
         /// Returns this event's `transaction_id` from inside `unsigned`, if there is one.
         pub fn transaction_id(&self) -> Option<&TransactionId>;
+
+        /// Returns the requesting user's `unsigned.membership` at this event, even if redacted.
+        pub fn unsigned_membership(&self) -> Option<&MembershipState>;
 
         /// Returns whether this event is in its redacted form or not.
         pub fn is_redacted(&self) -> bool;

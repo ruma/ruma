@@ -11,7 +11,7 @@ use serde::{Deserialize, de::DeserializeOwned};
 use super::{
     MessageLikeEventContent, OriginalSyncMessageLikeEvent, PossiblyRedactedStateEventContent,
     relation::{BundledMessageLikeRelations, BundledStateRelations},
-    room::redaction::RoomRedactionEventContent,
+    room::{member::MembershipState, redaction::RoomRedactionEventContent},
 };
 use crate::TimelineEventType;
 
@@ -32,6 +32,20 @@ pub struct MessageLikeUnsigned<C: MessageLikeEventContent> {
     /// The client-supplied transaction ID, if the client being given the event is the same one
     /// which sent it.
     pub transaction_id: Option<OwnedTransactionId>,
+
+    /// The room membership of the user making the request, at the time of the event.
+    ///
+    /// This is the `membership` of the requesting user's `m.room.member` state at the point of the
+    /// event, including any changes caused by the event, and not their current membership. It is
+    /// set to `leave` if the user had no `m.room.member` state at that point.
+    ///
+    /// Homeservers should populate it wherever practical, but it may be missing. It is not
+    /// normally present in events pushed to application services.
+    ///
+    /// See the [spec] for more details.
+    ///
+    /// [spec]: https://spec.matrix.org/v1.19/client-server-api/#room-event-format
+    pub membership: Option<MembershipState>,
 
     /// [Bundled aggregations] of related child events.
     ///
@@ -56,6 +70,7 @@ impl<C: MessageLikeEventContent> MessageLikeUnsigned<C> {
         Self {
             age: None,
             transaction_id: None,
+            membership: None,
             relations: BundledMessageLikeRelations::default(),
             #[cfg(feature = "unstable-msc4354")]
             sticky_duration_ttl_ms: None,
@@ -76,8 +91,10 @@ impl<C: MessageLikeEventContent> CanBeEmpty for MessageLikeUnsigned<C> {
     /// events. Do not use it to determine whether an incoming `unsigned` field was present - it
     /// could still have been present but contained none of the known fields.
     fn is_empty(&self) -> bool {
-        let empty =
-            self.age.is_none() && self.transaction_id.is_none() && self.relations.is_empty();
+        let empty = self.age.is_none()
+            && self.transaction_id.is_none()
+            && self.membership.is_none()
+            && self.relations.is_empty();
         #[cfg(feature = "unstable-msc4354")]
         let empty = empty && self.sticky_duration_ttl_ms.is_none();
         empty
@@ -114,6 +131,20 @@ pub struct StateUnsigned<C: PossiblyRedactedStateEventContent> {
     /// regardless of history visibility.
     pub prev_sender: Option<OwnedUserId>,
 
+    /// The room membership of the user making the request, at the time of the event.
+    ///
+    /// This is the `membership` of the requesting user's `m.room.member` state at the point of the
+    /// event, including any changes caused by the event, and not their current membership. It is
+    /// set to `leave` if the user had no `m.room.member` state at that point.
+    ///
+    /// Homeservers should populate it wherever practical, but it may be missing. It is not
+    /// normally present in events pushed to application services.
+    ///
+    /// See the [spec] for more details.
+    ///
+    /// [spec]: https://spec.matrix.org/v1.19/client-server-api/#room-event-format
+    pub membership: Option<MembershipState>,
+
     /// [Bundled aggregations] of related child events.
     ///
     /// [Bundled aggregations]: https://spec.matrix.org/v1.19/client-server-api/#aggregations-of-child-events
@@ -140,6 +171,7 @@ impl<C: PossiblyRedactedStateEventContent> StateUnsigned<C> {
             replaces_state: None,
             prev_content: None,
             prev_sender: None,
+            membership: None,
             relations: Default::default(),
             #[cfg(feature = "unstable-msc4354")]
             sticky_duration_ttl_ms: None,
@@ -160,6 +192,7 @@ impl<C: PossiblyRedactedStateEventContent> CanBeEmpty for StateUnsigned<C> {
             replaces_state,
             prev_content,
             prev_sender,
+            membership,
             relations,
             #[cfg(feature = "unstable-msc4354")]
             sticky_duration_ttl_ms,
@@ -170,6 +203,7 @@ impl<C: PossiblyRedactedStateEventContent> CanBeEmpty for StateUnsigned<C> {
             && replaces_state.is_none()
             && prev_content.is_none()
             && prev_sender.is_none()
+            && membership.is_none()
             && relations.is_empty();
         #[cfg(feature = "unstable-msc4354")]
         let empty = empty && sticky_duration_ttl_ms.is_none();
@@ -189,12 +223,26 @@ impl<C: PossiblyRedactedStateEventContent> Default for StateUnsigned<C> {
 pub struct RedactedUnsigned {
     /// The event that redacted this event, if any.
     pub redacted_because: Raw<AnyRedactionEvent>,
+
+    /// The room membership of the user making the request, at the time of the event.
+    ///
+    /// This is the `membership` of the requesting user's `m.room.member` state at the point of the
+    /// event, including any changes caused by the event, and not their current membership. It is
+    /// set to `leave` if the user had no `m.room.member` state at that point.
+    ///
+    /// Homeservers should populate it wherever practical, but it may be missing. It is not
+    /// normally present in events pushed to application services.
+    ///
+    /// See the [spec] for more details.
+    ///
+    /// [spec]: https://spec.matrix.org/v1.19/client-server-api/#room-event-format
+    pub membership: Option<MembershipState>,
 }
 
 impl RedactedUnsigned {
     /// Create a new `RedactedUnsigned` with the given redaction event.
     pub fn new(redacted_because: Raw<AnyRedactionEvent>) -> Self {
-        Self { redacted_because }
+        Self { redacted_because, membership: None }
     }
 }
 

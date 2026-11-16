@@ -18,6 +18,7 @@ use tracing::error;
 use crate::{
     BundledMessageLikeRelations, MessageLikeEventContent, MessageLikeEventType, RedactContent,
     RedactedMessageLikeEventContent, RedactedUnsigned, StaticEventContent,
+    room::member::MembershipState,
 };
 
 mod event_serde;
@@ -331,6 +332,14 @@ impl RoomRedactionEvent {
     pub fn as_original(&self) -> Option<&OriginalRoomRedactionEvent> {
         as_variant!(self, Self::Original)
     }
+
+    /// Returns the requesting user's `unsigned.membership` at this event, even if redacted.
+    pub fn unsigned_membership(&self) -> Option<&MembershipState> {
+        match self {
+            Self::Original(ev) => ev.unsigned.membership.as_ref(),
+            Self::Redacted(ev) => ev.unsigned.membership.as_ref(),
+        }
+    }
 }
 
 impl SyncRoomRedactionEvent {
@@ -382,6 +391,14 @@ impl SyncRoomRedactionEvent {
     /// Get the inner `SyncRoomRedactionEvent` if this is an unredacted event.
     pub fn as_original(&self) -> Option<&OriginalSyncRoomRedactionEvent> {
         as_variant!(self, Self::Original)
+    }
+
+    /// Returns the requesting user's `unsigned.membership` at this event, even if redacted.
+    pub fn unsigned_membership(&self) -> Option<&MembershipState> {
+        match self {
+            Self::Original(ev) => ev.unsigned.membership.as_ref(),
+            Self::Redacted(ev) => ev.unsigned.membership.as_ref(),
+        }
     }
 
     /// Convert this sync event into a full event (one with a `room_id` field).
@@ -457,6 +474,20 @@ pub struct RoomRedactionUnsigned {
     /// which sent it.
     pub transaction_id: Option<OwnedTransactionId>,
 
+    /// The room membership of the user making the request, at the time of the event.
+    ///
+    /// This is the `membership` of the requesting user's `m.room.member` state at the point of the
+    /// event, including any changes caused by the event, and not their current membership. It is
+    /// set to `leave` if the user had no `m.room.member` state at that point.
+    ///
+    /// Homeservers should populate it wherever practical, but it may be missing. It is not
+    /// normally present in events pushed to application services.
+    ///
+    /// See the [spec] for more details.
+    ///
+    /// [spec]: https://spec.matrix.org/v1.19/client-server-api/#room-event-format
+    pub membership: Option<MembershipState>,
+
     /// [Bundled aggregations] of related child events.
     ///
     /// [Bundled aggregations]: https://spec.matrix.org/v1.19/client-server-api/#aggregations-of-child-events
@@ -467,7 +498,12 @@ pub struct RoomRedactionUnsigned {
 impl RoomRedactionUnsigned {
     /// Create a new `Unsigned` with fields set to `None`.
     pub fn new() -> Self {
-        Self { age: None, transaction_id: None, relations: BundledMessageLikeRelations::default() }
+        Self {
+            age: None,
+            transaction_id: None,
+            membership: None,
+            relations: BundledMessageLikeRelations::default(),
+        }
     }
 }
 
@@ -484,7 +520,10 @@ impl CanBeEmpty for RoomRedactionUnsigned {
     /// events. Do not use it to determine whether an incoming `unsigned` field was present - it
     /// could still have been present but contained none of the known fields.
     fn is_empty(&self) -> bool {
-        self.age.is_none() && self.transaction_id.is_none() && self.relations.is_empty()
+        self.age.is_none()
+            && self.transaction_id.is_none()
+            && self.membership.is_none()
+            && self.relations.is_empty()
     }
 }
 
