@@ -43,7 +43,6 @@ Improvements:
   - `rendezvous::create_rendezvous_session::unstable_msc4108` is renamed to `msc4108` and
     `rendezvous::*::unstable(_msc4388)` are renamed to `msc4388`.
   - `retention::get_retention_configuration::unstable` is renamed to `msc1763`.
-  - `rtc::livekit::get_token::v1` is renamed to `msc4195`.
   - `rtc::transports::v1` is renamed to `msc4143`.
   - `state::get_stripped_state::unstable` is renamed to `msc4560`.
   - `sync::sync_events::v5` is renamed to `msc4186`.
@@ -62,8 +61,8 @@ Improvements:
 - Add conversions from the `sync::sync_events::v4` request and response to the `msc4186` request
   and response.
 - Add support for stable RTC transports discovery endpoint (`rtc::transports::v1`).
-- Add support for the stable LiveKit delayed leave delegation endpoint, which
-  `rtc::livekit::delegate_delayed_leave::v1` selects when the homeserver advertises the
+- Add support for the stable LiveKit endpoints, which `rtc::livekit::get_token::v1` and
+  `rtc::livekit::delegate_delayed_leave::v1` select when the homeserver advertises the
   `org.matrix.msc4195.stable` feature.
 - Add unstable support for [MSC4360] "Threads extension to Sliding Sync", with the `threads`
   extension of `sync::sync_events::v4` and `sync::sync_events::msc4186` and the

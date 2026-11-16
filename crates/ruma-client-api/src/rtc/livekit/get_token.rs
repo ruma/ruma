@@ -2,8 +2,8 @@
 //!
 //! Get a token to authenticate with a LiveKit SFU for a MatrixRTC slot.
 
-pub mod msc4195 {
-    //! `/unstable/io.element.msc4195/` ([MSC])
+pub mod v1 {
+    //! `/v1/` ([MSC], not yet documented in spec)
     //!
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4195
 
@@ -19,6 +19,7 @@ pub mod msc4195 {
         authentication: AccessToken,
         history: {
             unstable => "/_matrix/client/unstable/io.element.msc4195/rtc/livekit/get_token",
+            stable("org.matrix.msc4195.stable") => "/_matrix/client/v1/rtc/livekit/get_token",
         }
     }
 
@@ -71,10 +72,13 @@ pub mod msc4195 {
 
     #[cfg(all(test, feature = "client"))]
     mod tests {
-        use std::borrow::Cow;
+        use std::{borrow::Cow, collections::BTreeSet};
 
         use ruma_common::{
-            api::{OutgoingRequestExt as _, SupportedVersions, auth_scheme::SendAccessToken},
+            api::{
+                FeatureFlag, OutgoingRequestExt as _, SupportedVersions,
+                auth_scheme::SendAccessToken,
+            },
             owned_room_id, owned_server_name,
         };
         use serde_json::{Value as JsonValue, json};
@@ -82,8 +86,14 @@ pub mod msc4195 {
         use super::Request;
 
         fn serialize_request(request: Request) -> (http::request::Parts, JsonValue) {
-            let supported =
-                SupportedVersions { versions: Default::default(), features: Default::default() };
+            serialize_request_with(request, Default::default())
+        }
+
+        fn serialize_request_with(
+            request: Request,
+            features: BTreeSet<FeatureFlag>,
+        ) -> (http::request::Parts, JsonValue) {
+            let supported = SupportedVersions { versions: Default::default(), features };
 
             let (parts, body) = request
                 .try_into_http_request::<Vec<u8>>(
@@ -147,6 +157,34 @@ pub mod msc4195 {
                 })
             );
         }
+
+        #[test]
+        fn serialize_request_stable() {
+            let request = Request::new(
+                "wss://livekit.example.com".to_owned(),
+                owned_room_id!("!tDLCaLXijNtYcJZEey:example.com"),
+                "the_id".to_owned(),
+                "xyzABCDEF10123".to_owned(),
+            );
+
+            let (parts, body) =
+                serialize_request_with(request, BTreeSet::from([FeatureFlag::Msc4195Stable]));
+
+            assert_eq!("POST", parts.method.as_str());
+            assert_eq!(
+                "https://homeserver.tld/_matrix/client/v1/rtc/livekit/get_token",
+                parts.uri.to_string()
+            );
+            assert_eq!(
+                body,
+                json!({
+                    "url": "wss://livekit.example.com",
+                    "room_id": "!tDLCaLXijNtYcJZEey:example.com",
+                    "slot_id": "the_id",
+                    "member_id": "xyzABCDEF10123",
+                })
+            );
+        }
     }
 
     #[cfg(all(test, feature = "server"))]
@@ -155,11 +193,10 @@ pub mod msc4195 {
 
         use super::Request;
 
-        #[test]
-        fn deserialize_request() {
+        fn deserialize_request(uri: &str) -> Request {
             let request = http::Request::builder()
                 .method("POST")
-                .uri("/_matrix/client/unstable/io.element.msc4195/rtc/livekit/get_token")
+                .uri(uri)
                 .body(
                     br#"{
                         "url": "wss://livekit.example.org",
@@ -170,13 +207,29 @@ pub mod msc4195 {
                 )
                 .unwrap();
 
-            let request = Request::try_from_http_request(request, &[] as &[&str]).unwrap();
+            Request::try_from_http_request(request, &[] as &[&str]).unwrap()
+        }
 
+        fn assert_request(request: &Request) {
             assert_eq!(request.server_name, None);
             assert_eq!(request.url, "wss://livekit.example.org");
             assert_eq!(request.room_id, "!tDLCaLXijNtYcJZEey:example.org");
             assert_eq!(request.slot_id, "the_id");
             assert_eq!(request.member_id, "xyzABCDEF10123");
+        }
+
+        #[test]
+        fn deserialize_request_unstable() {
+            let request = deserialize_request(
+                "/_matrix/client/unstable/io.element.msc4195/rtc/livekit/get_token",
+            );
+            assert_request(&request);
+        }
+
+        #[test]
+        fn deserialize_request_stable() {
+            let request = deserialize_request("/_matrix/client/v1/rtc/livekit/get_token");
+            assert_request(&request);
         }
     }
 }
