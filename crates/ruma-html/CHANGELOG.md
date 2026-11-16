@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.10.0
+
+Breaking changes:
+
+- Upgrade ruma-common to 0.21.0.
+
 Bug fixes:
 
 - Allow the `data-mx-emoticon` attribute on `img` elements when sanitizing, as
