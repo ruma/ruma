@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.26.0
+
 Breaking changes:
 
 - The `membership::get_mutual_rooms::unstable` module is renamed to `msc2666` to match the new
