@@ -29,7 +29,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Get xtask
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: target/debug/xtask
           key: xtask-${{ hashFiles('Cargo.toml', 'xtask/src/**', 'xtask/Cargo.toml') }}
@@ -80,7 +80,7 @@ jobs:
           shared-key: msrv1.89
 
       - name: Get xtask
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: target/debug/xtask
           key: xtask-${{ hashFiles('Cargo.toml', 'xtask/src/**', 'xtask/Cargo.toml') }}
@@ -123,7 +123,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Get xtask
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: target/debug/xtask
           key: xtask-${{ hashFiles('Cargo.toml', 'xtask/src/**', 'xtask/Cargo.toml') }}
@@ -187,7 +187,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Get xtask
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: target/debug/xtask
           key: xtask-${{ hashFiles('Cargo.toml', 'xtask/src/**', 'xtask/Cargo.toml') }}
@@ -219,7 +219,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Get xtask
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: target/debug/xtask
           key: xtask-${{ hashFiles('Cargo.toml', 'xtask/src/**', 'xtask/Cargo.toml') }}
