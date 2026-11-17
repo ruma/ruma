@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+Breaking changes:
+
+- The following delayed events modules are renamed, as they now also support the stable
+  endpoints of [MSC4140]:
+  - `delayed_events::send_delayed_event::msc4140` is renamed to `v3`.
+  - `delayed_events::update_delayed_event::msc4140_v2` is renamed to `v1`.
+
+Improvements:
+
+- Add support for the stable delayed events endpoints of [MSC4140], used when the server
+  advertises the `org.matrix.msc4140.stable` feature flag. The response of the stable
+  `delayed_events::get_delayed_event::v1` endpoint uses the new `DelayedEvent` type, which
+  matches the accepted version of the MSC. It can be converted to and from the
+  `DelayedEventData` type used by the unstable `get_delayed_event::msc4140` endpoint.
+- Add the `timestamp` field to `delayed_events::send_delayed_event::v3::Request`, for timestamp
+  massaging by appservices as defined in [MSC4140].
+- Add `Capabilities::delayed_events` for the `m.delayed_events` capability of [MSC4140]. The
+  unstable `org.matrix.msc4140.delayed_events` name is accepted when deserializing.
+
 ## 0.26.0
 
 Breaking changes:

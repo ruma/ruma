@@ -1,4 +1,4 @@
-//! `POST /_matrix/client/*/delayed_events/{delayed_id}`
+//! `POST /_matrix/client/*/delayed_events/{delay_id}/{action}`
 //!
 //! Send a delayed event update. This can be updating/canceling/sending the associated delayed
 //! event.
@@ -28,8 +28,8 @@ pub enum UpdateAction {
 
 pub mod msc4140_v1;
 
-pub mod msc4140_v2 {
-    //! `/unstable/org.matrix.msc4140/` ([MSC])
+pub mod v1 {
+    //! `/v1/` ([MSC], not yet documented in spec)
     //!
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
 
@@ -46,6 +46,7 @@ pub mod msc4140_v2 {
         authentication: AccessToken,
         history: {
             unstable("org.matrix.msc4140") => "/_matrix/client/unstable/org.matrix.msc4140/delayed_events/{delay_id}/{action}",
+            stable("org.matrix.msc4140.stable") => "/_matrix/client/v1/delayed_events/{delay_id}/{action}",
         }
     }
 
@@ -113,6 +114,29 @@ pub mod msc4140_v2 {
             assert_eq!("POST", parts.method);
             assert_eq!(parts.headers.get(http::header::AUTHORIZATION).unwrap(), "Bearer auth_tok");
             assert_eq!(json!({}), serde_json::from_slice::<JsonValue>(&body).unwrap());
+        }
+
+        #[test]
+        fn serialize_stable_update_delayed_event_request() {
+            use ruma_common::api::FeatureFlag;
+
+            let supported = SupportedVersions {
+                versions: [MatrixVersion::V1_1].into(),
+                features: [FeatureFlag::Msc4140Stable].into(),
+            };
+            let request: http::Request<Vec<u8>> =
+                Request::new("1234".to_owned(), UpdateAction::Restart)
+                    .try_into_http_request(
+                        "https://homeserver.tld",
+                        SendAccessToken::IfRequired("auth_tok"),
+                        Cow::Owned(supported),
+                    )
+                    .unwrap();
+
+            assert_eq!(
+                "https://homeserver.tld/_matrix/client/v1/delayed_events/1234/restart",
+                request.uri()
+            );
         }
     }
 
