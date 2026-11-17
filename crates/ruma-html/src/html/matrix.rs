@@ -696,12 +696,19 @@ pub struct ImageData {
     /// It this is not a valid `mxc:` URI, the attribute will be in the `attrs` list of
     /// [`MatrixElementData`].
     pub src: Option<OwnedMxcUri>,
+
+    /// `data-mx-emoticon`, a Matrix [custom emoticon].
+    ///
+    /// Whether the image is a custom emoticon, shown inline with the text.
+    ///
+    /// [custom emoticon]: https://spec.matrix.org/v1.19/client-server-api/#sending-custom-emotes
+    pub emoticon: bool,
 }
 
 impl ImageData {
     /// Construct an empty `ImageData`.
     fn new() -> Self {
-        Self { width: None, height: None, alt: None, title: None, src: None }
+        Self { width: None, height: None, alt: None, title: None, src: None, emoticon: false }
     }
 
     /// Parse the given attributes to construct a new `ImageData`.
@@ -743,6 +750,7 @@ impl ImageData {
                         remaining_attrs.insert(attr.clone());
                     }
                 }
+                b"data-mx-emoticon" => data.emoticon = true,
                 _ => {
                     remaining_attrs.insert(attr.clone());
                 }
