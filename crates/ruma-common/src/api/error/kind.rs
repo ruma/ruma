@@ -113,10 +113,7 @@ pub enum ErrorKind {
     ///
     /// The requested delay of a [delayed event] exceeds the maximum allowed by the server.
     ///
-    /// This uses the unstable prefix defined in [MSC4140].
-    ///
     /// [delayed event]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
-    /// [MSC4140]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
     #[cfg(feature = "unstable-msc4140")]
     DelayTooLarge,
 
@@ -858,12 +855,9 @@ pub enum ErrorCode {
     ///
     /// The requested delay of a [delayed event] exceeds the maximum allowed by the server.
     ///
-    /// This uses the unstable prefix defined in [MSC4140].
-    ///
     /// [delayed event]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
-    /// [MSC4140]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
     #[cfg(feature = "unstable-msc4140")]
-    #[ruma_enum(rename = "ORG.MATRIX.MSC4140_DELAY_TOO_LARGE")]
+    #[ruma_enum(alias = "ORG.MATRIX.MSC4140_DELAY_TOO_LARGE")]
     DelayTooLarge,
 
     /// `M_DUPLICATE_ANNOTATION`

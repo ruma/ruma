@@ -811,6 +811,15 @@ pub enum FeatureFlag {
     #[ruma_enum(rename = "org.matrix.msc4140")]
     Msc4140,
 
+    /// `org.matrix.msc4140.stable` ([MSC])
+    ///
+    /// Stable version of delayed events.
+    ///
+    /// [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
+    #[cfg(feature = "unstable-msc4140")]
+    #[ruma_enum(rename = "org.matrix.msc4140.stable")]
+    Msc4140Stable,
+
     /// `org.matrix.msc4143` ([MSC])
     ///
     /// MatrixRTC.
