@@ -215,6 +215,42 @@ fn img_attributes() {
 }
 
 #[test]
+fn img_emoticon() {
+    let raw_html = "\
+        <img \
+            alt=\":cat:\" \
+            src=\"mxc://localhost/abc123\" \
+            data-mx-emoticon \
+        />\
+        <img \
+            alt=\"A picture\" \
+            src=\"https://localhost/abc123.png\" \
+        />\
+    ";
+    let html = Html::parse(raw_html);
+    let mut html_children = html.children();
+
+    // First `<img>` element, with `data-mx-emoticon`.
+    let node = html_children.next().unwrap();
+    let element = node.as_element().unwrap().to_matrix();
+
+    assert_let!(MatrixElement::Img(image) = element.element);
+    assert_eq!(image.alt.unwrap().as_ref(), ":cat:");
+    assert_eq!(image.src.unwrap(), "mxc://localhost/abc123");
+    assert!(image.emoticon);
+    assert!(element.attrs.is_empty());
+
+    // Plain `<img>`.
+    let node = html_children.next().unwrap();
+    let element = node.as_element().unwrap().to_matrix();
+
+    assert_let!(MatrixElement::Img(image) = element.element);
+    assert_eq!(image.alt.unwrap().as_ref(), "A picture");
+    assert!(image.src.is_none());
+    assert!(!image.emoticon);
+}
+
+#[test]
 fn ol_attributes() {
     let raw_html = "\
         <ol start=2>\

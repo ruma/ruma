@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+Improvements:
+
+- Add `ImageData::emoticon`, set when an `<img>` has the `data-mx-emoticon`
+  attribute, according to image packs in Matrix 1.19.
+
 ## 0.10.0
 
 Breaking changes:
