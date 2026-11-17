@@ -40,6 +40,8 @@ impl<'de> Deserialize<'de> for PushCondition {
             "io.element.msc4306.thread_subscription" => {
                 from_raw_json_value(&json).map(Self::ThreadSubscription)
             }
+            #[cfg(feature = "unstable-msc4563")]
+            "eu.cyrneko.msc4563.direct_message" => Ok(Self::DirectMessage),
             _ => {
                 let mut data = from_raw_json_value::<JsonObject, _>(&json)?;
                 data.remove("kind");

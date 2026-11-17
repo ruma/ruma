@@ -65,6 +65,7 @@ unstable-msc4532 = []
 unstable-msc4536 = []
 unstable-msc4559 = []
 unstable-msc4560 = []
+unstable-msc4563 = []
 
 # Allow IDs to exceed 255 bytes.
 compat-arbitrary-length-ids = ["ruma-identifiers-validation/compat-arbitrary-length-ids"]

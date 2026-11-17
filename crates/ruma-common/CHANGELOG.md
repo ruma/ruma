@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+Improvements:
+
+- Add unstable support for [MSC4563] "`direct_message` push rule".
+
+[MSC4563]: https://github.com/matrix-org/matrix-spec-proposals/pull/4563
+
 ## 0.21.0
 
 Breaking changes:
