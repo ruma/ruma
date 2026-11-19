@@ -1102,10 +1102,6 @@ mod tests {
             "Jolly Jumper".into(),
         );
         ctx.power_levels = Some(power_levels());
-        #[cfg(feature = "unstable-msc4563")]
-        {
-            ctx.is_direct = true;
-        }
         ctx
     });
 

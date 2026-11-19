@@ -50,9 +50,9 @@ impl Ruleset {
                 ConditionalPushRule::encrypted_direct(),
                 #[cfg(feature = "unstable-msc4563")]
                 ConditionalPushRule::direct(),
-                #[cfg(not(feature = "unstable-msc4563"))]
+                #[allow(deprecated)]
                 ConditionalPushRule::encrypted_room_one_to_one(),
-                #[cfg(not(feature = "unstable-msc4563"))]
+                #[allow(deprecated)]
                 ConditionalPushRule::room_one_to_one(),
                 ConditionalPushRule::message(),
                 ConditionalPushRule::encrypted(),
