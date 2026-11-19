@@ -46,7 +46,13 @@ impl Ruleset {
             .into(),
             underride: [
                 ConditionalPushRule::call(),
+                #[cfg(feature = "unstable-msc4563")]
+                ConditionalPushRule::encrypted_direct(),
+                #[cfg(feature = "unstable-msc4563")]
+                ConditionalPushRule::direct(),
+                #[allow(deprecated)]
                 ConditionalPushRule::encrypted_room_one_to_one(),
+                #[allow(deprecated)]
                 ConditionalPushRule::room_one_to_one(),
                 ConditionalPushRule::message(),
                 ConditionalPushRule::encrypted(),
@@ -336,6 +342,11 @@ impl ConditionalPushRule {
     /// Unlike other push rules, this rule cannot be matched against the content of the event by
     /// nature of it being encrypted. This causes the rule to be an "all or nothing" match where it
     /// either matches all events that are encrypted (in 1:1 rooms) or none.
+    #[cfg_attr(
+        feature = "unstable-msc4563",
+        deprecated = "Since MSC4563. Use ConditionalPushRule::encrypted_direct instead."
+    )]
+    #[allow(deprecated)]
     pub fn encrypted_room_one_to_one() -> Self {
         Self {
             rule_id: PredefinedUnderrideRuleId::EncryptedRoomOneToOne.to_string(),
@@ -352,6 +363,11 @@ impl ConditionalPushRule {
     }
 
     /// Matches any message sent in a room with exactly two members.
+    #[cfg_attr(
+        feature = "unstable-msc4563",
+        deprecated = "Since MSC4563. Use ConditionalPushRule::direct instead."
+    )]
+    #[allow(deprecated)]
     pub fn room_one_to_one() -> Self {
         Self {
             rule_id: PredefinedUnderrideRuleId::RoomOneToOne.to_string(),
@@ -359,6 +375,44 @@ impl ConditionalPushRule {
             enabled: true,
             conditions: vec![
                 RoomMemberCount(RoomMemberCountConditionData::new(js_int::uint!(2).into())),
+                EventMatch(EventMatchConditionData::new("type".into(), "m.room.message".into())),
+            ],
+            actions: vec![Notify, SetTweak(Tweak::Sound(SoundTweakValue::Default))],
+        }
+    }
+
+    /// Matches all encrypted events sent in a room listed in the user's `m.direct` account data.
+    ///
+    /// This rule is defined in [MSC4563].
+    ///
+    /// [MSC4563]: https://github.com/matrix-org/matrix-spec-proposals/pull/4563
+    #[cfg(feature = "unstable-msc4563")]
+    pub fn encrypted_direct() -> Self {
+        Self {
+            rule_id: PredefinedUnderrideRuleId::EncryptedDirect.to_string(),
+            default: true,
+            enabled: true,
+            conditions: vec![
+                DirectMessage,
+                EventMatch(EventMatchConditionData::new("type".into(), "m.room.encrypted".into())),
+            ],
+            actions: vec![Notify, SetTweak(Tweak::Sound(SoundTweakValue::Default))],
+        }
+    }
+
+    /// Matches any message sent in a room listed in the user's `m.direct` account data.
+    ///
+    /// This rule is defined in [MSC4563].
+    ///
+    /// [MSC4563]: https://github.com/matrix-org/matrix-spec-proposals/pull/4563
+    #[cfg(feature = "unstable-msc4563")]
+    pub fn direct() -> Self {
+        Self {
+            rule_id: PredefinedUnderrideRuleId::Direct.to_string(),
+            default: true,
+            enabled: true,
+            conditions: vec![
+                DirectMessage,
                 EventMatch(EventMatchConditionData::new("type".into(), "m.room.message".into())),
             ],
             actions: vec![Notify, SetTweak(Tweak::Sound(SoundTweakValue::Default))],
@@ -638,9 +692,17 @@ pub enum PredefinedUnderrideRuleId {
     Call,
 
     /// `.m.rule.encrypted_room_one_to_one`
+    #[cfg_attr(
+        feature = "unstable-msc4563",
+        deprecated = "Since MSC4563. Use PredefinedUnderrideRuleId::EncryptedDirect instead."
+    )]
     EncryptedRoomOneToOne,
 
     /// `.m.rule.room_one_to_one`
+    #[cfg_attr(
+        feature = "unstable-msc4563",
+        deprecated = "Since MSC4563. Use PredefinedUnderrideRuleId::Direct instead."
+    )]
     RoomOneToOne,
 
     /// `.m.rule.message`
@@ -702,6 +764,24 @@ pub enum PredefinedUnderrideRuleId {
     #[cfg(feature = "unstable-msc4306")]
     #[ruma_enum(rename = ".io.element.msc4306.rule.subscribed_thread")]
     SubscribedThread,
+
+    /// `.m.rule.encrypted_direct`
+    ///
+    /// This uses the unstable prefix defined in [MSC4563].
+    ///
+    /// [MSC4563]: https://github.com/matrix-org/matrix-spec-proposals/pull/4563
+    #[cfg(feature = "unstable-msc4563")]
+    #[ruma_enum(rename = ".eu.cyrneko.msc4563.encrypted_direct")]
+    EncryptedDirect,
+
+    /// `.m.rule.direct`
+    ///
+    /// This uses the unstable prefix defined in [MSC4563].
+    ///
+    /// [MSC4563]: https://github.com/matrix-org/matrix-spec-proposals/pull/4563
+    #[cfg(feature = "unstable-msc4563")]
+    #[ruma_enum(rename = ".eu.cyrneko.msc4563.direct")]
+    Direct,
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),

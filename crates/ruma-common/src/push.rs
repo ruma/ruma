@@ -1523,6 +1523,31 @@ mod tests {
         assert_matches!(iter.next(), None);
     }
 
+    #[cfg(feature = "unstable-msc4563")]
+    #[apply(test!)]
+    async fn default_ruleset_applies_direct_message() {
+        let set = Ruleset::server_default(user_id!("@jj:server.name"));
+
+        let message =
+            serde_json::from_str::<Raw<JsonValue>>(r#"{ "type": "m.room.message" }"#).unwrap();
+        let encrypted =
+            serde_json::from_str::<Raw<JsonValue>>(r#"{ "type": "m.room.encrypted" }"#).unwrap();
+
+        let mut context = CONTEXT_PUBLIC_ROOM.clone();
+        assert_matches!(set.get_actions(&message, &context).await, [Action::Notify]);
+        assert_matches!(set.get_actions(&encrypted, &context).await, [Action::Notify]);
+
+        context.is_direct = true;
+        assert_matches!(
+            set.get_actions(&message, &context).await,
+            [Action::Notify, Action::SetTweak(Tweak::Sound(_))]
+        );
+        assert_matches!(
+            set.get_actions(&encrypted, &context).await,
+            [Action::Notify, Action::SetTweak(Tweak::Sound(_))]
+        );
+    }
+
     #[apply(test!)]
     async fn default_ruleset_applies() {
         let set = Ruleset::server_default(user_id!("@jj:server.name"));

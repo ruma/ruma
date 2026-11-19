@@ -68,6 +68,14 @@ pub enum PushCondition {
     #[serde(rename = "io.element.msc4306.thread_subscription")]
     ThreadSubscription(ThreadSubscriptionConditionData),
 
+    /// Matches any event in a room listed in the user's `m.direct` account data, as defined by
+    /// [MSC4563].
+    ///
+    /// [MSC4563]: https://github.com/matrix-org/matrix-spec-proposals/pull/4563
+    #[cfg(feature = "unstable-msc4563")]
+    #[serde(rename = "eu.cyrneko.msc4563.direct_message")]
+    DirectMessage,
+
     #[doc(hidden)]
     #[serde(untagged)]
     _Custom(_CustomPushCondition),
@@ -88,6 +96,8 @@ impl PushCondition {
             Self::EventPropertyContains(_) => "event_property_contains",
             #[cfg(feature = "unstable-msc4306")]
             Self::ThreadSubscription(_) => "io.element.msc4306.thread_subscription",
+            #[cfg(feature = "unstable-msc4563")]
+            Self::DirectMessage => "eu.cyrneko.msc4563.direct_message",
             Self::_Custom(condition) => &condition.kind,
         }
     }
@@ -119,6 +129,8 @@ impl PushCondition {
             Self::EventPropertyContains(c) => Cow::Owned(serialize(c)),
             #[cfg(feature = "unstable-msc4306")]
             Self::ThreadSubscription(c) => Cow::Owned(serialize(c)),
+            #[cfg(feature = "unstable-msc4563")]
+            Self::DirectMessage => Cow::Owned(JsonObject::new()),
             Self::_Custom(c) => Cow::Borrowed(&c.data),
         }
     }
@@ -152,6 +164,8 @@ impl PushCondition {
             Self::EventPropertyContains(condition) => condition.applies(event),
             #[cfg(feature = "unstable-msc4306")]
             Self::ThreadSubscription(condition) => condition.applies(event, context).await,
+            #[cfg(feature = "unstable-msc4563")]
+            Self::DirectMessage => context.is_direct,
             Self::_Custom(_) => false,
         }
     }
@@ -538,6 +552,13 @@ pub struct PushConditionRoomCtx {
     #[cfg(feature = "unstable-msc3931")]
     pub supported_features: Vec<RoomVersionFeature>,
 
+    /// Whether the room is listed in the user's `m.direct` account data, as defined by
+    /// [MSC4563].
+    ///
+    /// [MSC4563]: https://github.com/matrix-org/matrix-spec-proposals/pull/4563
+    #[cfg(feature = "unstable-msc4563")]
+    pub is_direct: bool,
+
     /// A closure that returns a future indicating if the given thread (represented by its thread
     /// root event id) is subscribed to by the current user, where subscriptions are defined as per
     /// [MSC4306].
@@ -581,6 +602,9 @@ impl std::fmt::Debug for PushConditionRoomCtx {
         #[cfg(feature = "unstable-msc3931")]
         debug_struct.field("supported_features", &self.supported_features);
 
+        #[cfg(feature = "unstable-msc4563")]
+        debug_struct.field("is_direct", &self.is_direct);
+
         debug_struct.finish_non_exhaustive()
     }
 }
@@ -601,6 +625,8 @@ impl PushConditionRoomCtx {
             power_levels: None,
             #[cfg(feature = "unstable-msc3931")]
             supported_features: Vec::new(),
+            #[cfg(feature = "unstable-msc4563")]
+            is_direct: false,
             has_thread_subscription_fn: Default::default(),
         }
     }
@@ -1470,6 +1496,25 @@ mod tests {
         assert!(unsubscribed_thread_condition.applies(&unsubscribed_thread_event, &context).await);
         assert!(!unsubscribed_thread_condition.applies(&subscribed_thread_event, &context).await);
         assert!(!unsubscribed_thread_condition.applies(&non_thread_related_event, &context).await);
+    }
+
+    #[cfg(feature = "unstable-msc4563")]
+    #[apply(test!)]
+    async fn direct_message_condition() {
+        let json = json!({ "kind": "eu.cyrneko.msc4563.direct_message" });
+
+        let condition = from_json_value::<PushCondition>(json.clone()).unwrap();
+        assert_matches!(condition, PushCondition::DirectMessage);
+        assert_eq!(condition.kind(), "eu.cyrneko.msc4563.direct_message");
+        assert!(condition.data().is_empty());
+        assert_to_canonical_json_eq!(condition, json);
+
+        let event = first_flattened_event();
+        let mut context = push_context();
+        assert!(!condition.applies(&event, &context).await);
+
+        context.is_direct = true;
+        assert!(condition.applies(&event, &context).await);
     }
 
     #[test]
