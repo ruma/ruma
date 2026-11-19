@@ -771,7 +771,7 @@ pub enum PredefinedUnderrideRuleId {
     ///
     /// [MSC4563]: https://github.com/matrix-org/matrix-spec-proposals/pull/4563
     #[cfg(feature = "unstable-msc4563")]
-    #[ruma_enum(rename = "eu.cyrneko.msc4563.encrypted_direct")]
+    #[ruma_enum(rename = ".eu.cyrneko.msc4563.encrypted_direct")]
     EncryptedDirect,
 
     /// `.m.rule.direct`
@@ -780,7 +780,7 @@ pub enum PredefinedUnderrideRuleId {
     ///
     /// [MSC4563]: https://github.com/matrix-org/matrix-spec-proposals/pull/4563
     #[cfg(feature = "unstable-msc4563")]
-    #[ruma_enum(rename = "eu.cyrneko.msc4563.direct")]
+    #[ruma_enum(rename = ".eu.cyrneko.msc4563.direct")]
     Direct,
 
     #[doc(hidden)]
