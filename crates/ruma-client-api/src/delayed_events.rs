@@ -4,7 +4,7 @@
 
 pub mod get_all_delayed_events;
 pub mod get_delayed_event;
-pub mod send_delayed_event;
+pub mod schedule_delayed_event;
 pub mod update_delayed_event;
 
 // deprecated endpoints
@@ -23,10 +23,12 @@ use serde::{Deserialize, Serialize};
 
 use crate::PrivOwnedStr;
 
-/// The details of a delayed event, as returned by the unstable `get_delayed_event::msc4140` and
-/// `get_all_delayed_events::msc4140` endpoints.
+/// The details of a delayed event, as returned by the unstable [`get_delayed_event::msc4140`] and
+/// [`get_all_delayed_events::msc4140`] endpoints.
 ///
-/// This matches a previous iteration of MSC4140. See [`DelayedEvent`] for the current version.
+/// This matches a previous iteration of [MSC4140]. See [`DelayedEvent`] for the current version.
+///
+/// [MSC4140]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct DelayedEventData {
@@ -104,11 +106,11 @@ impl DelayedEventData {
         if self.finalized_ts.is_none() {
             DelayedEventStatus::Scheduled
         } else if self.event_id.is_some() {
-            DelayedEventStatus::Send
+            DelayedEventStatus::Sent
         } else if self.error.is_some() {
             DelayedEventStatus::Error
         } else {
-            DelayedEventStatus::Cancel
+            DelayedEventStatus::Cancelled
         }
     }
 }
@@ -124,10 +126,10 @@ pub enum DelayedEventStatus {
     Scheduled,
 
     /// The event has been sent successfully.
-    Send,
+    Sent,
 
     /// The event has been cancelled.
-    Cancel,
+    Cancelled,
 
     /// The event has encountered an error when trying to send.
     Error,
@@ -203,59 +205,91 @@ impl DelayedEvent {
     pub fn status(&self) -> DelayedEventStatus {
         match &self.finalized {
             None => DelayedEventStatus::Scheduled,
-            Some(finalized) => finalized.status(),
+            Some(finalized) => match finalized.outcome {
+                DelayedEventOutcome::Sent(_) => DelayedEventStatus::Sent,
+                DelayedEventOutcome::Error(_) => DelayedEventStatus::Error,
+                DelayedEventOutcome::Cancelled => DelayedEventStatus::Cancelled,
+            },
         }
     }
 }
 
 /// Details on how a delayed event was finalized.
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(from = "FinalizedDelayedEventSerdeHelper", into = "FinalizedDelayedEventSerdeHelper")]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct FinalizedDelayedEvent {
-    /// The error that prevented the delayed event from being sent.
-    ///
-    /// Present only for delayed events that were cancelled due to an error.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub error: Option<StandardErrorBody>,
+    /// How the delayed event was finalized.
+    pub outcome: DelayedEventOutcome,
 
-    /// The ID of the event that was sent.
-    ///
-    /// Present only for delayed events that were sent. Mutually exclusive with `error`.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub event_id: Option<OwnedEventId>,
-
-    /// The timestamp when the delayed event was finalized.
-    #[serde(rename = "finalised_ts")]
+    /// The timestamp when the delayed event was sent or cancelled.
     pub finalized_ts: MilliSecondsSinceUnixEpoch,
 }
 
 impl FinalizedDelayedEvent {
-    /// Creates a new `FinalizedDelayedEvent` for a delayed event that was sent with the given
-    /// event ID.
-    pub fn sent(event_id: OwnedEventId, finalized_ts: MilliSecondsSinceUnixEpoch) -> Self {
-        Self { error: None, event_id: Some(event_id), finalized_ts }
+    /// Creates a new `FinalizedDelayedEvent` with the given outcome and timestamp.
+    pub fn new(outcome: DelayedEventOutcome, finalized_ts: MilliSecondsSinceUnixEpoch) -> Self {
+        Self { outcome, finalized_ts }
     }
+}
 
-    /// Creates a new `FinalizedDelayedEvent` for a delayed event that was cancelled due to the
-    /// given error.
-    pub fn failed(error: StandardErrorBody, finalized_ts: MilliSecondsSinceUnixEpoch) -> Self {
-        Self { error: Some(error), event_id: None, finalized_ts }
-    }
+/// How a delayed event was finalized.
+#[derive(Clone, Debug)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub enum DelayedEventOutcome {
+    /// The delayed event was sent, and got the given event ID.
+    Sent(OwnedEventId),
 
-    /// Creates a new `FinalizedDelayedEvent` for a delayed event that was cancelled.
-    pub fn cancelled(finalized_ts: MilliSecondsSinceUnixEpoch) -> Self {
-        Self { error: None, event_id: None, finalized_ts }
-    }
+    /// The delayed event was cancelled due to the given error when trying to send it.
+    Error(StandardErrorBody),
 
-    /// Returns the status indicated by this finalized delayed event.
-    pub fn status(&self) -> DelayedEventStatus {
-        if self.event_id.is_some() {
-            DelayedEventStatus::Send
-        } else if self.error.is_some() {
-            DelayedEventStatus::Error
-        } else {
-            DelayedEventStatus::Cancel
+    /// The delayed event was cancelled.
+    Cancelled,
+}
+
+impl DelayedEventOutcome {
+    fn from_parts(event_id: Option<OwnedEventId>, error: Option<StandardErrorBody>) -> Self {
+        match (event_id, error) {
+            (Some(event_id), _) => Self::Sent(event_id),
+            (None, Some(error)) => Self::Error(error),
+            (None, None) => Self::Cancelled,
         }
+    }
+
+    fn into_parts(self) -> (Option<OwnedEventId>, Option<StandardErrorBody>) {
+        match self {
+            Self::Sent(event_id) => (Some(event_id), None),
+            Self::Error(error) => (None, Some(error)),
+            Self::Cancelled => (None, None),
+        }
+    }
+}
+
+/// The serialized form of [`FinalizedDelayedEvent`].
+#[derive(Serialize, Deserialize)]
+struct FinalizedDelayedEventSerdeHelper {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    error: Option<StandardErrorBody>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    event_id: Option<OwnedEventId>,
+
+    #[serde(rename = "finalised_ts")]
+    finalized_ts: MilliSecondsSinceUnixEpoch,
+}
+
+impl From<FinalizedDelayedEventSerdeHelper> for FinalizedDelayedEvent {
+    fn from(helper: FinalizedDelayedEventSerdeHelper) -> Self {
+        let FinalizedDelayedEventSerdeHelper { error, event_id, finalized_ts } = helper;
+        Self::new(DelayedEventOutcome::from_parts(event_id, error), finalized_ts)
+    }
+}
+
+impl From<FinalizedDelayedEvent> for FinalizedDelayedEventSerdeHelper {
+    fn from(finalized: FinalizedDelayedEvent) -> Self {
+        let FinalizedDelayedEvent { outcome, finalized_ts } = finalized;
+        let (event_id, error) = outcome.into_parts();
+        Self { error, event_id, finalized_ts }
     }
 }
 
@@ -282,10 +316,11 @@ impl From<DelayedEventData> for DelayedEvent {
             content,
             delay_ms: delay,
             delayed_since_ts: running_since,
-            finalized: finalized_ts.map(|finalized_ts| FinalizedDelayedEvent {
-                error,
-                event_id,
-                finalized_ts,
+            finalized: finalized_ts.map(|finalized_ts| {
+                FinalizedDelayedEvent::new(
+                    DelayedEventOutcome::from_parts(event_id, error),
+                    finalized_ts,
+                )
             }),
         }
     }
@@ -303,9 +338,10 @@ impl From<DelayedEvent> for DelayedEventData {
             delayed_since_ts,
             finalized,
         } = event;
-        let (error, event_id, finalized_ts) = match finalized {
-            Some(FinalizedDelayedEvent { error, event_id, finalized_ts }) => {
-                (error, event_id, Some(finalized_ts))
+        let (event_id, error, finalized_ts) = match finalized {
+            Some(FinalizedDelayedEvent { outcome, finalized_ts }) => {
+                let (event_id, error) = outcome.into_parts();
+                (event_id, error, Some(finalized_ts))
             }
             None => (None, None, None),
         };

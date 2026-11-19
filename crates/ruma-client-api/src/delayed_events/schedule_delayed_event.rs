@@ -1,6 +1,6 @@
 //! `PUT /_matrix/client/*/rooms/{roomId}/delayed_event/{eventType}/{txnId}`
 //!
-//! Send a delayed event (a scheduled message) to a room.
+//! Schedule an event to be sent to a room at a later time.
 
 pub mod v3 {
     //! `/v3/` ([MSC], not yet documented in spec)
@@ -29,7 +29,7 @@ pub mod v3 {
         }
     }
 
-    /// Request type for the `send_delayed_event` endpoint.
+    /// Request type for the `schedule_delayed_event` endpoint.
     #[request]
     pub struct Request {
         /// The room to send the event to.
@@ -88,7 +88,7 @@ pub mod v3 {
         pub timestamp: Option<MilliSecondsSinceUnixEpoch>,
     }
 
-    /// Response type for the `send_delayed_event` endpoint.
+    /// Response type for the `schedule_delayed_event` endpoint.
     #[response]
     pub struct Response {
         /// The `delay_id` generated for this delayed event. Used to interact with delayed events.
@@ -96,7 +96,7 @@ pub mod v3 {
     }
 
     impl Request {
-        /// Creates a new `Request` with the given room id, transaction id, `delay_parameters` and
+        /// Creates a new `Request` with the given room id, transaction id, delay, state key and
         /// event content.
         ///
         /// # Errors
@@ -123,8 +123,8 @@ pub mod v3 {
             })
         }
 
-        /// Creates a new `Request` with the given room id, transaction id, event type,
-        /// `delay_parameters` and raw event content.
+        /// Creates a new `Request` with the given event type, room id, transaction id, delay,
+        /// state key and raw event content.
         pub fn new_raw(
             event_type: TimelineEventType,
             room_id: OwnedRoomId,
@@ -132,8 +132,8 @@ pub mod v3 {
             delay_ms: Duration,
             state_key: Option<String>,
             content: Raw<AnyTimelineEventContent>,
-        ) -> serde_json::Result<Self> {
-            Ok(Self {
+        ) -> Self {
+            Self {
                 room_id,
                 txn_id,
                 event_type,
@@ -143,7 +143,7 @@ pub mod v3 {
                 sticky_duration_ms: None,
                 content,
                 timestamp: None,
-            })
+            }
         }
     }
 
@@ -172,7 +172,7 @@ pub mod v3 {
         use super::Request;
 
         #[test]
-        fn serialize_send_delayed_event_request() {
+        fn serialize_schedule_delayed_event_request() {
             let room_id = owned_room_id!("!roomid:example.org");
             let supported = SupportedVersions {
                 versions: [MatrixVersion::V1_1].into(),
@@ -208,7 +208,7 @@ pub mod v3 {
         }
 
         #[test]
-        fn serialize_stable_send_delayed_event_request() {
+        fn serialize_stable_schedule_delayed_event_request() {
             use js_int::uint;
             use ruma_common::{MilliSecondsSinceUnixEpoch, api::FeatureFlag};
 
@@ -240,6 +240,7 @@ pub mod v3 {
                 "https://homeserver.tld/_matrix/client/v3/rooms/!roomid:example.org/delayed_event/m.room.message/1234?ts=1000",
                 parts.uri
             );
+            assert_eq!("PUT", parts.method);
             assert_eq!(
                 json!({"content":{"msgtype":"m.text","body":"test"}, "delay_ms": 103}),
                 serde_json::from_slice::<JsonValue>(&body).unwrap()
@@ -248,7 +249,7 @@ pub mod v3 {
 
         #[cfg(feature = "unstable-msc4354")]
         #[test]
-        fn serialize_send_delayed_sticky_event_request() {
+        fn serialize_schedule_delayed_sticky_event_request() {
             use ruma_events::sticky::StickyDurationMs;
 
             let supported = SupportedVersions {
@@ -301,7 +302,7 @@ pub mod v3 {
         use super::Request;
 
         #[test]
-        fn deserialize_send_delayed_events_request() {
+        fn deserialize_schedule_delayed_event_request() {
             let uri = http::Uri::builder()
                 .scheme("https")
                 .authority("matrix.org")
@@ -337,7 +338,7 @@ pub mod v3 {
         /// The sticky duration is read from the request body.
         #[cfg(feature = "unstable-msc4354")]
         #[test]
-        fn deserialize_send_delayed_sticky_event_request() {
+        fn deserialize_schedule_delayed_sticky_event_request() {
             use ruma_events::sticky::StickyDurationMs;
 
             let uri = http::Uri::builder()
@@ -371,7 +372,7 @@ pub mod v3 {
         /// Without the body field the delayed event is scheduled as a regular, non-sticky event.
         #[cfg(feature = "unstable-msc4354")]
         #[test]
-        fn deserialize_send_delayed_event_request_without_sticky() {
+        fn deserialize_schedule_delayed_event_request_without_sticky() {
             let uri = http::Uri::builder()
                 .scheme("https")
                 .authority("matrix.org")

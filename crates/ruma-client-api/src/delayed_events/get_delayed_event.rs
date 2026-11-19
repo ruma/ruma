@@ -266,7 +266,7 @@ pub mod v1 {
         use serde_json::{Value as JsonValue, json};
 
         use super::Response;
-        use crate::delayed_events::{DelayedEvent, FinalizedDelayedEvent};
+        use crate::delayed_events::{DelayedEvent, DelayedEventOutcome, FinalizedDelayedEvent};
 
         #[test]
         fn serialize_get_delayed_event_response() {
@@ -279,8 +279,8 @@ pub mod v1 {
                 Duration::from_millis(103),
                 MilliSecondsSinceUnixEpoch(uint!(70000)),
             );
-            event.finalized = Some(FinalizedDelayedEvent::sent(
-                owned_event_id!("$event:imaginary.hs"),
+            event.finalized = Some(FinalizedDelayedEvent::new(
+                DelayedEventOutcome::Sent(owned_event_id!("$event:imaginary.hs")),
                 MilliSecondsSinceUnixEpoch(uint!(70103)),
             ));
 

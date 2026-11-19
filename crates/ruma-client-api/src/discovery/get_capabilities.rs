@@ -12,6 +12,8 @@ pub mod v3 {
 
     #[cfg(feature = "unstable-msc4540")]
     use std::collections::BTreeSet;
+    #[cfg(feature = "unstable-msc4140")]
+    use std::time::Duration;
     use std::{borrow::Cow, collections::BTreeMap};
 
     #[cfg(feature = "unstable-msc4140")]
@@ -652,11 +654,15 @@ pub mod v3 {
     #[derive(Clone, Debug, Default, Serialize, Deserialize)]
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct DelayedEventsCapability {
-        /// The maximum delay in milliseconds that the server allows for a delayed event.
+        /// The maximum delay that the server allows for a delayed event.
         ///
         /// `None` if the server does not enforce a maximum delay.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub max_delay_ms: Option<UInt>,
+        #[serde(
+            with = "ruma_common::serde::duration::opt_ms",
+            default,
+            skip_serializing_if = "Option::is_none"
+        )]
+        pub max_delay_ms: Option<Duration>,
 
         /// The maximum number of delayed events that a user may have scheduled at once.
         ///
@@ -674,7 +680,7 @@ pub mod v3 {
 
         /// Returns whether delayed events are enabled, i.e. whether neither limit is `0`.
         pub fn is_enabled(&self) -> bool {
-            self.max_delay_ms != Some(UInt::MIN) && self.max_scheduled != Some(UInt::MIN)
+            self.max_delay_ms != Some(Duration::ZERO) && self.max_scheduled != Some(UInt::MIN)
         }
     }
 
@@ -718,6 +724,9 @@ pub mod v3 {
 
     #[cfg(test)]
     mod tests {
+        #[cfg(feature = "unstable-msc4140")]
+        use std::time::Duration;
+
         use ruma_common::RoomVersionId;
         #[cfg(feature = "unstable-msc4540")]
         use ruma_common::api::OAuthClientScope;
@@ -750,7 +759,7 @@ pub mod v3 {
                 preview_url: PreviewUrlCapability::new(false),
                 #[cfg(feature = "unstable-msc4140")]
                 delayed_events: Some(super::DelayedEventsCapability {
-                    max_delay_ms: Some(js_int::uint!(86_400_000)),
+                    max_delay_ms: Some(Duration::from_millis(86_400_000)),
                     max_scheduled: Some(js_int::uint!(10)),
                 }),
                 #[cfg(feature = "unstable-msc4540")]
@@ -817,7 +826,7 @@ pub mod v3 {
             use js_int::uint;
 
             let mut delayed_events = super::DelayedEventsCapability::new();
-            delayed_events.max_delay_ms = Some(uint!(86_400_000));
+            delayed_events.max_delay_ms = Some(Duration::from_millis(86_400_000));
             delayed_events.max_scheduled = Some(uint!(10));
 
             let mut caps = Capabilities::new();
@@ -850,7 +859,7 @@ pub mod v3 {
             .unwrap();
 
             let delayed_events = caps.delayed_events.unwrap();
-            assert_eq!(delayed_events.max_delay_ms, Some(uint!(1000)));
+            assert_eq!(delayed_events.max_delay_ms, Some(Duration::from_millis(1000)));
             assert_eq!(delayed_events.max_scheduled, Some(uint!(5)));
             assert!(delayed_events.is_enabled());
             assert!(caps.custom_capabilities.is_empty());

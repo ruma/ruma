@@ -12,14 +12,15 @@ use crate::PrivOwnedStr;
 #[ruma_enum(rename_all = "lowercase")]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum UpdateAction {
-    /// Restart the delayed event timeout. (heartbeat ping)
+    /// Resets the scheduled send time of the delayed event to be the current time plus the
+    /// delayed event's original `delay_ms`.
     Restart,
 
-    /// Send the delayed event immediately independent of the timeout state. (deletes all
-    /// timers)
+    /// Sends the scheduled delayed event immediately instead of waiting for its scheduled send
+    /// time.
     Send,
 
-    /// Delete the delayed event and never send it. (deletes all timers)
+    /// Cancels the scheduled delayed event so that it is never sent.
     Cancel,
 
     #[doc(hidden)]
@@ -72,6 +73,7 @@ pub mod v1 {
     /// Response type for the `update_delayed_event` endpoint.
     #[response]
     pub struct Response {}
+
     impl Response {
         /// Creates a new empty response.
         pub fn new() -> Self {
@@ -137,6 +139,7 @@ pub mod v1 {
                 "https://homeserver.tld/_matrix/client/v1/delayed_events/1234/restart",
                 request.uri()
             );
+            assert_eq!("POST", request.method());
         }
     }
 

@@ -5,11 +5,11 @@
 //! This endpoint implements a previous iteration of MSC4140 at commit [`3ee73ab`], which adds an
 //! unstable query parameter to [`send_message_event`]. At the time of writing, this matches the
 //! current implementation of Synapse but the latest iteration of the MSC uses the
-//! [`send_delayed_event`] endpoint instead.
+//! [`schedule_delayed_event`] endpoint instead.
 //!
 //! [`3ee73ab`]: https://github.com/matrix-org/matrix-spec-proposals/blob/3ee73abe5f81252b00877cfb5db941ee9aa6c18d/proposals/4140-delayed-events-futures.md
 //! [`send_message_event`]: crate::message::send_message_event
-//! [`send_delayed_event`]: super::send_delayed_event
+//! [`schedule_delayed_event`]: super::schedule_delayed_event
 
 pub mod msc4140 {
     //! `/v3/` ([MSC])
