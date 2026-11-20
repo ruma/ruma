@@ -24,11 +24,12 @@ pub struct BeaconInfoEventContent {
     pub description: Option<String>,
 
     /// Whether the user starts sharing their location.
+    #[serde(default)]
     pub live: bool,
 
     /// The time when location sharing started.
-    #[serde(rename = "org.matrix.msc3488.ts")]
-    pub ts: MilliSecondsSinceUnixEpoch,
+    #[serde(rename = "org.matrix.msc3488.ts", skip_serializing_if = "Option::is_none")]
+    pub ts: Option<MilliSecondsSinceUnixEpoch>,
 
     /// The duration that the location sharing will be live.
     ///
@@ -53,7 +54,7 @@ impl BeaconInfoEventContent {
         Self {
             description,
             live,
-            ts: ts.unwrap_or_else(MilliSecondsSinceUnixEpoch::now),
+            ts: Some(ts.unwrap_or_else(MilliSecondsSinceUnixEpoch::now)),
             timeout,
             asset: Default::default(),
         }
@@ -75,8 +76,7 @@ impl BeaconInfoEventContent {
         self.live
             && self
                 .ts
-                .to_system_time()
-                .and_then(|t| t.checked_add(self.timeout))
+                .and_then(|ts| ts.to_system_time()?.checked_add(self.timeout))
                 .is_some_and(|t| t > SystemTime::now())
     }
 }
