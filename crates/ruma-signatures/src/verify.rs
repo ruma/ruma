@@ -181,7 +181,7 @@ pub fn verify_policy_server_signature(
 /// signature from a supported algorithm.
 ///
 /// Unlike `content_hash` and `reference_hash`, this function does not report an error if the
-/// canonical JSON is larger than 65535 bytes; this function may be used for requests that are
+/// canonical JSON is larger than 65536 bytes; this function may be used for requests that are
 /// larger than just one PDU's maximum size.
 ///
 /// # Parameters
