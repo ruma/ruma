@@ -1,5 +1,5 @@
 use assert_matches::assert_matches;
-use js_int::uint;
+use js_int::int;
 use ruma_common::{
     MilliSecondsSinceUnixEpoch, VoipVersionId,
     serde::{CanBeEmpty, Raw},
@@ -44,7 +44,7 @@ fn deserialize_message_event() {
     );
 
     assert_eq!(message_event.event_id, "$h29iv0s8:example.com");
-    assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
+    assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(int!(1)));
     assert_eq!(message_event.room_id, "!roomid:room.com");
     assert_eq!(message_event.sender, "@carl:example.com");
     assert!(message_event.unsigned.is_empty());

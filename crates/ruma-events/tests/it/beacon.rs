@@ -1,6 +1,6 @@
 #![cfg(feature = "unstable-msc3489")]
 
-use js_int::uint;
+use js_int::int;
 use ruma_common::{
     MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, owned_event_id,
     room_id, serde::CanBeEmpty, user_id,
@@ -15,7 +15,7 @@ fn get_beacon_event_content() -> BeaconEventContent {
     BeaconEventContent::new(
         owned_event_id!("$beacon_info_event_id:example.com"),
         "geo:51.5008,0.1247;u=35".to_owned(),
-        Some(MilliSecondsSinceUnixEpoch(uint!(1_636_829_458))),
+        Some(MilliSecondsSinceUnixEpoch(int!(1_636_829_458))),
     )
 }
 
@@ -48,7 +48,7 @@ fn beacon_event_content_deserialization() {
 
     assert_eq!(event_content.relates_to.event_id, "$beacon_info_event_id:example.com");
     assert_eq!(event_content.location.uri, "geo:51.5008,0.1247;u=35");
-    assert_eq!(event_content.ts, MilliSecondsSinceUnixEpoch(uint!(1_636_829_458)));
+    assert_eq!(event_content.ts, MilliSecondsSinceUnixEpoch(int!(1_636_829_458)));
 }
 
 #[test]
@@ -66,12 +66,12 @@ fn message_event_deserialization() {
 
     assert_let!(AnyMessageLikeEvent::Beacon(MessageLikeEvent::Original(ev)) = event);
     assert_eq!(ev.content.location.uri, "geo:51.5008,0.1247;u=35");
-    assert_eq!(ev.content.ts, MilliSecondsSinceUnixEpoch(uint!(1_636_829_458)));
+    assert_eq!(ev.content.ts, MilliSecondsSinceUnixEpoch(int!(1_636_829_458)));
     assert_let!(Reference { event_id, .. } = ev.content.relates_to);
     assert_eq!(event_id, "$beacon_info_event_id:example.com");
 
     assert_eq!(ev.sender, user_id!("@example:example.com"));
     assert_eq!(ev.room_id, room_id!("!roomid:example.com"));
-    assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1_636_829_458)));
+    assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(int!(1_636_829_458)));
     assert!(ev.unsigned.is_empty());
 }

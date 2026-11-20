@@ -3,7 +3,7 @@
 use std::time::Duration;
 
 use assert_matches::assert_matches;
-use js_int::uint;
+use js_int::{int, uint};
 use ruma_common::{
     MilliSecondsSinceUnixEpoch,
     canonical_json::assert_to_canonical_json_eq,
@@ -289,7 +289,7 @@ fn message_event_deserialization() {
             from_json_value::<AnyMessageLikeEvent>(json_data)
     );
     assert_eq!(ev.event_id, "$event:notareal.hs");
-    assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(134_829_848)));
+    assert_eq!(ev.origin_server_ts, MilliSecondsSinceUnixEpoch(int!(134_829_848)));
     assert_eq!(ev.room_id, "!roomid:notareal.hs");
     assert_eq!(ev.sender, "@user:notareal.hs");
     assert!(ev.unsigned.is_empty());

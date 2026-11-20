@@ -1,6 +1,6 @@
 #[cfg(feature = "unstable-msc2747")]
 use assign::assign;
-use js_int::uint;
+use js_int::{int, uint};
 use ruma_common::{
     MilliSecondsSinceUnixEpoch, VoipVersionId, canonical_json::assert_to_canonical_json_eq,
     owned_room_id, serde::CanBeEmpty,
@@ -85,7 +85,7 @@ fn answer_v0_event_deserialization() {
             from_json_value::<AnyMessageLikeEvent>(json_data).unwrap()
     );
     assert_eq!(message_event.event_id, "$h29iv0s8:example.com");
-    assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
+    assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(int!(1)));
     assert_eq!(message_event.room_id, "!roomid:room.com");
     assert_eq!(message_event.sender, "@carl:example.com");
     assert!(message_event.unsigned.is_empty());
@@ -121,7 +121,7 @@ fn answer_v0_event_deserialization_then_convert_to_full() {
             sync_ev.into_full_event(owned_room_id!("!roomid:room.com"))
     );
     assert_eq!(message_event.event_id, "$h29iv0s8:example.com");
-    assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(uint!(1)));
+    assert_eq!(message_event.origin_server_ts, MilliSecondsSinceUnixEpoch(int!(1)));
     assert_eq!(message_event.room_id, "!roomid:room.com");
     assert_eq!(message_event.sender, "@carl:example.com");
     assert!(message_event.unsigned.is_empty());

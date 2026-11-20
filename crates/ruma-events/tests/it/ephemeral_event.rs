@@ -1,4 +1,4 @@
-use js_int::uint;
+use js_int::int;
 use maplit::btreemap;
 use ruma_common::{
     MilliSecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, event_id,
@@ -49,7 +49,7 @@ fn ephemeral_serialize_receipt() {
     let content = ReceiptEventContent(btreemap! {
         event_id => btreemap! {
             ReceiptType::Read => btreemap! {
-                user_id => Receipt::new(MilliSecondsSinceUnixEpoch(uint!(1))),
+                user_id => Receipt::new(MilliSecondsSinceUnixEpoch(int!(1))),
             },
         },
     });
@@ -91,5 +91,5 @@ fn deserialize_ephemeral_receipt() {
     let event_receipts = receipts.get(event_id).unwrap();
     let type_receipts = event_receipts.get(&ReceiptType::Read).unwrap();
     let user_receipt = type_receipts.get(user_id).unwrap();
-    assert_eq!(user_receipt.ts, Some(MilliSecondsSinceUnixEpoch(uint!(1))));
+    assert_eq!(user_receipt.ts, Some(MilliSecondsSinceUnixEpoch(int!(1))));
 }

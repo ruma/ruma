@@ -1,4 +1,4 @@
-use js_int::{int, uint};
+use js_int::int;
 use ruma_common::{
     MilliSecondsSinceUnixEpoch, RoomVersionId, owned_event_id,
     room_version_rules::AuthorizationRules,
@@ -136,7 +136,7 @@ fn test_reverse_topological_power_sort() {
     ]);
 
     let sorted = crate::reverse_topological_power_sort(&graph, |_id| {
-        Ok((int!(0).into(), MilliSecondsSinceUnixEpoch(uint!(0))))
+        Ok((int!(0).into(), MilliSecondsSinceUnixEpoch(int!(0))))
     })
     .unwrap();
 

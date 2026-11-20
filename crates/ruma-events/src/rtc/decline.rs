@@ -31,7 +31,7 @@ impl RtcDeclineEventContent {
 
 #[cfg(test)]
 mod tests {
-    use js_int::uint;
+    use js_int::int;
     use ruma_common::{canonical_json::assert_to_canonical_json_eq, owned_event_id};
     use serde_json::{from_value as from_json_value, json};
     use strass::assert_let;
@@ -75,7 +75,7 @@ mod tests {
             AnyMessageLikeEvent::RtcDecline(MessageLikeEvent::Original(decline_event)) = event
         );
         assert_eq!(decline_event.sender, "@user:notareal.hs");
-        assert_eq!(decline_event.origin_server_ts.get(), uint!(134_829_848));
+        assert_eq!(decline_event.origin_server_ts.get(), int!(134_829_848));
         assert_eq!(decline_event.room_id, "!roomid:notareal.hs");
         assert_eq!(decline_event.content.relates_to.event_id, "$abc:example.org");
     }
