@@ -208,7 +208,7 @@ impl DelayedEvent {
             Some(finalized) => match finalized.outcome {
                 DelayedEventOutcome::Sent(_) => DelayedEventStatus::Sent,
                 DelayedEventOutcome::Error(_) => DelayedEventStatus::Error,
-                DelayedEventOutcome::Cancelled => DelayedEventStatus::Cancelled,
+                DelayedEventOutcome::Cancelled(_) => DelayedEventStatus::Cancelled,
             },
         }
     }
@@ -237,31 +237,73 @@ impl FinalizedDelayedEvent {
 #[derive(Clone, Debug)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub enum DelayedEventOutcome {
-    /// The delayed event was sent, and got the given event ID.
-    Sent(OwnedEventId),
+    /// The delayed event was sent.
+    Sent(DelayedEventSent),
 
-    /// The delayed event was cancelled due to the given error when trying to send it.
-    Error(StandardErrorBody),
+    /// The delayed event was cancelled due to an error when trying to send it.
+    Error(DelayedEventError),
 
     /// The delayed event was cancelled.
-    Cancelled,
+    Cancelled(DelayedEventCancelled),
 }
 
 impl DelayedEventOutcome {
     fn from_parts(event_id: Option<OwnedEventId>, error: Option<StandardErrorBody>) -> Self {
         match (event_id, error) {
-            (Some(event_id), _) => Self::Sent(event_id),
-            (None, Some(error)) => Self::Error(error),
-            (None, None) => Self::Cancelled,
+            (Some(event_id), _) => Self::Sent(DelayedEventSent::new(event_id)),
+            (None, Some(error)) => Self::Error(DelayedEventError::new(error)),
+            (None, None) => Self::Cancelled(DelayedEventCancelled::new()),
         }
     }
 
     fn into_parts(self) -> (Option<OwnedEventId>, Option<StandardErrorBody>) {
         match self {
-            Self::Sent(event_id) => (Some(event_id), None),
-            Self::Error(error) => (None, Some(error)),
-            Self::Cancelled => (None, None),
+            Self::Sent(sent) => (Some(sent.event_id), None),
+            Self::Error(error) => (None, Some(error.error)),
+            Self::Cancelled(_) => (None, None),
         }
+    }
+}
+
+/// Details on a delayed event that was sent.
+#[derive(Clone, Debug)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct DelayedEventSent {
+    /// The ID of the event that was sent.
+    pub event_id: OwnedEventId,
+}
+
+impl DelayedEventSent {
+    /// Creates a new `DelayedEventSent` with the given event ID.
+    pub fn new(event_id: OwnedEventId) -> Self {
+        Self { event_id }
+    }
+}
+
+/// Details on a delayed event that was cancelled due to an error when trying to send it.
+#[derive(Clone, Debug)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct DelayedEventError {
+    /// The error that prevented the delayed event from being sent.
+    pub error: StandardErrorBody,
+}
+
+impl DelayedEventError {
+    /// Creates a new `DelayedEventError` with the given error.
+    pub fn new(error: StandardErrorBody) -> Self {
+        Self { error }
+    }
+}
+
+/// Details on a delayed event that was cancelled.
+#[derive(Clone, Debug, Default)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct DelayedEventCancelled {}
+
+impl DelayedEventCancelled {
+    /// Creates a new empty `DelayedEventCancelled`.
+    pub fn new() -> Self {
+        Self {}
     }
 }
 
