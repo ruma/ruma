@@ -1,16 +1,16 @@
 //! `PUT /_matrix/client/*/rooms/{roomId}/delayed_event/{eventType}/{txnId}`
 //!
-//! Send a delayed event (a scheduled message) to a room.
+//! Schedule an event to be sent to a room at a later time.
 
-pub mod msc4140 {
-    //! `/unstable/org.matrix.msc4140/` ([MSC])
+pub mod v3 {
+    //! `/v3/` ([MSC], not yet documented in spec)
     //!
     //! [MSC]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
 
     use std::time::Duration;
 
     use ruma_common::{
-        OwnedRoomId, OwnedTransactionId,
+        MilliSecondsSinceUnixEpoch, OwnedRoomId, OwnedTransactionId,
         api::{auth_scheme::AccessToken, request, response},
         metadata,
         serde::Raw,
@@ -25,10 +25,11 @@ pub mod msc4140 {
         authentication: AccessToken,
         history: {
             unstable("org.matrix.msc4140") => "/_matrix/client/unstable/org.matrix.msc4140/rooms/{room_id}/delayed_event/{event_type}/{txn_id}",
+            stable("org.matrix.msc4140.stable") => "/_matrix/client/v3/rooms/{room_id}/delayed_event/{event_type}/{txn_id}",
         }
     }
 
-    /// Request type for the `send_delayed_event` endpoint.
+    /// Request type for the `schedule_delayed_event` endpoint.
     #[request]
     pub struct Request {
         /// The room to send the event to.
@@ -51,7 +52,9 @@ pub mod msc4140 {
         #[ruma_api(path)]
         pub txn_id: OwnedTransactionId,
 
-        /// The duration that the server should wait before sending this event
+        /// The duration that the server should wait before sending this event.
+        ///
+        /// Must be non-zero.
         #[serde(with = "ruma_common::serde::duration::ms")]
         pub delay_ms: Duration,
 
@@ -68,15 +71,24 @@ pub mod msc4140 {
         )]
         pub sticky_duration_ms: Option<StickyDurationMs>,
 
-        /// The State Key if the event is a state event, nothing otherwise
+        /// The state key of the event if it is a state event, `None` otherwise.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub state_key: Option<String>,
 
         /// The event content to send.
         pub content: Raw<AnyTimelineEventContent>,
+
+        /// Timestamp to use for the `origin_server_ts` of the event once it is sent.
+        ///
+        /// This is called [timestamp massaging] and can only be used by Appservices.
+        ///
+        /// [timestamp massaging]: https://spec.matrix.org/v1.19/application-service-api/#timestamp-massaging
+        #[ruma_api(query)]
+        #[serde(skip_serializing_if = "Option::is_none", rename = "ts")]
+        pub timestamp: Option<MilliSecondsSinceUnixEpoch>,
     }
 
-    /// Response type for the `send_delayed_event` endpoint.
+    /// Response type for the `schedule_delayed_event` endpoint.
     #[response]
     pub struct Response {
         /// The `delay_id` generated for this delayed event. Used to interact with delayed events.
@@ -84,7 +96,7 @@ pub mod msc4140 {
     }
 
     impl Request {
-        /// Creates a new `Request` with the given room id, transaction id, `delay_parameters` and
+        /// Creates a new `Request` with the given room id, transaction id, delay, state key and
         /// event content.
         ///
         /// # Errors
@@ -107,11 +119,12 @@ pub mod msc4140 {
                 #[cfg(feature = "unstable-msc4354")]
                 sticky_duration_ms: None,
                 content: Raw::new(content)?,
+                timestamp: None,
             })
         }
 
-        /// Creates a new `Request` with the given room id, transaction id, event type,
-        /// `delay_parameters` and raw event content.
+        /// Creates a new `Request` with the given event type, room id, transaction id, delay,
+        /// state key and raw event content.
         pub fn new_raw(
             event_type: TimelineEventType,
             room_id: OwnedRoomId,
@@ -119,8 +132,8 @@ pub mod msc4140 {
             delay_ms: Duration,
             state_key: Option<String>,
             content: Raw<AnyTimelineEventContent>,
-        ) -> serde_json::Result<Self> {
-            Ok(Self {
+        ) -> Self {
+            Self {
                 room_id,
                 txn_id,
                 event_type,
@@ -129,7 +142,8 @@ pub mod msc4140 {
                 #[cfg(feature = "unstable-msc4354")]
                 sticky_duration_ms: None,
                 content,
-            })
+                timestamp: None,
+            }
         }
     }
 
@@ -158,7 +172,7 @@ pub mod msc4140 {
         use super::Request;
 
         #[test]
-        fn serialize_send_delayed_event_request() {
+        fn serialize_schedule_delayed_event_request() {
             let room_id = owned_room_id!("!roomid:example.org");
             let supported = SupportedVersions {
                 versions: [MatrixVersion::V1_1].into(),
@@ -193,9 +207,49 @@ pub mod msc4140 {
             );
         }
 
+        #[test]
+        fn serialize_stable_schedule_delayed_event_request() {
+            use js_int::uint;
+            use ruma_common::{MilliSecondsSinceUnixEpoch, api::FeatureFlag};
+
+            let supported = SupportedVersions {
+                versions: [MatrixVersion::V1_1].into(),
+                features: [FeatureFlag::Msc4140Stable].into(),
+            };
+
+            let mut req = Request::new(
+                owned_room_id!("!roomid:example.org"),
+                "1234".into(),
+                Duration::from_millis(103),
+                None,
+                &AnyMessageLikeEventContent::from(RoomMessageEventContent::text_plain("test"))
+                    .into(),
+            )
+            .unwrap();
+            req.timestamp = Some(MilliSecondsSinceUnixEpoch(uint!(1000)));
+
+            let request: http::Request<Vec<u8>> = req
+                .try_into_http_request(
+                    "https://homeserver.tld",
+                    SendAccessToken::IfRequired("auth_tok"),
+                    Cow::Owned(supported),
+                )
+                .unwrap();
+            let (parts, body) = request.into_parts();
+            assert_eq!(
+                "https://homeserver.tld/_matrix/client/v3/rooms/!roomid:example.org/delayed_event/m.room.message/1234?ts=1000",
+                parts.uri
+            );
+            assert_eq!("PUT", parts.method);
+            assert_eq!(
+                json!({"content":{"msgtype":"m.text","body":"test"}, "delay_ms": 103}),
+                serde_json::from_slice::<JsonValue>(&body).unwrap()
+            );
+        }
+
         #[cfg(feature = "unstable-msc4354")]
         #[test]
-        fn serialize_send_delayed_sticky_event_request() {
+        fn serialize_schedule_delayed_sticky_event_request() {
             use ruma_events::sticky::StickyDurationMs;
 
             let supported = SupportedVersions {
@@ -248,7 +302,7 @@ pub mod msc4140 {
         use super::Request;
 
         #[test]
-        fn deserialize_send_delayed_events_request() {
+        fn deserialize_schedule_delayed_event_request() {
             let uri = http::Uri::builder()
                 .scheme("https")
                 .authority("matrix.org")
@@ -284,7 +338,7 @@ pub mod msc4140 {
         /// The sticky duration is read from the request body.
         #[cfg(feature = "unstable-msc4354")]
         #[test]
-        fn deserialize_send_delayed_sticky_event_request() {
+        fn deserialize_schedule_delayed_sticky_event_request() {
             use ruma_events::sticky::StickyDurationMs;
 
             let uri = http::Uri::builder()
@@ -318,7 +372,7 @@ pub mod msc4140 {
         /// Without the body field the delayed event is scheduled as a regular, non-sticky event.
         #[cfg(feature = "unstable-msc4354")]
         #[test]
-        fn deserialize_send_delayed_event_request_without_sticky() {
+        fn deserialize_schedule_delayed_event_request_without_sticky() {
             let uri = http::Uri::builder()
                 .scheme("https")
                 .authority("matrix.org")

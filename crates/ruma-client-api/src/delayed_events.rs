@@ -4,7 +4,7 @@
 
 pub mod get_all_delayed_events;
 pub mod get_delayed_event;
-pub mod send_delayed_event;
+pub mod schedule_delayed_event;
 pub mod update_delayed_event;
 
 // deprecated endpoints
@@ -23,7 +23,12 @@ use serde::{Deserialize, Serialize};
 
 use crate::PrivOwnedStr;
 
-/// The structure of the data for returning a delayed event from a GET endpoint
+/// The details of a delayed event, as returned by the unstable [`get_delayed_event::msc4140`] and
+/// [`get_all_delayed_events::msc4140`] endpoints.
+///
+/// This matches a previous iteration of [MSC4140]. See [`DelayedEvent`] for the current version.
+///
+/// [MSC4140]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct DelayedEventData {
@@ -101,11 +106,11 @@ impl DelayedEventData {
         if self.finalized_ts.is_none() {
             DelayedEventStatus::Scheduled
         } else if self.event_id.is_some() {
-            DelayedEventStatus::Send
+            DelayedEventStatus::Sent
         } else if self.error.is_some() {
             DelayedEventStatus::Error
         } else {
-            DelayedEventStatus::Cancel
+            DelayedEventStatus::Cancelled
         }
     }
 }
@@ -121,16 +126,281 @@ pub enum DelayedEventStatus {
     Scheduled,
 
     /// The event has been sent successfully.
-    Send,
+    Sent,
 
     /// The event has been cancelled.
-    Cancel,
+    Cancelled,
 
     /// The event has encountered an error when trying to send.
     Error,
 
     #[doc(hidden)]
     _Custom(PrivOwnedStr),
+}
+
+/// The details of a delayed event, as defined in the accepted version of [MSC4140].
+///
+/// [MSC4140]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct DelayedEvent {
+    /// The ID of the delayed event.
+    pub delay_id: String,
+
+    /// The ID of the room that the delayed event was scheduled to be sent in.
+    pub room_id: OwnedRoomId,
+
+    /// The event type of the delayed event.
+    #[serde(rename = "type")]
+    pub event_type: TimelineEventType,
+
+    /// The state key of the delayed event if it is a state event, `None` otherwise.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub state_key: Option<String>,
+
+    /// The content of the delayed event.
+    ///
+    /// This is the content that was submitted to the send endpoint, not the content of the final
+    /// event.
+    pub content: Raw<AnyTimelineEventContent>,
+
+    /// The delay after the point of scheduling that the event is or was to be sent at.
+    #[serde(with = "ruma_common::serde::duration::ms")]
+    pub delay_ms: Duration,
+
+    /// The timestamp when the delayed event was scheduled or last restarted.
+    pub delayed_since_ts: MilliSecondsSinceUnixEpoch,
+
+    /// Details on how the delayed event was finalized.
+    ///
+    /// Present only for finalized delayed events.
+    #[serde(rename = "finalised", skip_serializing_if = "Option::is_none")]
+    pub finalized: Option<FinalizedDelayedEvent>,
+}
+
+impl DelayedEvent {
+    /// Creates a new `DelayedEvent` for a scheduled delayed event with the given parameters.
+    pub fn new(
+        delay_id: String,
+        room_id: OwnedRoomId,
+        event_type: TimelineEventType,
+        state_key: Option<String>,
+        content: Raw<AnyTimelineEventContent>,
+        delay_ms: Duration,
+        delayed_since_ts: MilliSecondsSinceUnixEpoch,
+    ) -> Self {
+        Self {
+            delay_id,
+            room_id,
+            event_type,
+            state_key,
+            content,
+            delay_ms,
+            delayed_since_ts,
+            finalized: None,
+        }
+    }
+
+    /// Returns the status indicated by this delayed event.
+    pub fn status(&self) -> DelayedEventStatus {
+        match &self.finalized {
+            None => DelayedEventStatus::Scheduled,
+            Some(finalized) => match finalized.outcome {
+                DelayedEventOutcome::Sent(_) => DelayedEventStatus::Sent,
+                DelayedEventOutcome::Error(_) => DelayedEventStatus::Error,
+                DelayedEventOutcome::Cancelled(_) => DelayedEventStatus::Cancelled,
+            },
+        }
+    }
+}
+
+/// Details on how a delayed event was finalized.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(from = "FinalizedDelayedEventSerdeHelper", into = "FinalizedDelayedEventSerdeHelper")]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct FinalizedDelayedEvent {
+    /// How the delayed event was finalized.
+    pub outcome: DelayedEventOutcome,
+
+    /// The timestamp when the delayed event was sent or cancelled.
+    pub finalized_ts: MilliSecondsSinceUnixEpoch,
+}
+
+impl FinalizedDelayedEvent {
+    /// Creates a new `FinalizedDelayedEvent` with the given outcome and timestamp.
+    pub fn new(outcome: DelayedEventOutcome, finalized_ts: MilliSecondsSinceUnixEpoch) -> Self {
+        Self { outcome, finalized_ts }
+    }
+}
+
+/// How a delayed event was finalized.
+#[derive(Clone, Debug)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub enum DelayedEventOutcome {
+    /// The delayed event was sent.
+    Sent(DelayedEventSent),
+
+    /// The delayed event was cancelled due to an error when trying to send it.
+    Error(DelayedEventError),
+
+    /// The delayed event was cancelled.
+    Cancelled(DelayedEventCancelled),
+}
+
+impl DelayedEventOutcome {
+    fn from_parts(event_id: Option<OwnedEventId>, error: Option<StandardErrorBody>) -> Self {
+        match (event_id, error) {
+            (Some(event_id), _) => Self::Sent(DelayedEventSent::new(event_id)),
+            (None, Some(error)) => Self::Error(DelayedEventError::new(error)),
+            (None, None) => Self::Cancelled(DelayedEventCancelled::new()),
+        }
+    }
+
+    fn into_parts(self) -> (Option<OwnedEventId>, Option<StandardErrorBody>) {
+        match self {
+            Self::Sent(sent) => (Some(sent.event_id), None),
+            Self::Error(error) => (None, Some(error.error)),
+            Self::Cancelled(_) => (None, None),
+        }
+    }
+}
+
+/// Details on a delayed event that was sent.
+#[derive(Clone, Debug)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct DelayedEventSent {
+    /// The ID of the event that was sent.
+    pub event_id: OwnedEventId,
+}
+
+impl DelayedEventSent {
+    /// Creates a new `DelayedEventSent` with the given event ID.
+    pub fn new(event_id: OwnedEventId) -> Self {
+        Self { event_id }
+    }
+}
+
+/// Details on a delayed event that was cancelled due to an error when trying to send it.
+#[derive(Clone, Debug)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct DelayedEventError {
+    /// The error that prevented the delayed event from being sent.
+    pub error: StandardErrorBody,
+}
+
+impl DelayedEventError {
+    /// Creates a new `DelayedEventError` with the given error.
+    pub fn new(error: StandardErrorBody) -> Self {
+        Self { error }
+    }
+}
+
+/// Details on a delayed event that was cancelled.
+#[derive(Clone, Debug, Default)]
+#[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
+pub struct DelayedEventCancelled {}
+
+impl DelayedEventCancelled {
+    /// Creates a new empty `DelayedEventCancelled`.
+    pub fn new() -> Self {
+        Self {}
+    }
+}
+
+/// The serialized form of [`FinalizedDelayedEvent`].
+#[derive(Serialize, Deserialize)]
+struct FinalizedDelayedEventSerdeHelper {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    error: Option<StandardErrorBody>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    event_id: Option<OwnedEventId>,
+
+    #[serde(rename = "finalised_ts")]
+    finalized_ts: MilliSecondsSinceUnixEpoch,
+}
+
+impl From<FinalizedDelayedEventSerdeHelper> for FinalizedDelayedEvent {
+    fn from(helper: FinalizedDelayedEventSerdeHelper) -> Self {
+        let FinalizedDelayedEventSerdeHelper { error, event_id, finalized_ts } = helper;
+        Self::new(DelayedEventOutcome::from_parts(event_id, error), finalized_ts)
+    }
+}
+
+impl From<FinalizedDelayedEvent> for FinalizedDelayedEventSerdeHelper {
+    fn from(finalized: FinalizedDelayedEvent) -> Self {
+        let FinalizedDelayedEvent { outcome, finalized_ts } = finalized;
+        let (event_id, error) = outcome.into_parts();
+        Self { error, event_id, finalized_ts }
+    }
+}
+
+impl From<DelayedEventData> for DelayedEvent {
+    fn from(data: DelayedEventData) -> Self {
+        let DelayedEventData {
+            delay_id,
+            room_id,
+            event_type,
+            state_key,
+            content,
+            delay,
+            running_since,
+            error,
+            event_id,
+            finalized_ts,
+        } = data;
+
+        Self {
+            delay_id,
+            room_id,
+            event_type,
+            state_key,
+            content,
+            delay_ms: delay,
+            delayed_since_ts: running_since,
+            finalized: finalized_ts.map(|finalized_ts| {
+                FinalizedDelayedEvent::new(
+                    DelayedEventOutcome::from_parts(event_id, error),
+                    finalized_ts,
+                )
+            }),
+        }
+    }
+}
+
+impl From<DelayedEvent> for DelayedEventData {
+    fn from(event: DelayedEvent) -> Self {
+        let DelayedEvent {
+            delay_id,
+            room_id,
+            event_type,
+            state_key,
+            content,
+            delay_ms,
+            delayed_since_ts,
+            finalized,
+        } = event;
+        let (event_id, error, finalized_ts) = match finalized {
+            Some(FinalizedDelayedEvent { outcome, finalized_ts }) => {
+                let (event_id, error) = outcome.into_parts();
+                (event_id, error, Some(finalized_ts))
+            }
+            None => (None, None, None),
+        };
+
+        Self {
+            delay_id,
+            room_id,
+            event_type,
+            state_key,
+            content,
+            delay: delay_ms,
+            running_since: delayed_since_ts,
+            error,
+            event_id,
+            finalized_ts,
+        }
+    }
 }
 
 /// The query parameters for a delayed event request.
