@@ -3,12 +3,8 @@ use ruma_common::{
     CanonicalJsonObject, CanonicalJsonValue, ID_MAX_BYTES, RoomId,
     room_version_rules::EventFormatRules,
 };
+use ruma_signatures::MAX_PDU_BYTES;
 use serde_json::to_string as to_json_string;
-
-/// The [maximum size allowed] for a PDU.
-///
-/// [maximum size allowed]: https://spec.matrix.org/v1.19/client-server-api/#size-limits
-const MAX_PDU_BYTES: usize = 65_535;
 
 /// The [maximum length allowed] for the `prev_events` array of a PDU.
 ///
@@ -199,7 +195,7 @@ mod tests {
     use ruma_common::{
         CanonicalJsonObject, CanonicalJsonValue, room_version_rules::EventFormatRules,
     };
-    use serde_json::{from_value as from_json_value, json};
+    use serde_json::{from_value as from_json_value, json, to_string as to_json_string};
 
     use super::check_pdu_format;
 
@@ -355,6 +351,33 @@ mod tests {
         let long_string = repeat_n('a', 66_000).collect::<String>();
         content.insert("big_data".to_owned(), long_string.into());
 
+        check_pdu_format(&pdu, &EventFormatRules::V3).unwrap_err();
+    }
+
+    /// Construct a v3 PDU whose canonical JSON is exactly `target` bytes long.
+    fn pdu_v3_with_size(target: usize) -> CanonicalJsonObject {
+        let mut pdu = pdu_v3();
+        let content = pdu.get_mut("content").unwrap().as_object_mut().unwrap();
+        content.insert("big_data".to_owned(), String::new().into());
+        let base_len = to_json_string(&pdu).unwrap().len();
+
+        let content = pdu.get_mut("content").unwrap().as_object_mut().unwrap();
+        let long_string = repeat_n('a', target - base_len).collect::<String>();
+        content.insert("big_data".to_owned(), long_string.into());
+
+        assert_eq!(to_json_string(&pdu).unwrap().len(), target);
+        pdu
+    }
+
+    #[test]
+    fn check_pdu_format_pdu_max_size() {
+        let pdu = pdu_v3_with_size(65_536);
+        check_pdu_format(&pdu, &EventFormatRules::V3).unwrap();
+    }
+
+    #[test]
+    fn check_pdu_format_pdu_one_byte_too_big() {
+        let pdu = pdu_v3_with_size(65_537);
         check_pdu_format(&pdu, &EventFormatRules::V3).unwrap_err();
     }
 
