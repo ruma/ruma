@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+Bug fixes:
+
+- The size check in `content_hash` and `reference_hash` now uses the same
+  65536-byte limit as the Matrix specification, instead of 65535 bytes.
+
 ## 0.23.0
 
 Breaking changes:

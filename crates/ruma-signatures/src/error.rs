@@ -10,7 +10,7 @@ use crate::Ed25519VerificationError;
 #[non_exhaustive]
 pub enum JsonError {
     /// The PDU is too large.
-    #[error("PDU is larger than maximum of 65535 bytes")]
+    #[error("PDU is larger than maximum of 65536 bytes")]
     PduTooLarge,
 
     /// A field is missing or invalid.
