@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+Bug fixes:
+
+- `check_pdu_format` now accepts PDUs whose canonical JSON is exactly 65536
+  bytes, matching the size limit in the Matrix specification. Previously the
+  limit was 65535 bytes.
+
 ## 0.19.0
 
 Breaking changes:
