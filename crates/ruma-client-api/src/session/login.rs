@@ -346,6 +346,7 @@ pub mod v3 {
     #[serde(tag = "type", rename = "m.login.application_service")]
     pub struct ApplicationService {
         /// Identification information for the user.
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub identifier: Option<UserIdentifier>,
 
         /// Username for the user.

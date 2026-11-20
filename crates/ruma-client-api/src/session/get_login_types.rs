@@ -201,9 +201,11 @@ pub mod v3 {
         pub name: String,
 
         /// The icon for the provider.
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub icon: Option<OwnedMxcUri>,
 
         /// The brand identifier for the provider.
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub brand: Option<IdentityProviderBrand>,
     }
 
@@ -452,6 +454,12 @@ pub mod v3 {
                     ],
                 })
             );
+        }
+
+        #[test]
+        fn serialize_identity_provider_without_optional_fields() {
+            let provider = IdentityProvider::new("custom".into(), "Custom".into());
+            assert_to_canonical_json_eq!(provider, json!({ "id": "custom", "name": "Custom" }));
         }
     }
 }
