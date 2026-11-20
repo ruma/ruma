@@ -66,7 +66,7 @@ pub use ruma_common::{IdParseError, SigningKeyAlgorithm};
 pub use self::{
     ed25519::{Ed25519KeyPair, Ed25519KeyPairParseError, Ed25519VerificationError},
     error::{JsonError, VerificationError},
-    hash::{add_content_hash_to_event, content_hash, reference_hash},
+    hash::{MAX_PDU_BYTES, add_content_hash_to_event, content_hash, reference_hash},
     sign::{KeyPair, Signature, hash_and_sign_event, sign_event, sign_json},
     verify::{
         PublicKeyMap, PublicKeySet, Verified, required_server_signatures_to_verify_event,

@@ -12,7 +12,7 @@ use crate::JsonError;
 /// The [maximum size allowed] for a PDU.
 ///
 /// [maximum size allowed]: https://spec.matrix.org/v1.19/client-server-api/#size-limits
-const MAX_PDU_BYTES: usize = 65_536;
+pub const MAX_PDU_BYTES: usize = 65_536;
 
 /// The fields to remove from a JSON object when creating a content hash of an event.
 static CONTENT_HASH_FIELDS_TO_REMOVE: &[&str] = &["hashes", "signatures", "unsigned"];
