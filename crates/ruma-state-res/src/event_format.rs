@@ -42,7 +42,7 @@ pub fn check_pdu_format(pdu: &CanonicalJsonObject, rules: &EventFormatRules) -> 
     let json =
         to_json_string(&pdu).map_err(|e| format!("Failed to serialize canonical JSON: {e}"))?;
     if json.len() > MAX_PDU_BYTES {
-        return Err("PDU is larger than maximum of {MAX_PDU_BYTES} bytes".to_owned());
+        return Err(format!("PDU is larger than maximum of {MAX_PDU_BYTES} bytes"));
     }
 
     // Check the presence, type and length of the `type` field.
@@ -378,7 +378,8 @@ mod tests {
     #[test]
     fn check_pdu_format_pdu_one_byte_too_big() {
         let pdu = pdu_v3_with_size(65_537);
-        check_pdu_format(&pdu, &EventFormatRules::V3).unwrap_err();
+        let err = check_pdu_format(&pdu, &EventFormatRules::V3).unwrap_err();
+        assert_eq!(err, "PDU is larger than maximum of 65536 bytes");
     }
 
     #[test]
