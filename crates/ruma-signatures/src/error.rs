@@ -3,14 +3,14 @@ use ruma_common::{
 };
 use thiserror::Error;
 
-use crate::Ed25519VerificationError;
+use crate::{Ed25519VerificationError, MAX_PDU_BYTES};
 
 /// All errors related to JSON validation/parsing.
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum JsonError {
     /// The PDU is too large.
-    #[error("PDU is larger than maximum of 65536 bytes")]
+    #[error("PDU is larger than maximum of {} bytes", MAX_PDU_BYTES)]
     PduTooLarge,
 
     /// A field is missing or invalid.
