@@ -5,6 +5,10 @@
 Improvements:
 
 - Add unstable support for [MSC4563] "`direct_message` push rule".
+- `ErrorCode::DelayTooLarge` is now serialized as the stable `M_DELAY_TOO_LARGE` error code of
+  [MSC4140]. The unstable `ORG.MATRIX.MSC4140_DELAY_TOO_LARGE` error code is still accepted when
+  deserializing.
+- Add `FeatureFlag::Msc4140Stable`, the stable feature flag for [MSC4140].
 
 [MSC4563]: https://github.com/matrix-org/matrix-spec-proposals/pull/4563
 
