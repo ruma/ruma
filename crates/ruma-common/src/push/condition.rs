@@ -1,3 +1,5 @@
+#[cfg(feature = "compat-unicode-word-boundaries")]
+use std::sync::{LazyLock, Mutex, PoisonError};
 use std::{
     borrow::Cow, collections::BTreeMap, future::Future, ops::RangeBounds, pin::Pin, str::FromStr,
     sync::Arc,
@@ -722,10 +724,46 @@ trait CharExt {
     fn is_word_char(&self) -> bool;
 }
 
+/// The characters that can be part of a word, as the content of a regex character class.
+#[cfg(not(feature = "compat-unicode-word-boundaries"))]
+const WORD_CHARS: &str = "A-Za-z0-9_";
+
+/// Letters, digits and combining marks, except in scripts written without spaces between words.
+#[cfg(feature = "compat-unicode-word-boundaries")]
+const WORD_CHARS: &str = r"\p{L}\p{Mn}\p{Mc}\p{N}_--[\p{scx=Hira}\p{scx=Kana}\p{sc=Han}\p{sc=Bopo}\p{sc=Hang}\p{sc=Thai}\p{sc=Lao}\p{sc=Khmr}\p{sc=Mymr}\p{sc=Tibt}\x{FE00}-\x{FE0F}\x{E0100}-\x{E01EF}]";
+
 impl CharExt for char {
     fn is_word_char(&self) -> bool {
+        #[cfg(feature = "compat-unicode-word-boundaries")]
+        if !self.is_ascii() {
+            static WORD_CHAR: LazyLock<regex::Regex> = LazyLock::new(|| {
+                regex::Regex::new(&format!("^[{WORD_CHARS}]$"))
+                    .expect("regex construction should succeed")
+            });
+
+            return WORD_CHAR.is_match(self.encode_utf8(&mut [0; 4]));
+        }
+
         self.is_ascii_alphanumeric() || *self == '_'
     }
+}
+
+#[cfg(not(feature = "compat-unicode-word-boundaries"))]
+fn word_regex(regex: String) -> Regex {
+    Regex::new(&regex).expect("regex construction should succeed")
+}
+
+/// Caches the compiled regexes, because the Unicode word classes are slow to compile.
+#[cfg(feature = "compat-unicode-word-boundaries")]
+fn word_regex(regex: String) -> Regex {
+    static COMPILED: LazyLock<Mutex<BTreeMap<String, Regex>>> = LazyLock::new(Default::default);
+
+    COMPILED
+        .lock()
+        .unwrap_or_else(PoisonError::into_inner)
+        .entry(regex)
+        .or_insert_with_key(|regex| Regex::new(regex).expect("regex construction should succeed"))
+        .clone()
 }
 
 /// Additional functions for string matching.
@@ -758,7 +796,8 @@ trait StrExt {
     /// The pattern can be a glob with wildcards `*` and `?`.
     ///
     /// A word boundary is defined as the start or end of the value, or any character not in the
-    /// sets `[A-Z]`, `[a-z]`, `[0-9]` or `_`.
+    /// sets `[A-Z]`, `[a-z]`, `[0-9]` or `_`. With the `compat-unicode-word-boundaries` feature,
+    /// the letters, digits and combining marks of most scripts are not word boundaries either.
     ///
     /// The match is case sensitive.
     fn matches_word(&self, pattern: &str) -> bool;
@@ -819,6 +858,34 @@ impl StrExt for str {
         let has_wildcards = pattern.contains(['?', '*']);
 
         if has_wildcards {
+            // The match starts and ends at a word boundary. A non-word character there is a
+            // boundary itself, and so is a `*`, which can stretch to the start or end of the line.
+            let non_word = format!("[^{WORD_CHARS}]");
+            let non_word_char = format!(r"[^\n{WORD_CHARS}]");
+            if pattern == "?" {
+                let regex = format!("(?:^|{non_word}).(?:{non_word}|$)|{non_word_char}");
+                return word_regex(regex).is_match(self.as_bytes());
+            }
+
+            let (start, pattern) = if pattern.trim_start_matches('?').starts_with('*') {
+                (String::new(), pattern)
+            } else if let Some(rest) = pattern.strip_prefix('?') {
+                (format!("(?:(?:^|{non_word}).|{non_word_char})"), rest)
+            } else if pattern.chars().next().is_some_and(|c| c.is_word_char()) {
+                (format!("(?:^|{non_word})"), pattern)
+            } else {
+                (String::new(), pattern)
+            };
+            let (end, pattern) = if pattern.trim_end_matches('?').ends_with('*') {
+                (String::new(), pattern)
+            } else if let Some(rest) = pattern.strip_suffix('?') {
+                (format!("(?:.(?:{non_word}|$)|{non_word_char})"), rest)
+            } else if pattern.chars().next_back().is_some_and(|c| c.is_word_char()) {
+                (format!("(?:{non_word}|$)"), pattern)
+            } else {
+                (String::new(), pattern)
+            };
+
             let mut chunks: Vec<String> = vec![];
             let mut prev_wildcard = false;
             let mut chunk_start = 0;
@@ -848,11 +915,8 @@ impl StrExt for str {
                 chunks.push(chunk.wildcards_to_regex());
             }
 
-            // The word characters in ASCII compatible mode (with the `-u` flag) match the
-            // definition in the spec: any character not in the set `[A-Za-z0-9_]`.
-            let regex = format!(r"(?-u:^|\W|\b){}(?-u:\b|\W|$)", chunks.concat());
-            let re = Regex::new(&regex).expect("regex construction should succeed");
-            re.is_match(self.as_bytes())
+            let regex = format!("{start}{}{end}", chunks.concat());
+            word_regex(regex).is_match(self.as_bytes())
         } else {
             match self.find(pattern) {
                 Some(start) => {
@@ -1063,6 +1127,25 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "compat-unicode-word-boundaries")]
+    fn unicode_words_match() {
+        assert!(!"ǝlqɐʇ".matches_word("lq"));
+        assert!(!"ǝlqɐʇ".matches_word("l*q"));
+        assert!(!"café".matches_word("caf"));
+        assert!(!"cafe\u{301}".matches_word("cafe"));
+        assert!("Ruma Dev👩‍💻".matches_word("Dev"));
+        assert!("conduit⚡️".matches_word("conduit"));
+        assert!("私は東京に住む".matches_word("東京"));
+        assert!("Linuxを使う".matches_word("Linux"));
+        assert!("서울에".matches_word("서울"));
+        assert!(!"ǝlq".matches_word("?q"));
+        assert!("-lq".matches_word("?q"));
+        assert!(!"lqɐ".matches_word("l?"));
+        assert!(!"éa".matches_word("?"));
+        assert!("é".matches_word("?"));
+    }
+
+    #[test]
     fn patterns_match() {
         // Word matching without glob
         assert!("foo bar".matches_pattern("foo", true));
@@ -1073,7 +1156,10 @@ mod tests {
         assert!("foo bar".matches_pattern("foo bar", true));
         assert!(" foo bar ".matches_pattern("foo bar", true));
         assert!("baz foo bar baz".matches_pattern("foo bar", true));
+        #[cfg(not(feature = "compat-unicode-word-boundaries"))]
         assert!("foo baré".matches_pattern("foo bar", true));
+        #[cfg(feature = "compat-unicode-word-boundaries")]
+        assert!(!"foo baré".matches_pattern("foo bar", true));
         assert!(!"bar foo".matches_pattern("foo bar", true));
         assert!("foo bar".matches_pattern("foo ", true));
         assert!("foo ".matches_pattern("foo ", true));
@@ -1085,7 +1171,10 @@ mod tests {
         assert!("foo bar".matches_pattern("foo b?r", true));
         assert!(" foo bar ".matches_pattern("foo b?r", true));
         assert!("baz foo bar baz".matches_pattern("foo b?r", true));
+        #[cfg(not(feature = "compat-unicode-word-boundaries"))]
         assert!("foo baré".matches_pattern("foo b?r", true));
+        #[cfg(feature = "compat-unicode-word-boundaries")]
+        assert!(!"foo baré".matches_pattern("foo b?r", true));
         assert!(!"bar foo".matches_pattern("foo b?r", true));
         assert!("foo bar".matches_pattern("f*o ", true));
         assert!("foo ".matches_pattern("f*o ", true));
