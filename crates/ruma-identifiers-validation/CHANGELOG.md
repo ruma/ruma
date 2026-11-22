@@ -11,10 +11,11 @@ Improvements:
 
 ## 0.14.0
 
-Breaking changes:
+Security fixes:
 
 - Change `key_id::validate` to return `Result<(), Error>` instead of `Result<NonZeroU8, Error>`
   (nothing in Ruma was using the returned index anymore)
+  ([RUSTSEC-2026-0589](https://rustsec.org/advisories/RUSTSEC-2026-0589.html))
 
 Bug fixes:
 
@@ -22,11 +23,11 @@ Bug fixes:
 
 ## 0.13.0
 
-Breaking changes:
+Security fixes:
 
 - Allow `mxc://` URIs with a valid server name whose length is bigger than 249 bytes in
   `mxc_uri::validate()`. This function now returns an `NonZeroU16` when the validation is
-  successful.
+  successful. ([RUSTSEC-2026-0588](https://rustsec.org/advisories/RUSTSEC-2026-0588.html))
 
 Bug fixes:
 
