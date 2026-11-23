@@ -860,6 +860,7 @@ impl StrExt for str {
         if has_wildcards {
             // The match starts and ends at a word boundary. A non-word character there is a
             // boundary itself, and so is a `*`, which can stretch to the start or end of the line.
+            // `\b` uses `\w` instead of `WORD_CHARS`, and lookarounds are not supported.
             let non_word = format!("[^{WORD_CHARS}]");
             let non_word_char = format!(r"[^\n{WORD_CHARS}]");
             if pattern == "?" {
