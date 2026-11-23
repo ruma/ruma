@@ -728,9 +728,12 @@ trait CharExt {
 #[cfg(not(feature = "compat-unicode-word-boundaries"))]
 const WORD_CHARS: &str = "A-Za-z0-9_";
 
-/// Letters, digits and combining marks, except in scripts written without spaces between words.
+/// Word characters from the [Unicode word boundary rules], except Hangul because Korean attaches
+/// particles to words, and emoji modifiers like `U+FE0F`.
+///
+/// [Unicode word boundary rules]: https://www.unicode.org/reports/tr29/#Word_Boundary_Rules
 #[cfg(feature = "compat-unicode-word-boundaries")]
-const WORD_CHARS: &str = r"\p{L}\p{Mn}\p{Mc}\p{N}_--[\p{scx=Hira}\p{scx=Kana}\p{sc=Han}\p{sc=Bopo}\p{sc=Hang}\p{sc=Thai}\p{sc=Lao}\p{sc=Khmr}\p{sc=Mymr}\p{sc=Tibt}\x{FE00}-\x{FE0F}\x{E0100}-\x{E01EF}]";
+const WORD_CHARS: &str = r"\p{wb=ALetter}\p{wb=Hebrew_Letter}\p{wb=Numeric}\p{wb=ExtendNumLet}\p{wb=Extend}--[\p{sc=Hangul}\p{Variation_Selector}\p{Emoji_Modifier}]";
 
 impl CharExt for char {
     fn is_word_char(&self) -> bool {
@@ -1136,6 +1139,11 @@ mod tests {
         assert!(!"cafe\u{301}".matches_word("cafe"));
         assert!("Ruma Dev👩‍💻".matches_word("Dev"));
         assert!("conduit⚡️".matches_word("conduit"));
+        assert!("⚡️conduit".matches_word("conduit"));
+        assert!("👍🏻conduit".matches_word("conduit"));
+        assert!("❤️you".matches_word("❤️"));
+        assert!("foo.bar".matches_word("foo"));
+        assert!("สวัสดีครับ".matches_word("ครับ"));
         assert!("私は東京に住む".matches_word("東京"));
         assert!("Linuxを使う".matches_word("Linux"));
         assert!("서울에".matches_word("서울"));
