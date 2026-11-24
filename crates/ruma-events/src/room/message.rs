@@ -906,11 +906,11 @@ pub(crate) fn parse_markdown(text: &str) -> Option<String> {
 /// Returns the plain text body of a message built from the given Markdown.
 ///
 /// The Markdown is kept as is, except for the custom emoticons in its raw HTML, which are replaced
-/// with their `alt` text.
+/// with their text (see [`emoticon_text`]).
 #[cfg(feature = "markdown")]
 pub(crate) fn plain_body_from_markdown(markdown: impl AsRef<str> + Into<String>) -> String {
     #[cfg(feature = "html")]
-    if let Some(body) = replace_emoticons_with_alt_text(markdown.as_ref()) {
+    if let Some(body) = replace_emoticons_with_text(markdown.as_ref()) {
         return body;
     }
 
@@ -922,11 +922,11 @@ pub(crate) fn plain_body_from_markdown(markdown: impl AsRef<str> + Into<String>)
 const EMOTICON_ATTRIBUTE: &str = "data-mx-emoticon";
 
 /// Replaces the custom emoticons (`<img data-mx-emoticon>`) in the raw HTML of the given Markdown
-/// with their `alt` text.
+/// with their text (see [`emoticon_text`]).
 ///
 /// Returns `None` if no emoticon was replaced.
 #[cfg(all(feature = "markdown", feature = "html"))]
-fn replace_emoticons_with_alt_text(markdown: &str) -> Option<String> {
+fn replace_emoticons_with_text(markdown: &str) -> Option<String> {
     use pulldown_cmark::{Event, Parser};
 
     // Avoid parsing the Markdown again for the vast majority of messages.
@@ -952,9 +952,9 @@ fn replace_emoticons_with_alt_text(markdown: &str) -> Option<String> {
                 break;
             };
 
-            if let Some(alt) = emoticon_alt_text(&markdown[tag_start..tag_end]) {
+            if let Some(text) = emoticon_text(&markdown[tag_start..tag_end]) {
                 body.push_str(&markdown[copied_until..tag_start]);
-                body.push_str(&alt);
+                body.push_str(&text);
                 copied_until = tag_end;
             }
 
@@ -970,9 +970,12 @@ fn replace_emoticons_with_alt_text(markdown: &str) -> Option<String> {
     Some(body)
 }
 
-/// The `alt` text of the given HTML tag, if it is a custom emoticon.
+/// The text of the given HTML tag, if it is a custom emoticon.
+///
+/// This is its shortcode, from its `title`, surrounded by colons as it is usually typed. If it
+/// doesn't have a `title`, its `alt` text is used instead.
 #[cfg(all(feature = "markdown", feature = "html"))]
-fn emoticon_alt_text(tag: &str) -> Option<String> {
+fn emoticon_text(tag: &str) -> Option<String> {
     // Avoid parsing the HTML of other tags.
     if !tag.contains(EMOTICON_ATTRIBUTE) {
         return None;
@@ -989,7 +992,14 @@ fn emoticon_alt_text(tag: &str) -> Option<String> {
         return None;
     }
 
-    attrs.iter().find(|attr| &*attr.name.local == "alt").map(|attr| attr.value.to_string())
+    let attr = |name: &str| attrs.iter().find(|attr| &*attr.name.local == name);
+
+    if let Some(title) = attr("title") {
+        // Some clients already surround the shortcode with colons.
+        return Some(format!(":{}:", title.value.trim_matches(':')));
+    }
+
+    attr("alt").map(|attr| attr.value.to_string())
 }
 
 /// Whether the given tag is a block HTML element.

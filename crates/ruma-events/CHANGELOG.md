@@ -6,8 +6,9 @@ Improvements:
 
 - With the `html` feature, `TextMessageEventContent::markdown()`,
   `EmoteMessageEventContent::markdown()` and `NoticeMessageEventContent::markdown()` replace the
-  custom emoticons (`<img data-mx-emoticon>`) of the plain text `body` with their `alt` text. The
-  formatted body keeps the images.
+  custom emoticons (`<img data-mx-emoticon>`) of the plain text `body` with their shortcode, taken
+  from their `title` and surrounded by colons, or with their `alt` text if they don't have a
+  `title`. The formatted body keeps the images.
 - Remove support for the unstable `com.famedly.marked_unread` room account data and the
   `unstable-msc2867` cargo feature. The stable `m.marked_unread` event should be used instead.
 - Add `membership` to unsigned data and an `unsigned_membership()` accessor to timeline event

@@ -166,7 +166,7 @@ line 2
 #[test]
 #[cfg(all(feature = "markdown", feature = "html"))]
 fn markdown_emoticons_plain_body() {
-    let emoticon = r#"<img data-mx-emoticon src="mxc://example.org/wave" alt=":wave:" title=":wave:" height="32">"#;
+    let emoticon = r#"<img data-mx-emoticon src="mxc://example.org/wave" alt="A waving hand" title="wave" height="32">"#;
 
     // Inline emoticons are replaced in the body but kept in the formatted body.
     let text = format!("**Hi** {emoticon}!");
@@ -178,7 +178,11 @@ fn markdown_emoticons_plain_body() {
     let content = EmoteMessageEventContent::markdown(emoticon);
     assert_eq!(content.body, ":wave:");
 
-    // Escaped characters in the alt text are decoded.
+    // A shortcode already surrounded by colons isn't surrounded again.
+    let text = r#"<img data-mx-emoticon src="mxc://example.org/wave" alt=":wave:" title=":wave:">"#;
+    assert_eq!(TextMessageEventContent::markdown(text).body, ":wave:");
+
+    // Without a title, the alt text is used, with its escaped characters decoded.
     let text =
         r#"<img data-mx-emoticon src="mxc://example.org/q" alt="&quot;q&quot;" height="32"> hi"#;
     assert_eq!(TextMessageEventContent::markdown(text).body, r#""q" hi"#);
