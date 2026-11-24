@@ -812,12 +812,14 @@ pub struct CustomMessageContent {
 }
 
 #[cfg(feature = "markdown")]
+const MARKDOWN_OPTIONS: pulldown_cmark::Options =
+    pulldown_cmark::Options::ENABLE_TABLES.union(pulldown_cmark::Options::ENABLE_STRIKETHROUGH);
+
+#[cfg(feature = "markdown")]
 pub(crate) fn parse_markdown(text: &str) -> Option<String> {
-    use pulldown_cmark::{Event, Options, Parser, Tag, TagEnd};
+    use pulldown_cmark::{Event, Parser, Tag, TagEnd};
 
-    const OPTIONS: Options = Options::ENABLE_TABLES.union(Options::ENABLE_STRIKETHROUGH);
-
-    let parser_events: Vec<_> = Parser::new_ext(text, OPTIONS)
+    let parser_events: Vec<_> = Parser::new_ext(text, MARKDOWN_OPTIONS)
         .map(|event| match event {
             Event::SoftBreak => Event::HardBreak,
             _ => event,
