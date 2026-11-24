@@ -903,6 +903,95 @@ pub(crate) fn parse_markdown(text: &str) -> Option<String> {
     Some(html_body)
 }
 
+/// Returns the plain text body of a message built from the given Markdown.
+///
+/// The Markdown is kept as is, except for the custom emoticons in its raw HTML, which are replaced
+/// with their `alt` text.
+#[cfg(feature = "markdown")]
+pub(crate) fn plain_body_from_markdown(markdown: impl AsRef<str> + Into<String>) -> String {
+    #[cfg(feature = "html")]
+    if let Some(body) = replace_emoticons_with_alt_text(markdown.as_ref()) {
+        return body;
+    }
+
+    markdown.into()
+}
+
+/// The attribute marking an `<img>` as a custom emoticon.
+#[cfg(all(feature = "markdown", feature = "html"))]
+const EMOTICON_ATTRIBUTE: &str = "data-mx-emoticon";
+
+/// Replaces the custom emoticons (`<img data-mx-emoticon>`) in the raw HTML of the given Markdown
+/// with their `alt` text.
+///
+/// Returns `None` if no emoticon was replaced.
+#[cfg(all(feature = "markdown", feature = "html"))]
+fn replace_emoticons_with_alt_text(markdown: &str) -> Option<String> {
+    use pulldown_cmark::{Event, Parser};
+
+    // Avoid parsing the Markdown again for the vast majority of messages.
+    if !markdown.contains(EMOTICON_ATTRIBUTE) {
+        return None;
+    }
+
+    let mut body = String::new();
+    let mut copied_until = 0;
+
+    for (event, range) in Parser::new_ext(markdown, MARKDOWN_OPTIONS).into_offset_iter() {
+        // Only look at raw HTML, so tags in code stay untouched.
+        if !matches!(event, Event::Html(_) | Event::InlineHtml(_)) {
+            continue;
+        }
+
+        let mut position = range.start;
+
+        while let Some(tag_start) = markdown[position..range.end].find("<img").map(|i| position + i)
+        {
+            let Some(tag_end) = markdown[tag_start..range.end].find('>').map(|i| tag_start + i + 1)
+            else {
+                break;
+            };
+
+            if let Some(alt) = emoticon_alt_text(&markdown[tag_start..tag_end]) {
+                body.push_str(&markdown[copied_until..tag_start]);
+                body.push_str(&alt);
+                copied_until = tag_end;
+            }
+
+            position = tag_end;
+        }
+    }
+
+    if copied_until == 0 {
+        return None;
+    }
+
+    body.push_str(&markdown[copied_until..]);
+    Some(body)
+}
+
+/// The `alt` text of the given HTML tag, if it is a custom emoticon.
+#[cfg(all(feature = "markdown", feature = "html"))]
+fn emoticon_alt_text(tag: &str) -> Option<String> {
+    // Avoid parsing the HTML of other tags.
+    if !tag.contains(EMOTICON_ATTRIBUTE) {
+        return None;
+    }
+
+    let html = ruma_html::Html::parse(tag);
+    let node = html.first_child()?;
+    let element = node.as_element()?;
+    let attrs = element.attrs.borrow();
+
+    if &*element.name.local != "img"
+        || !attrs.iter().any(|attr| &*attr.name.local == EMOTICON_ATTRIBUTE)
+    {
+        return None;
+    }
+
+    attrs.iter().find(|attr| &*attr.name.local == "alt").map(|attr| attr.value.to_string())
+}
+
 /// Whether the given tag is a block HTML element.
 #[cfg(feature = "markdown")]
 fn is_block_tag(tag: &pulldown_cmark::Tag<'_>) -> bool {

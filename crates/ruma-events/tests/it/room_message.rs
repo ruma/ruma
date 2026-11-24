@@ -164,6 +164,33 @@ line 2
 }
 
 #[test]
+#[cfg(all(feature = "markdown", feature = "html"))]
+fn markdown_emoticons_plain_body() {
+    let emoticon = r#"<img data-mx-emoticon src="mxc://example.org/wave" alt=":wave:" title=":wave:" height="32">"#;
+
+    // Inline emoticons are replaced in the body but kept in the formatted body.
+    let text = format!("**Hi** {emoticon}!");
+    let content = TextMessageEventContent::markdown(text);
+    assert_eq!(content.body, "**Hi** :wave:!");
+    assert_eq!(content.formatted.unwrap().body, format!("<strong>Hi</strong> {emoticon}!"));
+
+    // A lone emoticon is an HTML block.
+    let content = EmoteMessageEventContent::markdown(emoticon);
+    assert_eq!(content.body, ":wave:");
+
+    // Escaped characters in the alt text are decoded.
+    let text =
+        r#"<img data-mx-emoticon src="mxc://example.org/q" alt="&quot;q&quot;" height="32"> hi"#;
+    assert_eq!(TextMessageEventContent::markdown(text).body, r#""q" hi"#);
+
+    // Other images, code and unclosed tags are kept.
+    let text = format!(
+        r#"<img src="mxc://example.org/image" alt="image"> `{emoticon}` *x* <img data-mx-emoticon alt=":a:""#
+    );
+    assert_eq!(TextMessageEventContent::markdown(text.clone()).body, text);
+}
+
+#[test]
 #[cfg(feature = "markdown")]
 fn markdown_detection() {
     use ruma_events::room::message::FormattedBody;
