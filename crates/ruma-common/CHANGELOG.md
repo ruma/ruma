@@ -9,8 +9,8 @@ Improvements:
   [MSC4140]. The unstable `ORG.MATRIX.MSC4140_DELAY_TOO_LARGE` error code is still accepted when
   deserializing.
 - Add `FeatureFlag::Msc4140Stable`, the stable feature flag for [MSC4140].
-- Add the `compat-unicode-word-boundaries` cargo feature, which treats the letters, digits and
-  combining marks of most scripts as word characters when matching `content.body`.
+- Add the `compat-push-unicode-word-boundaries` cargo feature, which treats the letters, digits and
+  combining marks of most scripts as part of words when matching `content.body` in push rules.
 
 [MSC4563]: https://github.com/matrix-org/matrix-spec-proposals/pull/4563
 

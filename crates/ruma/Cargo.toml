@@ -92,9 +92,9 @@ compat-null = ["ruma-common/compat-null"]
 # mandatory. Deserialization will yield a default value like an empty string.
 compat-optional = ["ruma-common/compat-optional", "ruma-events?/compat-optional"]
 
-# Treat the letters, digits and combining marks of most scripts as word characters when matching
-# `content.body`.
-compat-unicode-word-boundaries = ["ruma-common/compat-unicode-word-boundaries"]
+# Treat the letters, digits and combining marks of most scripts as part of words when matching
+# `content.body` in push rules.
+compat-push-unicode-word-boundaries = ["ruma-common/compat-push-unicode-word-boundaries"]
 
 # Unset avatars by sending an empty string, same as what Element Web does, c.f.
 # https://github.com/matrix-org/matrix-spec/issues/378#issuecomment-1055831264
