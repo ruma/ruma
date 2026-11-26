@@ -812,12 +812,14 @@ pub struct CustomMessageContent {
 }
 
 #[cfg(feature = "markdown")]
+const MARKDOWN_OPTIONS: pulldown_cmark::Options =
+    pulldown_cmark::Options::ENABLE_TABLES.union(pulldown_cmark::Options::ENABLE_STRIKETHROUGH);
+
+#[cfg(feature = "markdown")]
 pub(crate) fn parse_markdown(text: &str) -> Option<String> {
-    use pulldown_cmark::{Event, Options, Parser, Tag, TagEnd};
+    use pulldown_cmark::{Event, Parser, Tag, TagEnd};
 
-    const OPTIONS: Options = Options::ENABLE_TABLES.union(Options::ENABLE_STRIKETHROUGH);
-
-    let parser_events: Vec<_> = Parser::new_ext(text, OPTIONS)
+    let parser_events: Vec<_> = Parser::new_ext(text, MARKDOWN_OPTIONS)
         .map(|event| match event {
             Event::SoftBreak => Event::HardBreak,
             _ => event,
@@ -899,6 +901,105 @@ pub(crate) fn parse_markdown(text: &str) -> Option<String> {
     pulldown_cmark::html::push_html(&mut html_body, events_iter);
 
     Some(html_body)
+}
+
+/// Returns the plain text body of a message built from the given Markdown.
+///
+/// The Markdown is kept as is, except for the custom emoticons in its raw HTML, which are replaced
+/// with their text (see [`emoticon_text`]).
+#[cfg(feature = "markdown")]
+pub(crate) fn plain_body_from_markdown(markdown: impl AsRef<str> + Into<String>) -> String {
+    #[cfg(feature = "html")]
+    if let Some(body) = replace_emoticons_with_text(markdown.as_ref()) {
+        return body;
+    }
+
+    markdown.into()
+}
+
+/// The attribute marking an `<img>` as a custom emoticon.
+#[cfg(all(feature = "markdown", feature = "html"))]
+const EMOTICON_ATTRIBUTE: &str = "data-mx-emoticon";
+
+/// Replaces the custom emoticons (`<img data-mx-emoticon>`) in the raw HTML of the given Markdown
+/// with their text (see [`emoticon_text`]).
+///
+/// Returns `None` if no emoticon was replaced.
+#[cfg(all(feature = "markdown", feature = "html"))]
+fn replace_emoticons_with_text(markdown: &str) -> Option<String> {
+    use pulldown_cmark::{Event, Parser};
+
+    // Avoid parsing the Markdown again for the vast majority of messages.
+    if !markdown.contains(EMOTICON_ATTRIBUTE) {
+        return None;
+    }
+
+    let mut body = String::new();
+    let mut copied_until = 0;
+
+    for (event, range) in Parser::new_ext(markdown, MARKDOWN_OPTIONS).into_offset_iter() {
+        // Only look at raw HTML, so tags in code stay untouched.
+        if !matches!(event, Event::Html(_) | Event::InlineHtml(_)) {
+            continue;
+        }
+
+        let mut position = range.start;
+
+        while let Some(tag_start) = markdown[position..range.end].find("<img").map(|i| position + i)
+        {
+            let Some(tag_end) = markdown[tag_start..range.end].find('>').map(|i| tag_start + i + 1)
+            else {
+                break;
+            };
+
+            if let Some(text) = emoticon_text(&markdown[tag_start..tag_end]) {
+                body.push_str(&markdown[copied_until..tag_start]);
+                body.push_str(&text);
+                copied_until = tag_end;
+            }
+
+            position = tag_end;
+        }
+    }
+
+    if copied_until == 0 {
+        return None;
+    }
+
+    body.push_str(&markdown[copied_until..]);
+    Some(body)
+}
+
+/// The text of the given HTML tag, if it is a custom emoticon.
+///
+/// This is its shortcode, from its `title`, surrounded by colons as it is usually typed. If it
+/// doesn't have a `title`, its `alt` text is used instead.
+#[cfg(all(feature = "markdown", feature = "html"))]
+fn emoticon_text(tag: &str) -> Option<String> {
+    // Avoid parsing the HTML of other tags.
+    if !tag.contains(EMOTICON_ATTRIBUTE) {
+        return None;
+    }
+
+    let html = ruma_html::Html::parse(tag);
+    let node = html.first_child()?;
+    let element = node.as_element()?;
+    let attrs = element.attrs.borrow();
+
+    if &*element.name.local != "img"
+        || !attrs.iter().any(|attr| &*attr.name.local == EMOTICON_ATTRIBUTE)
+    {
+        return None;
+    }
+
+    let attr = |name: &str| attrs.iter().find(|attr| &*attr.name.local == name);
+
+    if let Some(title) = attr("title") {
+        // Some clients already surround the shortcode with colons.
+        return Some(format!(":{}:", title.value.trim_matches(':')));
+    }
+
+    attr("alt").map(|attr| attr.value.to_string())
 }
 
 /// Whether the given tag is a block HTML element.

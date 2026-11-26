@@ -55,7 +55,7 @@ impl TextMessageEventContent {
     #[cfg(feature = "markdown")]
     pub fn markdown(body: impl AsRef<str> + Into<String>) -> Self {
         if let Some(formatted) = FormattedBody::markdown(&body) {
-            Self::html(body, formatted.body)
+            Self::html(super::plain_body_from_markdown(body), formatted.body)
         } else {
             Self::plain(body)
         }
