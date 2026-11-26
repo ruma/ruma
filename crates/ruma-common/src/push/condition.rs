@@ -1225,7 +1225,7 @@ mod tests {
         // Word matching with several wildcards
         assert!("foo bar baz".matches_pattern("f?o*b?z", true));
         assert!(!"xfoo bar".matches_pattern("?oo b*", true));
-        assert!("foo ba".matches_pattern("f?o b?", true));
+        assert!("foo be".matches_pattern("f?o b?", true));
         assert!(!"foo bar".matches_pattern("f?o b?", true));
         assert!("a-b-c".matches_pattern("a?b?c", true));
         assert!(!"a-b-cd".matches_pattern("a?b?c", true));
