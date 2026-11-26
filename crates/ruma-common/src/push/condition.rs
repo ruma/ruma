@@ -779,14 +779,17 @@ fn word_regex(regex: String) -> Regex {
 
     let mut compiled = COMPILED.lock().unwrap_or_else(PoisonError::into_inner);
 
+    if let Some(compiled_regex) = compiled.get(&regex) {
+        return compiled_regex.clone();
+    }
+
     if compiled.len() >= MAX_CACHED_REGEXES {
         compiled.clear();
     }
 
-    compiled
-        .entry(regex)
-        .or_insert_with_key(|regex| Regex::new(regex).expect("regex construction should succeed"))
-        .clone()
+    let compiled_regex = Regex::new(&regex).expect("regex construction should succeed");
+    compiled.insert(regex, compiled_regex.clone());
+    compiled_regex
 }
 
 /// Additional functions for string matching.
