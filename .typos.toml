@@ -11,6 +11,9 @@ Wya = "Wya"
 # Short for "serialize".
 Ser = "Ser"
 
+# Truncation of "café" in tests.
+caf = "caf"
+
 # all of these are valid words, but should never appear in this repo
 sing = "sign"
 singed = "signed"
