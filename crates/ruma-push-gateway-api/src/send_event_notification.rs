@@ -349,7 +349,7 @@ pub mod v1 {
 
     #[cfg(test)]
     mod tests {
-        use js_int::uint;
+        use js_int::{int, uint};
         use ruma_common::{
             SecondsSinceUnixEpoch, canonical_json::assert_to_canonical_json_eq, owned_event_id,
             owned_room_alias_id, owned_room_id, owned_user_id, push::HighlightTweakValue,
@@ -369,7 +369,7 @@ pub mod v1 {
             let count = NotificationCounts { unread: uint!(2), ..NotificationCounts::default() };
 
             let device = Device {
-                pushkey_ts: Some(SecondsSinceUnixEpoch(uint!(123))),
+                pushkey_ts: Some(SecondsSinceUnixEpoch(int!(123))),
                 tweaks: vec![
                     Tweak::Highlight(HighlightTweakValue::Yes),
                     Tweak::Sound("silence".into()),
