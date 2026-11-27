@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+Bug fixes:
+
+- Deserializing `session::login::v3::LoginInfo` (and thus the `login` request) without a `type`
+  field now returns an error instead of panicking.
+
 Improvements:
 
 - Add support for the stable delayed events endpoints of [MSC4140], used when the server
