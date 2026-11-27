@@ -238,8 +238,11 @@ pub mod v3 {
             // implementing Deserialize manually for Request, bc. `#[serde(flatten)]` breaks things.
             let mut data = JsonObject::deserialize(deserializer)?;
 
-            let login_type =
-                data["type"].as_str().ok_or_else(|| de::Error::missing_field("type"))?;
+            let login_type = match data.get("type") {
+                Some(JsonValue::String(login_type)) => login_type.as_str(),
+                Some(_) => return Err(de::Error::custom("`type` must be a string")),
+                None => return Err(de::Error::missing_field("type")),
+            };
             match login_type {
                 "m.login.password" => from_json_value(data.into()).map(Self::Password),
                 "m.login.token" => from_json_value(data.into()).map(Self::Token),
@@ -468,6 +471,26 @@ pub mod v3 {
                 .unwrap()
             );
             assert_eq!(token, "1234567890abcdef");
+        }
+
+        #[test]
+        fn deserialize_login_info_missing_type() {
+            let err = from_json_value::<LoginInfo>(json!({
+                "user": "cheeky_monkey",
+                "password": "ilovebananas"
+            }))
+            .unwrap_err();
+            assert_eq!(err.to_string(), "missing field `type`");
+        }
+
+        #[test]
+        fn deserialize_login_info_non_string_type() {
+            let err = from_json_value::<LoginInfo>(json!({
+                "type": 1,
+                "password": "ilovebananas"
+            }))
+            .unwrap_err();
+            assert_eq!(err.to_string(), "`type` must be a string");
         }
 
         #[test]
