@@ -6,6 +6,7 @@ use ruma_client_api::uiaa::{
 use ruma_common::{
     api::{EndpointError, OutgoingResponseExt as _, error::ErrorKind},
     canonical_json::assert_to_canonical_json_eq,
+    serde::JsonObject,
 };
 use serde_json::{
     Value as JsonValue, from_slice as from_json_slice, from_str as from_json_str,
@@ -40,6 +41,30 @@ fn serialize_auth_data_registration_token() {
             "session": "session",
         })
     );
+}
+
+#[test]
+fn serialize_auth_data_without_session() {
+    let auth_data = AuthData::Dummy(uiaa::Dummy::new());
+    assert_to_canonical_json_eq!(auth_data, json!({ "type": "m.login.dummy" }));
+
+    let auth_data = AuthData::RegistrationToken(uiaa::RegistrationToken::new("mytoken".to_owned()));
+    assert_to_canonical_json_eq!(
+        auth_data,
+        json!({
+            "type": "m.login.registration_token",
+            "token": "mytoken",
+        })
+    );
+}
+
+#[test]
+fn serialize_custom_auth_data_without_session() {
+    let mut data = JsonObject::new();
+    data.insert("foo".to_owned(), "bar".into());
+    let auth_data = AuthData::new("local.dev.custom", None, data).unwrap();
+
+    assert_to_canonical_json_eq!(auth_data, json!({ "type": "local.dev.custom", "foo": "bar" }));
 }
 
 #[test]

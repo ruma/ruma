@@ -240,6 +240,7 @@ pub mod v3 {
     #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
     pub struct Grouping {
         /// The key within events to use for this grouping.
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub key: Option<GroupingKey>,
     }
 
@@ -614,7 +615,9 @@ mod tests {
     };
     use strass::assert_let;
 
-    use super::v3::{GroupingKey, OrderBy, Request, Response, ResultGroupMap, SearchKeys};
+    use super::v3::{
+        Grouping, GroupingKey, OrderBy, Request, Response, ResultGroupMap, SearchKeys,
+    };
 
     #[test]
     fn request_roundtrip() {
@@ -730,5 +733,10 @@ mod tests {
 
         let http_response = response.try_into_http_response::<Vec<u8>>().unwrap();
         assert_eq!(from_json_slice::<JsonValue>(http_response.body()).unwrap(), body);
+    }
+
+    #[test]
+    fn serialize_grouping_without_key() {
+        assert_eq!(serde_json::to_value(Grouping::new()).unwrap(), json!({}));
     }
 }
