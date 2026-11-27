@@ -32,7 +32,7 @@
 //! #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 //! #[ruma_event(type = "org.example.event", kind = State, state_key_type = String)]
 //! pub struct ExampleContent {
-//!     field: String,
+//!     field: Option<String>,
 //! }
 //! ```
 //!
@@ -214,7 +214,7 @@ pub use self::{
     relation::{BundledMessageLikeRelations, BundledStateRelations},
     state_key::EmptyStateKey,
     unsigned::{
-        AnyRedactionEvent, MessageLikeUnsigned, RedactedUnsigned, StateUnsigned,
+        AnyRedactionEvent, EventUnsignedData, MessageLikeUnsigned, RedactedUnsigned, StateUnsigned,
         UnsignedRoomRedactionEvent,
     },
 };

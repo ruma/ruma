@@ -45,7 +45,7 @@ mod tests {
     use strass::assert_variant_eq;
 
     use super::RoomCanonicalAliasEventContent;
-    use crate::OriginalStateEvent;
+    use crate::StateEvent;
 
     #[test]
     fn serialization_with_optional_fields_as_none() {
@@ -75,7 +75,7 @@ mod tests {
         });
 
         assert_eq!(
-            from_json_value::<OriginalStateEvent<RoomCanonicalAliasEventContent>>(json_data)
+            from_json_value::<StateEvent<RoomCanonicalAliasEventContent>>(json_data)
                 .unwrap()
                 .content
                 .alias,
@@ -97,7 +97,7 @@ mod tests {
             "type": "m.room.canonical_alias"
         });
         assert_eq!(
-            from_json_value::<OriginalStateEvent<RoomCanonicalAliasEventContent>>(json_data)
+            from_json_value::<StateEvent<RoomCanonicalAliasEventContent>>(json_data)
                 .unwrap()
                 .content
                 .alias,
@@ -119,7 +119,7 @@ mod tests {
             "type": "m.room.canonical_alias"
         });
         assert_eq!(
-            from_json_value::<OriginalStateEvent<RoomCanonicalAliasEventContent>>(json_data)
+            from_json_value::<StateEvent<RoomCanonicalAliasEventContent>>(json_data)
                 .unwrap()
                 .content
                 .alias,
@@ -141,7 +141,7 @@ mod tests {
             "type": "m.room.canonical_alias"
         });
         assert_variant_eq!(
-            from_json_value::<OriginalStateEvent<RoomCanonicalAliasEventContent>>(json_data)
+            from_json_value::<StateEvent<RoomCanonicalAliasEventContent>>(json_data)
                 .unwrap()
                 .content
                 .alias,

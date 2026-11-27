@@ -16,6 +16,7 @@ use crate::EmptyStateKey;
 #[ruma_event(type = "m.room.pinned_events", kind = State, state_key_type = EmptyStateKey)]
 pub struct RoomPinnedEventsEventContent {
     /// An ordered list of event IDs to pin.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub pinned: Vec<OwnedEventId>,
 }
 

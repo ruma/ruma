@@ -21,6 +21,7 @@ use crate::EmptyStateKey;
 #[cfg_attr(not(ruma_unstable_exhaustive_types), non_exhaustive)]
 pub struct MemberHintsEventContent {
     /// The list of user IDs that should be considered a service member of the room.
+    #[serde(default, skip_serializing_if = "BTreeSet::is_empty")]
     pub service_members: BTreeSet<OwnedUserId>,
 }
 
@@ -40,7 +41,7 @@ mod test {
     use strass::assert_let;
 
     use super::*;
-    use crate::{AnyStateEvent, StateEvent};
+    use crate::AnyStateEvent;
 
     #[test]
     fn deserialize() {
@@ -63,7 +64,7 @@ mod test {
         let event = from_json_value::<AnyStateEvent>(data)
             .expect("We should be able to deserialize the member hints event");
 
-        assert_let!(AnyStateEvent::MemberHints(StateEvent::Original(event)) = event);
+        assert_let!(AnyStateEvent::MemberHints(event) = event);
 
         assert!(event.content.service_members.contains(user_id));
 
@@ -84,7 +85,7 @@ mod test {
         let event = from_json_value::<AnyStateEvent>(data)
             .expect("We should be able to deserialize the member hints event");
 
-        assert_let!(AnyStateEvent::MemberHints(StateEvent::Original(event)) = event);
+        assert_let!(AnyStateEvent::MemberHints(event) = event);
 
         assert!(event.content.service_members.contains(user_id));
     }

@@ -90,7 +90,7 @@ compat-null = ["ruma-common/compat-null"]
 
 # Allow certain fields to be absent even though the spec marks them as
 # mandatory. Deserialization will yield a default value like an empty string.
-compat-optional = ["ruma-common/compat-optional", "ruma-events?/compat-optional"]
+compat-optional = ["ruma-common/compat-optional"]
 
 # Treat the letters, digits and combining marks of most scripts as part of words when matching
 # `content.body` in push rules.

@@ -31,20 +31,14 @@ impl RoomHistoryVisibilityEventContent {
 impl RoomHistoryVisibilityEvent {
     /// Obtain the history visibility, regardless of whether this event is redacted.
     pub fn history_visibility(&self) -> &HistoryVisibility {
-        match self {
-            Self::Original(ev) => &ev.content.history_visibility,
-            Self::Redacted(ev) => &ev.content.history_visibility,
-        }
+        &self.content.history_visibility
     }
 }
 
 impl SyncRoomHistoryVisibilityEvent {
     /// Obtain the history visibility, regardless of whether this event is redacted.
     pub fn history_visibility(&self) -> &HistoryVisibility {
-        match self {
-            Self::Original(ev) => &ev.content.history_visibility,
-            Self::Redacted(ev) => &ev.content.history_visibility,
-        }
+        &self.content.history_visibility
     }
 }
 

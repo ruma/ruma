@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[ruma_event(type = "m.macro.test", kind = State, state_key_type = String)]
 pub struct MacroTestContent {
-    pub url: String,
+    pub url: Option<String>,
 }
 
 fn main() {
@@ -14,5 +14,8 @@ fn main() {
 
     assert_eq!(MacroTestContent::TYPE, "m.macro.test");
     assert!(!<MacroTestContent as StaticEventContent>::IsPrefix::as_bool());
-    assert_eq!(MacroTestContent { url: "foo".to_owned() }.event_type().to_string(), "m.macro.test");
+    assert_eq!(
+        MacroTestContent { url: Some("foo".to_owned()) }.event_type().to_string(),
+        "m.macro.test"
+    );
 }
